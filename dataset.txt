@@ -1,0 +1,122 @@
+DATASET PER IL PROGETTO P06 - SCHEDULING CON AI
+================================================
+
+Nota: questi dataset servono a VALIDARE il modello e a TARARE il generatore di istanze.
+L'addestramento avviene sulle istanze generate ed etichettate da CP-SAT.
+
+
+1) FABBRICA (JOB SHOP) - Taillard, Adams, Demirkol
+   Dove:      GitHub ai-for-decision-making-tue/Job_Shop_Scheduling_Benchmark_Environments_and_Instances
+   Contenuto: istanze job shop classiche
+   Ruolo:     validazione
+   Licenza:   MIT
+
+2) FABBRICA (JOB SHOP) - JSPLIB
+   Dove:      GitHub tamy0612/JSPLIB  (https://github.com/tamy0612/JSPLIB)
+   Contenuto: 162 istanze (80 Taillard, Lawrence, Fisher-Thompson, ...) con ottimo o bound noto
+   Ruolo:     validazione
+   Licenza:   non trovata
+
+3) FABBRICA (FLEXIBLE JOB SHOP) - Brandimarte, Hurink, Dauzere-Peres e Paulli, Barnes, Fattahi, Kacem
+   Dove:      repository TU/e (vedi punto 1)
+   Contenuto: 10 + 264 + 18 + 21 + 20 + 4 istanze
+   Ruolo:     validazione, taratura del profilo fabbrica
+   Licenza:   MIT
+
+4) FABBRICA CON SETUP - Fattahi (cartella fjsp_sdst)
+   Dove:      repository TU/e (vedi punto 1)
+   Contenuto: 20 istanze con setup dipendenti dalla sequenza
+   Ruolo:     validazione dei setup
+   Licenza:   MIT
+
+5) ASSEMBLAGGIO - YFJS, DAFJS (cartella fajsp)
+   Dove:      repository TU/e (vedi punto 1)
+   Contenuto: 20 + 30 istanze con precedenze a grafo
+   Ruolo:     validazione
+   Licenza:   MIT
+
+6) PROGETTI - PSPLIB
+   Dove:      https://www.om-db.wi.tum.de/psplib/
+   Contenuto: RCPSP j30, j60, j90, j120 e multi-modo
+   Ruolo:     validazione, test di generalizzazione
+   Licenza:   non verificata
+
+7) PROGETTI MULTIPLI - MPLIB, ASLIB, Patterson
+   Dove:      https://www.projectmanagement.ugent.be/research/data
+   Contenuto: piu' progetti in parallelo, varianti RCPSP
+   Ruolo:     validazione
+   Licenza:   non verificata
+
+8) COMPETENZE (PA, MANUTENZIONE) - MSLIB
+   Dove:      https://www.projectmanagement.ugent.be/research/project_scheduling/MSRCPSP
+   Contenuto: risorse con competenze diverse; include 7 istanze empiriche
+   Ruolo:     validazione, taratura del profilo PA
+   Licenza:   non verificata
+
+9) LOTTI, LABORATORI - RCPSP/max
+   Dove:      sito di TU Clausthal, sezione ProGen/max
+   Contenuto: tempi minimi e massimi tra attivita'
+   Ruolo:     test fuori dominio
+   Licenza:   non verificata
+
+10) PUBBLICA AMMINISTRAZIONE - BPI Challenge 2015
+   Dove:      research.tue.nl, una pagina per comune (DOI 4TU)
+              es. https://research.tue.nl/en/datasets/bpi-challenge-2015-municipality-2/
+   Contenuto: log dei permessi edilizi di 5 comuni olandesi
+   Ruolo:     taratura del profilo PA, shadow mode
+   Licenza:   da verificare su 4TU
+
+11) PUBBLICA AMMINISTRAZIONE - Road Traffic Fine Management Process
+   Dove:      https://data.4tu.nl/articles/_/12683249/1
+   Contenuto: log della gestione delle multe, polizia locale italiana
+   Ruolo:     taratura del profilo PA
+   Licenza:   da verificare su 4TU
+
+12) IT BATCH - Alibaba cluster-trace-v2018
+   Dove:      GitHub alibaba/clusterdata
+              (https://github.com/alibaba/clusterdata/blob/master/cluster-trace-v2018/trace_2018.md)
+   Contenuto: job con dipendenze a DAG, circa 4000 macchine, 8 giorni
+   Ruolo:     estensione
+   Licenza:   non indicata
+
+13) SANITA' - Benchmark CHOIR (sale operatorie)
+   Dove:      https://www.utwente.nl/en/choir/research/BenchmarkORScheduling
+   Contenuto: istanze di sale operatorie, generatore e validatore
+   Ruolo:     estensione
+   Licenza:   non indicata
+
+14) SANITA' - RealLife OR dataset
+   Dove:      https://data.mendeley.com/datasets/zg8v4s2kpw  (DOI 10.17632/zg8v4s2kpw.1)
+              + raccolta gennaio-maggio: https://data.mendeley.com/datasets/c8d342266x
+   Contenuto: 20 istanze settimanali da dati reali 2021
+   Ruolo:     estensione
+   Licenza:   non indicata
+
+15) STRUMENTO - pacchetto Python psplib
+   Dove:      GitHub PyJobShop/PSPLIB  (https://pypi.org/project/psplib)
+   Contenuto: parser per PSPLIB, MPLIB, ASLIB, MSLIB, RCPSP/max, Patterson
+   Ruolo:     lettura dei formati
+   Licenza:   MIT
+
+
+NOTE
+----
+- Per tribunali, magazzini, laboratori specifici e log reali di fabbrica non sono stati
+  trovati dataset pubblici affidabili: per questi ambiti si usa solo il generatore sintetico.
+- Per i dataset con licenza "non trovata", "non verificata" o "non indicata", controllare la
+  pagina ufficiale o contattare gli autori prima dell'uso: il deliverable 3 chiede di
+  dichiarare le condizioni d'uso.
+
+
+FONTI
+-----
+- Job Shop Scheduling Benchmark (TU/e): https://oosmetrics.com/repo/ai-for-decision-making-tue/Job_Shop_Scheduling_Benchmark_Environments_and_Instances
+- JSPLIB: https://github.com/tamy0612/JSPLIB
+- psplib su PyPI: https://pypi.org/project/psplib
+- PSPLIB (TU Muenchen): https://www.om-db.wi.tum.de/psplib/library.php
+- Snauwaert & Vanhoucke, MSRCPSP (EJOR 2023): https://repository.vlerick.com/entities/publication/5fabc1e8-ef8b-459c-831f-6a9538dc8e7e
+- BPI Challenge 2015 - Municipality 2: https://research.tue.nl/en/datasets/bpi-challenge-2015-municipality-2/
+- Road Traffic Fine Management Process (4TU): https://data.4tu.nl/articles/_/12683249/1
+- Alibaba cluster-trace-v2018: https://github.com/alibaba/clusterdata/blob/master/cluster-trace-v2018/trace_2018.md
+- Benchmark OR scheduling (CHOIR, University of Twente): https://www.utwente.nl/en/choir/research/BenchmarkORScheduling
+- RealLife OR dataset (Mendeley Data): https://data.mendeley.com/datasets/zg8v4s2kpw
