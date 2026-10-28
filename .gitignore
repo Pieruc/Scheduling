@@ -1,2 +1,4 @@
 #file esterni di visual paradigm
 *.bak*
+*.vpp.lck*
+.*
