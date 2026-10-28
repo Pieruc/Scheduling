@@ -1,0 +1,246 @@
+SPIEGAZIONE DELLE SCELTE ARCHITETTURALI - ProductionSchedulingOptimization.vpp
+================================================================================
+Progetto P06 - Scheduling con AI
+Diagramma: "P06 Architecture" (UML Component Diagram, Visual Paradigm)
+
+
+1. VISIONE D'INSIEME
+--------------------
+Il sistema è diviso in quattro blocchi, ognuno con una tecnologia e una
+responsabilità precisa:
+
+  - Frontend (Angular)        -> interfaccia per planner, operatori, amministratori
+  - Backend (Spring Boot)     -> logica di business, sicurezza, API pubbliche
+  - DB (MySQL)                -> persistenza dei dati operativi
+  - AI (Python)               -> ottimizzazione, diviso a sua volta in:
+        * Inference Service (FastAPI)   - online, risponde alle richieste
+        * Model & Dataset Storage       - modelli e dati versionati
+        * Training Pipeline (offline)   - addestramento e valutazione
+
+Perché questa divisione:
+  - Separazione delle responsabilità: l'AI è scritta in Python (ecosistema ML,
+    OR-Tools per CP-SAT), il backend in Java/Spring (robustezza, sicurezza,
+    JPA), il frontend in Angular. Ogni parte può essere sviluppata e testata
+    da una persona diversa.
+  - Il frontend non parla mai direttamente con l'AI: passa sempre dal backend.
+    Così autenticazione, permessi, audit e gestione degli errori stanno in un
+    solo punto.
+  - Addestramento (offline) e inferenza (online) sono separati: il training
+    può durare ore e usare CP-SAT senza limiti di tempo, mentre l'inferenza
+    deve rispondere in pochi secondi con un modello già pronto.
+
+
+2. FRONTEND (ANGULAR)
+---------------------
+Una pagina/modulo per ogni attività dell'utente:
+
+  - Auth & Roles            Login e ruoli: planner, operatore, amministratore.
+                            Usa il token JWT rilasciato dal backend (Security).
+  - Orders & Process Graph  Inserimento ordini ed editor del grafo di processo
+                            (le precedenze tra attività).
+  - Planning & Gantt        Generazione del piano, vista Gantt, confronto con
+                            il piano di riferimento. Comunica col backend
+                            (Planning) via REST/JSON.
+  - Plan Review             Approvare, modificare o rifiutare un piano.
+  - Execution               Registrazione dell'esecuzione reale.
+  - KPI Dashboard           Indicatori nel tempo.
+  - Model Info              Versione del modello attivo e sue metriche, in sola
+                            lettura.
+
+Scelte rilevanti:
+  - "Plan Review" esprime il principio "human in the loop": l'AI propone, ma
+    è sempre una persona a decidere se il piano viene adottato.
+  - "Model Info" in sola lettura: l'utente vede quale modello sta lavorando
+    (trasparenza), ma non può cambiarlo dall'interfaccia; la pubblicazione di
+    un nuovo modello avviene solo dalla pipeline di training.
+
+
+3. BACKEND (SPRING BOOT)
+------------------------
+  - Security            Spring Security, JWT, ruoli. Auth & Roles dipende da
+                        questo componente (dipendenza "JWT").
+  - Configuration       Risorse, calendari, competenze (skills), profili di
+                        dominio. Il "profilo di dominio" permette di usare lo
+                        stesso sistema in contesti diversi (fabbrica, PA,
+                        progetti...), come previsto dal file dataset.txt.
+  - Orders & Priority   Ordini, attività, grafo di processo, priorità.
+  - Planning            Costruisce la ProblemSpec (la descrizione completa del
+                        problema da passare all'AI), espone l'API REST pubblica
+                        e gestisce la rischedulazione.
+  - Execution & KPIs    Shadow mode e indicatori. In shadow mode il piano
+                        dell'AI viene calcolato in parallelo a quello reale ma
+                        non applicato: serve a misurare quanto l'AI sarebbe
+                        stata migliore/peggiore senza rischi operativi.
+  - Decisions           Approvazione, modifica, rifiuto del piano (lato server
+                        di Plan Review).
+  - Audit               Registra input, versione del modello, output e
+                        decisione dell'operatore. Ogni piano è quindi
+                        tracciabile e riproducibile.
+  - Persistence         JPA / Hibernate, migrazioni con Flyway (schema del DB
+                        versionato insieme al codice).
+  - AI Client           Client verso il servizio AI con timeout, retry e
+                        circuit breaker (Resilience4j).
+
+Catena di chiamata: Planning -> AI Client -> (REST interno /optimize) ->
+Inference Service.
+
+Scelte rilevanti:
+  - Planning costruisce una ProblemSpec unica e indipendente dal dominio:
+    l'AI non conosce le tabelle del DB, riceve solo un documento JSON
+    autosufficiente. Questo disaccoppia i due mondi.
+  - AI Client con Resilience4j: il servizio Python è un sistema esterno che
+    può essere lento o non disponibile. Timeout e circuit breaker evitano che
+    un problema dell'AI blocchi tutto il backend.
+  - L'endpoint /optimize è "interno": non è esposto al frontend, solo al
+    backend.
+  - Audit separato e obbligatorio: in contesti come la PA ogni decisione
+    automatica deve essere giustificabile (chi, quando, con quale modello).
+
+
+4. DATABASE (MYSQL)
+-------------------
+Sei aree dati, che rispecchiano i moduli del backend:
+
+  - Configuration Data       risorse, calendari, competenze, profili
+  - Orders & Processes       ordini, attività, precedenze
+  - Plans & Assignments      piani, assegnazioni, KPI (salvati come JSON)
+  - Decisions & Executions   decisioni dell'operatore, esecuzione reale
+  - Model Metadata           versioni dei modelli e loro metriche
+  - Audit Log                record di tracciabilità
+
+Scelte rilevanti:
+  - Piani e KPI salvati in JSON: la struttura di un piano può cambiare tra
+    domini diversi; il JSON evita di modificare lo schema ad ogni variante.
+  - Model Metadata sta nel DB MySQL (non solo nello storage dei modelli):
+    così il backend e la pagina Model Info sanno quale versione è attiva
+    senza dover interrogare il servizio Python. È la pipeline di training
+    (Model Publisher) a registrare qui la nuova versione.
+  - Accesso via JPA (dipendenze "JPA" da Persistence e da Audit).
+
+
+5. AI - INFERENCE SERVICE (FASTAPI)
+-----------------------------------
+È il cuore online. La richiesta attraversa una catena di moduli:
+
+  API & Validation -> M1 Context -> Disjunctive Graph -> M2 Policy + Dispatcher
+                                                               |
+                                            (on error)         v
+                                     Fallback CP-SAT -> ATC / EDD
+
+  - API & Validation   endpoint /optimize, schema Pydantic, controlli di
+                       consistenza (es. precedenze cicliche, risorse
+                       inesistenti). Rifiuta subito input sbagliati.
+  - M1 Context         Completa e "aggiusta" il contesto ricevuto: stima
+                       durate e tempi di setup mancanti, sceglie profilo e
+                       pesi degli obiettivi, calcola un livello di confidenza.
+  - Disjunctive Graph  Rappresenta il problema come grafo disgiuntivo:
+                       archi di precedenza (vincoli fissi) e archi di
+                       conflitto sulle risorse (da orientare). È la
+                       rappresentazione classica del job shop.
+  - M2 Policy +        La Policy è il modello addestrato che sceglie, passo
+    Dispatcher         dopo passo, quale attività schedulare; il Dispatcher è
+                       il simulatore che applica la scelta rispettando i
+                       vincoli. Il piano è quindi ammissibile per costruzione:
+                       il modello sceglie solo tra candidati validi.
+  - Model Loader       Carica la versione attiva del modello dallo storage
+                       ("active version", "loads model").
+  - Fallback           Usato in caso di errore o confidenza bassa. Ordine:
+                       prima CP-SAT, poi regole di dispatching ATC / EDD.
+
+Scelte rilevanti:
+  - Separare M1 (stima del contesto) e M2 (decisione) permette di
+    addestrarli, valutarli e sostituirli in modo indipendente.
+  - "Ammissibile per costruzione": invece di far generare all'AI un piano
+    completo e poi verificarlo, l'AI sceglie solo tra mosse lecite. Non può
+    mai produrre un piano che viola precedenze o capacità.
+  - Fallback a cascata: il sistema restituisce sempre un piano. CP-SAT dà
+    qualità alta ma può essere lento; ATC (Apparent Tardiness Cost) ed EDD
+    (Earliest Due Date) sono regole immediate, sempre disponibili.
+  - Nota aperta nel diagramma: "bisogna decidere se si può usare CP-SAT come
+    fallback quando l'AI fallisce" (dipende dai tempi di risposta su istanze
+    grandi).
+
+
+6. AI - MODEL & DATASET STORAGE
+-------------------------------
+  - Model Artifacts            modelli addestrati, versionati
+  - Training Datasets          istanze generate ed etichette
+  - Process Logs & Benchmarks  log di eventi reali e istanze di benchmark
+
+Scelta rilevante: tutto è versionato, così ogni piano prodotto può essere
+ricondotto al modello e al dataset con cui è stato generato (insieme
+all'Audit del backend).
+
+
+7. AI - TRAINING PIPELINE (OFFLINE)
+-----------------------------------
+Flusso:
+
+  Process Logs & Benchmarks --reads--> Log & Benchmark Converters
+        --calibration--> Instance Generator --> CP-SAT Teacher
+        --> Dataset Builder --stores--> Training Datasets
+                        \--> Policy Training --> Evaluation --> Model Publisher
+                                     --publishes--> Model Artifacts
+                                     --registers version--> Model Metadata (DB)
+
+  - Log & Benchmark Converters  Convertono Brandimarte, PSPLIB, MSLIB e i log
+                                BPIC in un unico schema comune.
+  - Instance Generator          Genera istanze sintetiche secondo i profili di
+                                dominio, con pesi degli obiettivi casuali.
+                                Viene tarato ("calibration") sui dati reali e
+                                sui benchmark.
+  - CP-SAT Teacher              Risolve le istanze con CP-SAT (OR-Tools) e ne
+                                ricava le etichette. Usato solo in training.
+  - Dataset Builder             Costruisce stati, candidati ed etichette;
+                                split train/validation/test versionati.
+  - Policy Training             Addestra un modello di ranking per M2: dato
+                                uno stato, ordina le attività candidate.
+  - Context Estimator Training  Addestra i modelli di durata e setup di M1.
+  - Evaluation                  Confronta il modello con EDD, ATC e CP-SAT.
+  - Model Publisher             Pubblica solo le versioni approvate.
+
+Scelte rilevanti:
+  - Imitation learning con CP-SAT come "insegnante": CP-SAT trova piani
+    ottimi o quasi-ottimi ma è troppo lento per l'uso online; il modello
+    impara a imitarne le scelte e poi decide in tempi molto brevi.
+  - Dati sintetici: per molti domini non esistono dataset pubblici
+    affidabili (vedi dataset.txt). Il generatore produce dati illimitati; i
+    dataset reali servono a tararlo e a validare il modello, non ad
+    addestrarlo.
+  - Pesi degli obiettivi casuali: il modello impara a gestire combinazioni
+    diverse (ritardo, makespan, setup...), quindi lo stesso modello serve
+    profili diversi.
+  - Modello di ranking: invece di predire un piano intero, il modello
+    confronta candidati. È più semplice da addestrare e si integra
+    naturalmente con il Dispatcher.
+  - Valutazione obbligatoria prima della pubblicazione: un modello entra in
+    produzione solo se batte (o almeno eguaglia) le regole di riferimento.
+
+
+8. NOTE E PUNTI APERTI PRESENTI NEL DIAGRAMMA
+---------------------------------------------
+  - Da decidere se CP-SAT può essere usato come fallback quando l'AI fallisce.
+  - CP-SAT sarà anche l'insegnante del modello AI.
+  - Da decidere se e come integrare i KPI (Key Performance Indicator) nel
+    progetto (nel diagramma sono già presenti KPI Dashboard ed
+    Execution & KPIs).
+  - M1 Context "corregge" il contesto ricevuto, completando ciò che manca.
+  - M2 Policy prende le decisioni di scheduling; il Dispatcher è il
+    simulatore.
+
+
+9. PICCOLE IMPERFEZIONI DEL MODELLO DA SISTEMARE
+------------------------------------------------
+  - Il package si chiama "Model & Dataset Storagea" (refuso: "Storage").
+  - "Context Estimator Training" non ha frecce: manca il collegamento verso
+    Model Artifacts / Dataset Builder.
+  - Solo Planning & Gantt e Auth & Roles sono collegati al backend; le altre
+    pagine del frontend non hanno dipendenze disegnate.
+  - Persistence è collegato solo a Configuration Data: mancano le frecce
+    verso le altre tabelle (o una nota che dica che le gestisce tutte).
+  - Il componente Fallback si chiama "CP-SAT -> ATC / EDD", mentre la nota
+    dice che l'uso di CP-SAT come fallback è ancora da decidere.
+  - Nella documentazione del Fallback compare "error or low confidence",
+    ma la freccia è etichettata solo "on error".
+  - La confidenza calcolata da M1 non ha una freccia esplicita verso il
+    Fallback.
