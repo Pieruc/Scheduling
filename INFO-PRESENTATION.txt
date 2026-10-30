@@ -1,0 +1,12 @@
+PRESENTAZIONE 06-11 (10 minutes)
+
+
+
+
+
+1. parlare del progetto in generale
+2. parlare del gantt
+3. parlare dell'architettura
+4. parlare del modello scelto
+5. parlare dei dataset trovati (magari quelli licenziati)
+6. parlare dei contratti api
