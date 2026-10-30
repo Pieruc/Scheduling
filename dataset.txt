@@ -1,5 +1,4 @@
-DATASET PER IL PROGETTO P06 - SCHEDULING CON AI
-================================================
+DATASET PER IL PROGETTO SCHEDULING CON AI
 
 Nota: questi dataset servono a VALIDARE il modello e a TARARE il generatore di istanze.
 L'addestramento avviene sulle istanze generate ed etichettate da CP-SAT.
