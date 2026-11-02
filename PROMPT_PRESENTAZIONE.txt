@@ -1,0 +1,193 @@
+Crea una presentazione PowerPoint in italiano di 10 minuti sullo STATO DI AVANZAMENTO del
+progetto universitario "P06 - Scheduling con AI" (corso CSD, Magistrale UNICAM).
+Presentazione del 06/11/2026, coincide con la milestone M0 "Validazione con il professore".
+Team di 3 persone: P1 AI e dati, P2 Backend e DB, P3 Frontend.
+
+VINCOLI GENERALI
+- 11-12 slide in totale, circa 50-60 secondi a slide. Rispetta i tempi indicati per sezione.
+- Stile tecnico e pulito: sfondo chiaro, un colore di accento, font sans-serif.
+- Poco testo: massimo 5 punti per slide, frasi brevi. I dettagli vanno nelle note del relatore.
+- Ogni slide ha le note del relatore con il discorso da dire (in italiano, tono parlato).
+- Usa diagrammi e tabelle al posto degli elenchi quando possibile.
+- Ordine delle sezioni OBBLIGATORIO, come sotto.
+
+IMMAGINI ALLEGATE (usale così come sono, a tutta larghezza, senza ridisegnarle):
+- 05_flusso_sistema.png  -> slide 2
+- 02_gantt.png           -> slide 3
+- 01_architettura.png    -> slide 5
+- 03_pipeline_ai.png     -> slide 7
+- 04_contratti_api.png   -> slide 10
+Nelle slide con immagine metti al massimo 2-3 punti di testo accanto o sotto;
+il resto del contenuto indicato va nelle note del relatore.
+
+--------------------------------------------------------------------------------------------
+SLIDE 1 - Titolo (15 s)
+"P06 - Scheduling con AI: stato del progetto". Sottotitolo: Milestone M0, 06/11/2026.
+Nomi del team con i ruoli (P1 AI e dati, P2 Backend e DB, P3 Frontend).
+
+--------------------------------------------------------------------------------------------
+SEZIONE 1 - IL PROGETTO (1 min, 1 slide)
+
+SLIDE 2 - Cosa fa il sistema
+- Problema: assegnare attività a risorse (macchine, persone, sale) nel tempo, rispettando
+  precedenze, capacità, calendari e competenze, minimizzando ritardi, makespan e setup.
+- Soluzione: un sistema web in cui il planner inserisce ordini e processi, l'AI propone un
+  piano (Gantt) in pochi secondi e una persona lo approva, modifica o rifiuta
+  ("human in the loop").
+- Generico rispetto al dominio grazie ai "profili di dominio": fabbrica, pubblica
+  amministrazione, progetti.
+- Il piano è sempre ammissibile e sempre disponibile: se l'AI fallisce subentrano
+  algoritmi di riserva.
+Visual: flusso a 4 passi Ordini -> AI propone piano -> Planner decide -> Esecuzione e KPI.
+
+--------------------------------------------------------------------------------------------
+SEZIONE 2 - GANTT E SITUAZIONE ATTUALE (2 min, 2 slide)
+
+SLIDE 3 - Pianificazione del progetto (dal 26/10/2026 al 10/02/2027)
+Disegna un Gantt semplificato con 5 macro-fasi e 3 corsie parallele:
+- Analisi e documentazione: 26/10 - 13/11 (tutti)
+  - Dominio, requisiti, ADR: 26/10 - 06/11
+  - ProblemSpec v1 e contratti OpenAPI: 02/11 - 13/11
+- Dati e AI (P1): 09/11 - 29/01
+  generatore istanze e convertitori benchmark -> dispatcher e baseline EDD/ATC ->
+  CP-SAT teacher e dataset -> pilota primo modello vs ATC -> M1 stima durate ->
+  servizio FastAPI -> esperimenti di generalizzazione
+- Backend e DB (P2): 09/11 - 29/01
+  schema MySQL e Flyway -> security e CRUD -> scheduling e AI client (prima con mock) ->
+  decisioni, esecuzione, KPI, audit -> API pubblica
+- Frontend (P3): 09/11 - 03/02
+  mockup e flussi -> setup Angular, auth, configurazione -> ordini ed editor del grafo ->
+  Gantt e review -> dashboard KPI
+- Integrazione, valutazione e consegna: 18/01 - 09/02
+  Docker Compose end-to-end, valutazione sperimentale e shadow mode, test,
+  documentazione finale (8 deliverable), presentazione
+Pausa natalizia tra 19/12 e 10/01 (nessuna attività).
+Milestone come rombi:
+  M0 06/11 Validazione col professore | M1 11/12 Esito del pilota (go/no-go) |
+  M2 18/12 Sistema end-to-end minimo | M3 29/01 Feature freeze | M4 10/02 Consegna
+
+SLIDE 4 - Dove siamo oggi
+- Fatto: analisi del dominio, diagramma architetturale (UML componenti), ricerca e
+  catalogo dei dataset con licenze, Gantt v4 allineato all'architettura, bozza dei
+  contratti API e della ProblemSpec.
+- In corso: ProblemSpec v1 e OpenAPI definitivi (fine 13/11).
+- Prossimi passi dal 09/11: generatore di istanze, schema DB, mockup del frontend,
+  lavorati in parallelo dalle 3 persone.
+- Rischio principale: il pilota dell'11/12 decide se il modello AI batte la regola ATC;
+  se no, piano B con CP-SAT e regole di dispatching.
+- Le 3 corsie lavorano in parallelo perché il contratto API (ProblemSpec) disaccoppia
+  frontend, backend e AI; il backend usa un mock dell'AI fino a M2.
+Visual: barra di avanzamento con indicatore "oggi" sulla fase di Analisi.
+
+--------------------------------------------------------------------------------------------
+SEZIONE 3 - SCELTE ARCHITETTURALI (2 min 30 s, 3 slide)
+
+SLIDE 5 - Architettura a 4 blocchi
+Diagramma a blocchi:
+  Frontend (Angular) -> REST/JSON + JWT -> Backend (Spring Boot) -> REST interna /optimize ->
+  AI Inference Service (Python, FastAPI)
+  Backend -> JPA -> DB (MySQL)
+  AI Training Pipeline (offline) -> Model & Dataset Storage, registra le versioni nel DB
+Motivazioni (punti brevi):
+- Ogni blocco ha tecnologia e responsabilità proprie: Python per ML e OR-Tools, Java/Spring
+  per sicurezza e persistenza, Angular per l'interfaccia.
+- Il frontend non parla mai con l'AI: autenticazione, permessi, audit ed errori in un solo
+  punto (il backend).
+- Training offline separato dall'inferenza online: il training dura ore, l'inferenza
+  risponde in pochi secondi.
+
+SLIDE 6 - Backend e dati
+- Moduli: Security (JWT, ruoli planner/operatore/admin), Configuration, Orders & Priority,
+  Planning, Decisions, Execution & KPI, Audit, AI Client.
+- Planning costruisce una ProblemSpec: un JSON autosufficiente, l'AI non conosce il DB.
+- AI Client con Resilience4j (timeout, retry, circuit breaker): un'AI lenta non blocca
+  il backend.
+- Audit obbligatorio: input, versione del modello, output e decisione umana sono tracciati
+  e il piano è riproducibile (importante per la PA).
+- MySQL con Flyway; piani e KPI salvati in JSON perché variano tra domini.
+- Shadow mode: il piano AI si calcola in parallelo a quello reale senza applicarlo,
+  per misurare il beneficio senza rischi.
+
+SLIDE 7 - Il modello AI
+Pipeline online: Validazione -> M1 Context -> Grafo disgiuntivo -> M2 Policy + Dispatcher
+-> (su errore o bassa confidenza) Fallback CP-SAT -> ATC / EDD.
+- M1 Context: stima durate e setup mancanti, sceglie i pesi degli obiettivi, calcola la
+  confidenza.
+- M2 Policy: modello di ranking che a ogni passo sceglie quale attività schedulare tra i
+  candidati validi; il Dispatcher applica la scelta. Il piano è ammissibile per costruzione.
+- Training per imitation learning: CP-SAT (OR-Tools) fa da "insegnante" su istanze
+  sintetiche; il modello impara a imitarlo ma decide in millisecondi.
+- Un modello va in produzione solo se batte (o eguaglia) le regole EDD e ATC.
+- Punto aperto: usare CP-SAT anche come fallback online dipende dai tempi su istanze grandi.
+Visual: due righe, "Training offline" (generatore -> CP-SAT teacher -> dataset ->
+training -> valutazione -> pubblicazione) e "Inferenza online" (la pipeline sopra).
+
+--------------------------------------------------------------------------------------------
+SEZIONE 4 - DOMINIO APPLICATIVO E DATASET (2 min, 2 slide)
+
+SLIDE 8 - Domini applicativi
+Tabella o griglia di 4-6 riquadri con icona:
+- Fabbrica: job shop flessibile, risorse alternative, setup dipendenti dalla sequenza,
+  assemblaggio con precedenze a grafo.
+- Progetti: RCPSP, anche multi-progetto e multi-modo.
+- Pubblica amministrazione e manutenzione: risorse con competenze diverse, pratiche
+  (es. permessi edilizi, multe).
+- Estensioni: sanità (sale operatorie), IT batch (job a DAG).
+Messaggio chiave: un unico modello generale; il dominio cambia tramite i "profili di
+dominio" (vincoli attivi e pesi degli obiettivi).
+
+SLIDE 9 - Dataset trovati
+Messaggio chiave in evidenza: i dataset reali servono a VALIDARE il modello e a TARARE il
+generatore; l'addestramento avviene su istanze sintetiche etichettate da CP-SAT.
+Tabella (Dominio | Dataset | Ruolo | Licenza):
+- Fabbrica job shop | Taillard, Adams, Demirkol (repository TU/e) | validazione | MIT
+- Fabbrica job shop | JSPLIB (162 istanze con ottimo noto) | validazione | non trovata
+- Fabbrica flessibile | Brandimarte, Hurink, Dauzere-Peres, Barnes, Fattahi, Kacem | validazione, taratura | MIT
+- Fabbrica con setup | Fattahi fjsp_sdst (20 istanze) | validazione setup | MIT
+- Assemblaggio | YFJS, DAFJS | validazione | MIT
+- Progetti | PSPLIB j30-j120, MPLIB, Patterson | validazione, generalizzazione | da verificare
+- Competenze / PA | MSLIB (con 7 istanze empiriche) | taratura profilo PA | da verificare
+- PA | BPI Challenge 2015, Road Traffic Fines (polizia locale italiana) | taratura, shadow mode | da verificare su 4TU
+- Estensioni | Alibaba cluster trace, CHOIR e RealLife OR (sanità) | estensione | non indicata
+Evidenzia in verde le licenze MIT. Nota in piccolo: per tribunali, magazzini e log reali
+di fabbrica non esistono dataset pubblici affidabili, si usa solo il generatore; le
+licenze non verificate vanno chiarite prima dell'uso (richiesto dal deliverable 3).
+Strumento: pacchetto Python "psplib" (MIT) per leggere i formati.
+
+--------------------------------------------------------------------------------------------
+SEZIONE 5 - CONTRATTI API (2 min, 2 slide)
+
+SLIDE 10 - Mappa dei contratti
+Diagramma con 4 contratti etichettati A-D:
+- A. API pubblica Frontend -> Backend: REST /api/v1, JWT, ruoli PLANNER/OPERATOR/ADMIN.
+  Gruppi: Auth, Configuration, Orders & Process Graph, Planning & Gantt, Plan Review,
+  Execution & KPI, Model Info (sola lettura), Audit.
+- B. API di ottimizzazione Backend -> AI: POST /optimize (ProblemSpec -> PlanResult),
+  /validate, /health. Interna, non esposta al frontend.
+- C. Registrazione modelli: il Model Publisher scrive versione, metriche e stato nel DB.
+- D. Schema unico delle istanze: i convertitori dei benchmark producono lo stesso formato
+  della ProblemSpec, quindi training, valutazione e produzione usano la stessa struttura.
+Convenzioni: JSON, errori RFC 7807, versionamento /api/v1 e spec_version.
+
+SLIDE 11 - Il contratto centrale: /optimize
+Due colonne con estratti JSON brevi (font monospace, max 12 righe ciascuno):
+- Richiesta ProblemSpec: horizon, objective_weights, resources (con finestre di
+  disponibilità), jobs (rilascio, scadenza, peso), activities (modi alternativi
+  risorsa/durata, durata null = stimata da M1), precedences, setup_times,
+  fixed_assignments (rischedulazione), options (time_limit_ms, fallback_chain,
+  min_confidence).
+- Risposta PlanResult: status (OK | FALLBACK | INFEASIBLE), solver (POLICY | CP_SAT |
+  ATC | EDD), model_versions, confidence, assignments (attività, risorse, start, end),
+  context_adjustments (stime di M1), kpis.
+Garanzie: piano sempre ammissibile; risposta entro il time limit; tempi in minuti relativi
+all'orizzonte; request_id rende la chiamata idempotente.
+Nota: la generazione del piano lato API pubblica è asincrona
+(POST /plans -> 202, poi GET /plans/{id}).
+
+--------------------------------------------------------------------------------------------
+SLIDE 12 - Punti aperti e domande (30 s)
+- CP-SAT come fallback online?
+- Integrazione dei KPI nel perimetro del progetto?
+- Aggiornamento del piano: polling o WebSocket?
+- Licenze dei dataset da verificare.
+Chiudi con "Domande?".
