@@ -1,6 +1,14 @@
 import { NavLink } from 'react-router'
 import { Logo } from '@/components/Logo'
+import { useActiveModels } from '@/features/model-info/hooks'
 import styles from './Sidebar.module.css'
+
+/** "m2-policy-1.3.0" -> "M2 Policy v1.3" */
+function shortModelName(version: string) {
+  const m = version.match(/^m(\d+)-(\w+)-(\d+\.\d+)/)
+  if (!m) return version
+  return `M${m[1]} ${m[2][0].toUpperCase()}${m[2].slice(1)} v${m[3]}`
+}
 
 type NavItem = { to: string; label: string; end?: boolean }
 type NavGroup = { title?: string; items: NavItem[] }
@@ -32,6 +40,13 @@ type SidebarProps = {
 }
 
 export function Sidebar({ id, open }: SidebarProps) {
+  const { data: models, isError: modelsError } = useActiveModels()
+  const modelLabel = models
+    ? shortModelName(models.policy.version)
+    : modelsError
+      ? 'non disponibile'
+      : '…'
+
   return (
     <nav id={id} className={styles.sidebar} data-open={open} aria-label="Navigazione principale">
       <div className={styles.logo}>
@@ -56,11 +71,11 @@ export function Sidebar({ id, open }: SidebarProps) {
         </div>
       ))}
 
-      {/* Dati fissi finché non arrivano login e /models/active */}
       <div className={styles.footer}>
+        {/* Utente fisso finché non arriva il login */}
         Giulia Neri · Pianificatore
         <br />
-        Modello attivo <span>M2 Policy v1.3</span>
+        Modello attivo <span>{modelLabel}</span>
       </div>
     </nav>
   )

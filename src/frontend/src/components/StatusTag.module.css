@@ -1,0 +1,34 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blue {
+  background: var(--fs-primary-soft);
+  color: var(--fs-primary-text);
+}
+
+.green {
+  background: var(--fs-success-soft);
+  color: var(--fs-success);
+}
+
+.red {
+  background: var(--fs-danger-soft);
+  color: var(--fs-danger);
+}
+
+.amber {
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
+.grey {
+  background: var(--fs-track);
+  color: #4b5563;
+}

@@ -1,0 +1,35 @@
+.kpi {
+  padding: 16px 18px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-card);
+  background: var(--fs-surface);
+}
+
+.label {
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.value {
+  margin-top: 4px;
+  font-size: 28px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.note {
+  margin-top: 2px;
+  font-size: 13px;
+}
+
+.neutral {
+  color: var(--fs-muted);
+}
+
+.good {
+  color: var(--fs-success);
+}
+
+.bad {
+  color: var(--fs-danger);
+}

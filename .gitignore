@@ -14,3 +14,4 @@ src/ai/data/
 !src/frontend/.oxlintrc.json
 !src/frontend/.prettierrc.json
 !src/frontend/.prettierignore
+!src/frontend/.env.development

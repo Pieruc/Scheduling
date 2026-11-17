@@ -1,0 +1,65 @@
+import { ApiError } from '@/api/errors'
+import type { ProblemDetails } from '@/api/types/common'
+
+/** URL di base dell'API pubblica (contratto A): /api/v1 */
+const BASE_URL = import.meta.env.VITE_API_URL
+
+type Query = Record<string, string | number | boolean | undefined>
+
+type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  /** Parametri in coda all'URL: { from: '2026-11-01' } -> ?from=2026-11-01 */
+  query?: Query
+  /** Corpo della richiesta, inviato come JSON */
+  body?: unknown
+  signal?: AbortSignal
+}
+
+/**
+ * Unico punto dell'app che chiama il backend. Le pagine non usano mai fetch direttamente:
+ * passano dalle funzioni in api/*.ts, che usano questa.
+ */
+export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { method = 'GET', query, body, signal } = options
+
+  const headers: HeadersInit = { Accept: 'application/json' }
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  // Qui, con il login, si aggiungerà: Authorization: Bearer <token>
+
+  let response: Response
+  try {
+    response = await fetch(BASE_URL + path + toQueryString(query), {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+      signal,
+    })
+  } catch (cause) {
+    if (cause instanceof DOMException && cause.name === 'AbortError') throw cause
+    throw new ApiError({ status: 0, title: 'Network error' })
+  }
+
+  if (!response.ok) throw new ApiError(await readProblem(response))
+  if (response.status === 204) return undefined as T
+  return (await response.json()) as T
+}
+
+function toQueryString(query?: Query): string {
+  if (!query) return ''
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(query)) {
+    if (value !== undefined) params.set(key, String(value))
+  }
+  const text = params.toString()
+  return text ? `?${text}` : ''
+}
+
+/** Legge il corpo RFC 7807; se manca, ne costruisce uno dallo status HTTP. */
+async function readProblem(response: Response): Promise<ProblemDetails> {
+  try {
+    const data = (await response.json()) as Partial<ProblemDetails>
+    return { ...data, status: response.status, title: data.title ?? response.statusText }
+  } catch {
+    return { status: response.status, title: response.statusText || 'Errore' }
+  }
+}

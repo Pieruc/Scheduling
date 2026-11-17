@@ -1,0 +1,16 @@
+.error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #f1b0aa;
+  border-radius: var(--fs-radius);
+  background: var(--fs-danger-soft);
+  color: #7a1a12;
+}
+
+.text {
+  flex: 1;
+  min-width: 160px;
+}

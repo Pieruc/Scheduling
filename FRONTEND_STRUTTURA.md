@@ -20,15 +20,15 @@ realizzare sono in `FE_Mockups/FlowSync – Mockup UI v2.html`; le API sono in
 | Ambito | Scelta | Perché |
 |---|---|---|
 | Build | **Vite** + **React** + **TypeScript** | Standard attuale, avvio rapido |
-| Componenti UI | **PrimeReact** | Equivalente React di PrimeNG: tabelle, tab, slider, stepper, tag, dialog già pronti |
-| Routing | **React Router** | Rotte annidate, layout condivisi |
+| Componenti UI | **PrimeReact 10** | Tabelle, tab, slider, stepper, tag, dialog già pronti, licenza MIT. La 11 non ha temi pronti e ha licenza commerciale. Tema: `npm run theme` |
+| Routing | **React Router 7** | Rotte annidate, layout condivisi |
 | Dati dal server | **TanStack Query** | Cache, caricamento ed errori, polling del piano asincrono |
 | Form | **React Hook Form** + **Zod** | Validazione dichiarativa (commesse, risorse) |
 | Grafo attività | **React Flow** (`@xyflow/react`) | Editor a nodi con trascinamento dei collegamenti |
 | Grafici KPI | **Chart** di PrimeReact (Chart.js) | Già incluso, stesso stile |
 | Gantt risorse | **Componente nostro** (vedi §6) | Il mockup ha esigenze molto specifiche |
 | Date | **date-fns** (locale `it`) | Formati “gio 19, 8:00”, “4 g 6 h” |
-| Mock API | **MSW** (Mock Service Worker) | Intercetta le chiamate HTTP vere: basta spegnerlo quando il backend è pronto |
+| Mock API | **MSW 3** (Mock Service Worker) | Intercetta le chiamate HTTP vere: basta spegnerlo quando il backend è pronto. Errore simulato: `sessionStorage.setItem('mock:fail', '1')` |
 | Test | **Vitest** + **Testing Library** | Unit e componenti |
 | Qualità | ESLint + Prettier | |
 
@@ -240,8 +240,16 @@ chi fa il backend.
 2. **Interpretazione LLM** della richiesta a parole: un endpoint che riceve il
    testo e restituisce orizzonte, commesse, vincoli, pesi e **domande sui dati
    mancanti** (es. “C-104 non ha scadenza”).
-3. **Nuovi KPI**: `overtimeMin`, `setupCount`, `estimatedCost` in `kpis`, e il
-   `costPerHour` nelle risorse.
+3. **Nuovi KPI**:
+   - nei KPI di un piano: `overtimeMin`, `setupCount`, `estimatedCost` e
+     `totalTardinessMin` (ritardo in minuti, più leggibile di `weightedTardiness`);
+   - nella serie di `GET /kpis`: `onTimeRate` (quota di commesse consegnate in tempo)
+     e `utilizationByResource: [{ resourceId, resourceName, utilization }]`;
+   - nelle risorse: `costPerHour`.
+
+   **Unità delle durate**: il frontend mostra "4 g 6 h" assumendo una giornata
+   lavorativa di 8 h (`WORKDAY_HOURS` in `src/lib/format.ts`). Da confermare: il
+   makespan è in minuti di lavoro o in minuti di calendario?
 4. **Stime di M1 nel piano**: per ogni attività con durata stimata, il valore e
    l'intervallo, cioè il `context_adjustments` del contratto B riportato nella
    risposta di `GET /plans/{id}`. Così non serve un endpoint di stima a parte.
