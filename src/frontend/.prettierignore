@@ -1,0 +1,4 @@
+dist
+node_modules
+public/mockServiceWorker.js
+src/styles/primereact-theme.css

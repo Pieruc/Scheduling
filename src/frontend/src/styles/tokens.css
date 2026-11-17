@@ -1,0 +1,53 @@
+/* Token di design di FlowSync, presi dal mockup v2 (FE_Mockups/).
+ * Usare sempre queste variabili invece dei colori scritti a mano. */
+:root {
+  /* superfici */
+  --fs-bg: #f4f6f9;
+  --fs-surface: #ffffff;
+  --fs-border: #e3e7ee;
+  --fs-border-soft: #f0f2f6;
+  --fs-border-strong: #c9d1dc;
+  --fs-track: #eef1f5;
+
+  /* testo */
+  --fs-text: #1b2230;
+  --fs-muted: #5a6474;
+
+  /* sidebar */
+  --fs-nav: #111827;
+  --fs-nav-active: #1f2937;
+  --fs-nav-text: #d1d5db;
+  --fs-nav-line: #374151;
+  --fs-teal: #2dd4bf;
+
+  /* stati */
+  --fs-primary: #0b57d0;
+  --fs-primary-soft: #e8f0fe;
+  --fs-primary-text: #0b4fbd;
+  --fs-success: #1e7a3c;
+  --fs-success-soft: #e6f4ea;
+  --fs-danger: #b42318;
+  --fs-danger-soft: #fdecea;
+  --fs-warning: #b45309;
+  --fs-warning-soft: #fff4e5;
+  --fs-warning-text: #7a3a00;
+
+  /* colori delle commesse nel Gantt (ciclici) */
+  --fs-job-1: #3b5bdb;
+  --fs-job-2: #2b8a3e;
+  --fs-job-3: #c2410c;
+  --fs-job-4: #7048e8;
+
+  /* forma */
+  --fs-radius: 8px;
+  --fs-radius-card: 12px;
+  --fs-sidebar-width: 220px;
+
+  /* variabili di PrimeReact allineate al mockup */
+  --font-family: 'Inter Variable', system-ui, sans-serif;
+  --text-color: var(--fs-text);
+  --text-color-secondary: var(--fs-muted);
+  --surface-ground: var(--fs-bg);
+  --surface-border: var(--fs-border);
+  --border-radius: var(--fs-radius);
+}

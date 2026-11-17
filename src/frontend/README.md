@@ -1,8 +1,8 @@
 # FlowSync – Frontend
 
 Interfaccia web di FlowSync (React + TypeScript + Vite).
-Struttura e scelte del progetto: [`../FRONTEND_STRUTTURA.md`](../FRONTEND_STRUTTURA.md).
-Schermate di riferimento: [`../FE_Mockups/FlowSync – Mockup UI v2.html`](../FE_Mockups/).
+Struttura e scelte del progetto: [`../../FRONTEND_STRUTTURA.md`](../../FRONTEND_STRUTTURA.md).
+Schermate di riferimento: [`../../FE_Mockups/FlowSync – Mockup UI v2.html`](../../FE_Mockups/).
 
 ## Requisiti
 

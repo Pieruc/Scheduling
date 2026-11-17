@@ -38,7 +38,7 @@ Lo stato globale (Redux/Zustand) **non serve**: quasi tutto è dato del server
 ## 3. Struttura delle cartelle
 
 ```
-frontend/
+src/frontend/
 ├── index.html
 ├── package.json
 ├── vite.config.ts

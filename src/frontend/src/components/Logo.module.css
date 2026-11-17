@@ -1,0 +1,16 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.light {
+  color: var(--fs-text);
+}
+
+.accent {
+  color: var(--fs-teal);
+}
