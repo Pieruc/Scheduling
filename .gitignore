@@ -2,3 +2,8 @@
 *.bak*
 *.vpp.lck*
 .*
+
+#python (cartella ai)
+__pycache__/
+*.egg-info/
+ai/data/
