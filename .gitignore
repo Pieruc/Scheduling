@@ -7,3 +7,10 @@
 __pycache__/
 *.egg-info/
 ai/data/
+
+#frontend: i file di configurazione che iniziano con "." vanno tracciati
+!frontend/**/.gitignore
+!frontend/**/.gitkeep
+!frontend/.oxlintrc.json
+!frontend/.prettierrc.json
+!frontend/.prettierignore

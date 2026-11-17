@@ -1,0 +1,17 @@
+/* Stili globali minimi. I token di colore del mockup arrivano con PrimeReact (passo 2). */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+  background: #f4f6f9;
+  color: #1b2230;
+}

@@ -766,6 +766,15 @@ document.querySelectorAll('nav.side').forEach(nav => {
   html += '<div class="foot">Giulia Neri · Pianificatore<br>Modello attivo <span>M2 Policy v1.3</span></div>';
   nav.innerHTML = html;
 });
+/* ?only=N mostra solo la schermata N (0 = login): usato per esportare gli screenshot */
+const only = new URLSearchParams(location.search).get('only');
+if (only !== null) {
+  document.querySelector('.intro').remove();
+  document.querySelectorAll('.board').forEach((b, i) => { if (i !== Number(only)) b.remove(); });
+  document.querySelector('.board h2').remove();
+  document.body.style.padding = '0';
+  document.querySelector('.screen').style.boxShadow = 'none';
+}
 </script>
 </body>
 </html>
