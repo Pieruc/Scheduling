@@ -1,0 +1,208 @@
+/* Elenco a sinistra, dettaglio a destra; sotto i 1100px uno sopra l'altro */
+.layout {
+  display: grid;
+  grid-template-columns: 340px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+}
+
+.missing {
+  color: var(--fs-danger);
+}
+
+/* Elenco */
+.listCard {
+  position: sticky;
+  top: 16px;
+}
+
+.listTools {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search :global(.p-inputtext) {
+  width: 100%;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.orderLink {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--fs-radius);
+  color: var(--fs-text);
+  text-decoration: none;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+}
+
+.orderLink:hover {
+  background: var(--fs-bg);
+}
+
+.orderLink:active {
+  transform: translateY(1px);
+}
+
+.orderActive {
+  border-color: #b3cdf6;
+  background: var(--fs-primary-soft);
+}
+
+.orderActive:hover {
+  background: var(--fs-primary-soft);
+}
+
+.orderMain {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.customer {
+  overflow: hidden;
+  color: var(--fs-muted);
+  font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.orderMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+/* Dettaglio */
+.detailCard {
+  gap: 18px;
+}
+
+.detailTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  margin-top: 6px;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+}
+
+.chip {
+  display: inline-block;
+  margin: 1px 4px 1px 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--fs-track);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.estimate {
+  color: var(--fs-warning-text);
+  font-style: italic;
+}
+
+.activityTable {
+  overflow-x: auto;
+}
+
+.afterSelect {
+  width: 100%;
+  min-width: 170px;
+}
+
+.saveBar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  margin: 0 -18px -18px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--fs-border);
+  border-radius: 0 0 var(--fs-radius-card) var(--fs-radius-card);
+  background: var(--fs-surface);
+}
+
+.saveBarSticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  box-shadow: 0 -6px 16px rgba(17, 24, 39, 0.08);
+}
+
+.unsaved,
+.saved {
+  margin-right: auto;
+  font-size: 13px;
+}
+
+.unsaved {
+  color: var(--fs-warning-text);
+  font-weight: 600;
+}
+
+.saved {
+  color: var(--fs-muted);
+}
+
+@media (max-width: 1099px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .listCard {
+    position: static;
+  }
+}
+
+@media (max-width: 480px) {
+  .saveBar :global(.p-button) {
+    flex: 1 1 100%;
+  }
+
+  .unsaved,
+  .saved {
+    flex: 1 1 100%;
+  }
+}

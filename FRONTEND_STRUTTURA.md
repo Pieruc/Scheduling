@@ -258,6 +258,9 @@ chi fa il backend.
    mancante, ritardo, altro + nota) e `GET /alerts` per la lista “Avvisi” della
    dashboard.
 6. **Elenco richieste**: `GET /plan-requests` con filtri per stato e periodo.
+7. **Commesse**: in `Order` un campo `description` (es. "Telaio carrello") e
+   `activityCount`, così l'elenco si mostra senza caricare ogni grafo. La priorità
+   resta un intero: il frontend la mostra come 1 = Bassa, 2 = Media, 3 = Alta.
 
 ## 9. Fasi di lavoro
 

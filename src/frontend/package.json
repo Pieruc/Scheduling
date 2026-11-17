@@ -16,6 +16,7 @@
     "@fontsource-variable/inter": "^5.3.0",
     "@hookform/resolvers": "^7.0.7",
     "@tanstack/react-query": "^5.108.0",
+    "@xyflow/react": "^13.0.2",
     "msw": "^3.0.6",
     "primeicons": "^8.0.2",
     "primereact": "^10.9.9",

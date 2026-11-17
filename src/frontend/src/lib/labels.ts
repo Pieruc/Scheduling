@@ -1,4 +1,5 @@
 import type { ResourceType } from '@/api/types/config'
+import type { OrderStatus } from '@/api/types/orders'
 import type { PlanRequest, PlanVariant, Solver } from '@/api/types/plans'
 
 /** Tono di colore di un'etichetta di stato (vedi components/StatusTag) */
@@ -37,4 +38,19 @@ export const RESOURCE_TYPE_LABEL: Record<ResourceType, string> = {
   MACHINE: 'Macchina',
   PERSON: 'Persona',
   ROOM: 'Stanza',
+}
+
+/** Priorità di una commessa: 1 bassa, 2 media, 3 alta (contratti, A.3) */
+export function priorityLabel(priority: number): { label: string; tone: Tone } {
+  if (priority >= 3) return { label: 'Alta', tone: 'red' }
+  if (priority === 2) return { label: 'Media', tone: 'amber' }
+  return { label: 'Bassa', tone: 'grey' }
+}
+
+export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: Tone }> = {
+  OPEN: { label: 'Aperta', tone: 'blue' },
+  PLANNED: { label: 'Pianificata', tone: 'blue' },
+  IN_PROGRESS: { label: 'In lavorazione', tone: 'amber' },
+  DONE: { label: 'Completata', tone: 'green' },
+  CANCELLED: { label: 'Annullata', tone: 'grey' },
 }

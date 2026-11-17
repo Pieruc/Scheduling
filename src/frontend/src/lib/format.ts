@@ -82,3 +82,12 @@ export function formatRange(fromIso: string, toIso: string): string {
     ? `${start} – ${time.format(to)}`
     : `${start} – ${weekdayDay.format(to)}, ${time.format(to)}`
 }
+
+const shortDate = new Intl.DateTimeFormat('it-IT', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
+/** Data ISO -> "ven 20 nov" */
+export const formatShortDate = (iso: string) => shortDate.format(new Date(iso))

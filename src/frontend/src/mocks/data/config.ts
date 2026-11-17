@@ -61,6 +61,15 @@ export const resources: Resource[] = [
     calendarId: 'CAL-1TURNO',
     costPerHour: 48,
   }),
+  resource({ id: 'R-PRE-01', name: 'Pressa piegatrice', skills: ['PIEGATURA'], costPerHour: 58 }),
+  resource({
+    id: 'R-COL-01',
+    name: 'Banco collaudo',
+    type: 'ROOM',
+    skills: ['COLLAUDO'],
+    calendarId: 'CAL-1TURNO',
+    costPerHour: 40,
+  }),
   resource({
     id: 'P-ROSSI',
     name: 'Marco Rossi',

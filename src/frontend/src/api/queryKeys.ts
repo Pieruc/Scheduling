@@ -21,6 +21,10 @@ export const queryKeys = {
   resources: {
     all: ['resources'] as const,
   },
+  orders: {
+    all: ['orders'] as const,
+    graph: (orderId: string) => ['orders', orderId, 'process-graph'] as const,
+  },
   calendars: {
     all: ['calendars'] as const,
   },

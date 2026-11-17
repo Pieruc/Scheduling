@@ -1,0 +1,97 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.canvas {
+  height: 300px;
+  border: 1px solid var(--fs-border);
+  border-radius: 10px;
+  background: #fafbfd;
+  overflow: hidden;
+}
+
+/* Grafo verticale (telefono): più alto che largo */
+.canvasTall {
+  height: 460px;
+}
+
+/* Nodo attività */
+.node {
+  width: 150px;
+  padding: 8px 12px;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: 10px;
+  background: var(--fs-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+.node:hover {
+  box-shadow: 0 4px 10px rgba(17, 24, 39, 0.1);
+  transform: translateY(-1px);
+}
+
+.nodeSelected {
+  border: 2px solid var(--fs-primary);
+  padding: 7px 11px;
+}
+
+.nodeName {
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.nodeDetail {
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.estimate {
+  color: var(--fs-warning-text);
+  font-style: italic;
+}
+
+/* Pallini di collegamento: grandi abbastanza da prenderli */
+.handle {
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid var(--fs-surface) !important;
+  background: var(--fs-primary) !important;
+}
+
+.edge :global(.react-flow__edge-path) {
+  stroke: #8a94a6;
+  stroke-width: 1.6;
+}
+
+.edge:global(.selected) :global(.react-flow__edge-path) {
+  stroke: var(--fs-danger);
+  stroke-width: 2.4;
+}
+
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.zoom {
+  display: flex;
+  gap: 6px;
+}
+
+.message {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.messageError {
+  color: var(--fs-danger);
+  font-weight: 500;
+}

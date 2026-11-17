@@ -4,6 +4,7 @@ import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels } from '@/mocks/data/models'
 import { planRequests } from '@/mocks/data/planRequests'
 import { configHandlers } from './config'
+import { orderHandlers } from './orders'
 import { api, latency, problem, simulatedFailure } from './utils'
 
 /**
@@ -12,6 +13,7 @@ import { api, latency, problem, simulatedFailure } from './utils'
  */
 export const handlers = [
   ...configHandlers,
+  ...orderHandlers,
 
   http.get(api('/kpis'), async () => {
     await latency()

@@ -8,6 +8,8 @@ import { handlers } from './handlers'
 export async function startMocks() {
   const worker = setupWorker(...handlers)
   await worker.start({
+    // Niente log di ogni richiesta finta: la console resta leggibile
+    quiet: true,
     // Le richieste non /api (file di Vite, font, ...) passano senza avvisi;
     // una chiamata /api senza handler viene segnalata in console.
     onUnhandledFrame({ frame, defaults }) {
