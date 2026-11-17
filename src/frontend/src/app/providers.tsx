@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import type { ReactNode } from 'react'
 import { PrimeReactProvider } from 'primereact/api'
+import { ConfirmDialog } from 'primereact/confirmdialog'
 import { ApiError } from '@/api/errors'
+import { ToastProvider } from '@/app/toast/ToastProvider'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,7 +25,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <PrimeReactProvider value={{ ripple: true }}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <ToastProvider>{children}</ToastProvider>
+        {/* Finestra di conferma condivisa: si apre con confirmDialog({...}) */}
+        <ConfirmDialog />
         {/* Pannello di debug delle chiamate: c'è solo in sviluppo */}
         <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
       </QueryClientProvider>

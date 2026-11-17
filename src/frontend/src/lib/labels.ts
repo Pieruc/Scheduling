@@ -1,3 +1,4 @@
+import type { ResourceType } from '@/api/types/config'
 import type { PlanRequest, PlanVariant, Solver } from '@/api/types/plans'
 
 /** Tono di colore di un'etichetta di stato (vedi components/StatusTag) */
@@ -30,4 +31,10 @@ export function requestStatus(request: PlanRequest): { label: string; tone: Tone
   if (statuses.includes('PROPOSED')) return { label: 'Da valutare', tone: 'blue' }
   if (statuses.includes('SUPERSEDED')) return { label: 'Sostituito', tone: 'grey' }
   return { label: 'Rifiutato', tone: 'red' }
+}
+
+export const RESOURCE_TYPE_LABEL: Record<ResourceType, string> = {
+  MACHINE: 'Macchina',
+  PERSON: 'Persona',
+  ROOM: 'Stanza',
 }

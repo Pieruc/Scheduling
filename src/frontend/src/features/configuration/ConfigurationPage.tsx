@@ -2,6 +2,7 @@ import { NavLink, useParams } from 'react-router'
 import { PageHeader } from '@/components/PageHeader'
 import { Placeholder } from '@/components/Placeholder'
 import styles from './ConfigurationPage.module.css'
+import { ResourcesTab } from './resources/ResourcesTab'
 
 /** Le tab della configurazione: ognuna ha il suo URL (/configurazione/risorse, ...). */
 const CONFIG_TABS = [
@@ -32,7 +33,11 @@ export function ConfigurationPage() {
           </NavLink>
         ))}
       </nav>
-      <Placeholder screen={`8 · Configurazione · ${current.label}`} />
+      {current.slug === 'risorse' ? (
+        <ResourcesTab />
+      ) : (
+        <Placeholder screen={`8 · Configurazione · ${current.label}`} />
+      )}
     </>
   )
 }

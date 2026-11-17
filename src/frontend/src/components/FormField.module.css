@@ -1,0 +1,28 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hint {
+  color: var(--fs-muted);
+}
+
+.error {
+  color: var(--fs-danger);
+}
+
+/* I controlli PrimeReact occupano tutta la larghezza del campo */
+.field :global(.p-inputtext),
+.field :global(.p-dropdown),
+.field :global(.p-multiselect),
+.field :global(.p-inputnumber),
+.field :global(.p-calendar) {
+  width: 100%;
+}

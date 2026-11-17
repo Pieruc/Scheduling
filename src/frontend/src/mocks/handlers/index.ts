@@ -3,6 +3,7 @@ import { alerts } from '@/mocks/data/alerts'
 import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels } from '@/mocks/data/models'
 import { planRequests } from '@/mocks/data/planRequests'
+import { configHandlers } from './config'
 import { api, latency, problem, simulatedFailure } from './utils'
 
 /**
@@ -10,6 +11,8 @@ import { api, latency, problem, simulatedFailure } from './utils'
  * Quando un endpoint vero è pronto, si toglie il suo handler da qui.
  */
 export const handlers = [
+  ...configHandlers,
+
   http.get(api('/kpis'), async () => {
     await latency()
     return simulatedFailure() ?? HttpResponse.json(kpiSeries)

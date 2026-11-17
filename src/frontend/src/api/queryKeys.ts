@@ -18,4 +18,13 @@ export const queryKeys = {
   models: {
     active: ['models', 'active'] as const,
   },
+  resources: {
+    all: ['resources'] as const,
+  },
+  calendars: {
+    all: ['calendars'] as const,
+  },
+  skills: {
+    all: ['skills'] as const,
+  },
 }

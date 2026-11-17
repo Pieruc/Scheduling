@@ -14,7 +14,7 @@ const euro = new Intl.NumberFormat('it-IT', {
   // In italiano Intl non separa le migliaia sotto 10.000 ("9600 €"): lo forziamo ("9.600 €")
   useGrouping: 'always',
 })
-const time = new Intl.DateTimeFormat('it-IT', { hour: '2-digit', minute: '2-digit' })
+const time = new Intl.DateTimeFormat('it-IT', { hour: 'numeric', minute: '2-digit' })
 const dayMonth = new Intl.DateTimeFormat('it-IT', { day: 'numeric', month: 'short' })
 
 /** 0.78 -> "78%" */
@@ -64,4 +64,21 @@ export function formatPointsDelta(delta: number): string {
   const points = Math.round(delta * 100)
   if (points === 0) return 'invariata'
   return `${points > 0 ? '+' : '−'}${Math.abs(points)} ${Math.abs(points) === 1 ? 'punto' : 'punti'}`
+}
+
+const weekdayDay = new Intl.DateTimeFormat('it-IT', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+})
+
+/** Intervallo -> "gio 19 nov, 8:00 – 17:00" (stesso giorno) o "gio 19 nov, 10:42 – ven 20 nov, 17:00" */
+export function formatRange(fromIso: string, toIso: string): string {
+  const from = new Date(fromIso)
+  const to = new Date(toIso)
+  const sameDay = from.toDateString() === to.toDateString()
+  const start = `${weekdayDay.format(from)}, ${time.format(from)}`
+  return sameDay
+    ? `${start} – ${time.format(to)}`
+    : `${start} – ${weekdayDay.format(to)}, ${time.format(to)}`
 }

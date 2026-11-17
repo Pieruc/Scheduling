@@ -245,7 +245,8 @@ chi fa il backend.
      `totalTardinessMin` (ritardo in minuti, più leggibile di `weightedTardiness`);
    - nella serie di `GET /kpis`: `onTimeRate` (quota di commesse consegnate in tempo)
      e `utilizationByResource: [{ resourceId, resourceName, utilization }]`;
-   - nelle risorse: `costPerHour`.
+   - nelle risorse: `costPerHour` e `unavailability: [{ from, to, reason }]`
+     (manutenzioni e guasti della singola risorsa, oltre al calendario dei turni).
 
    **Unità delle durate**: il frontend mostra "4 g 6 h" assumendo una giornata
    lavorativa di 8 h (`WORKDAY_HOURS` in `src/lib/format.ts`). Da confermare: il

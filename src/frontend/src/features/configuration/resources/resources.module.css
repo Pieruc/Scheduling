@@ -1,0 +1,183 @@
+/* Senza selezione: tabella a tutta larghezza. Con il form aperto: tabella + pannello
+   a destra; sotto i 1200px il pannello va sotto la tabella. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.withPanel {
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+
+.dates {
+  display: grid;
+  gap: 10px;
+}
+
+.hint {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+/* Nomi e intestazioni su una riga: la tabella scorre in orizzontale solo se serve */
+.table :global(th),
+.table :global(td) {
+  white-space: nowrap;
+}
+
+/* Layout a schede (sotto 768px): le competenze possono andare a capo */
+@media (max-width: 767px) {
+  .table :global(td) {
+    white-space: normal;
+  }
+}
+
+.tableCard {
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search {
+  flex: 1 1 240px;
+  max-width: 360px;
+}
+
+.search :global(.p-inputtext) {
+  width: 100%;
+}
+
+.table {
+  overflow-x: auto;
+}
+
+/* Le righe si possono selezionare: lo mostriamo al passaggio del mouse */
+.table :global(.p-selectable-row) {
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.inactiveRow {
+  color: var(--fs-muted);
+}
+
+.chip {
+  display: inline-block;
+  margin: 1px 4px 1px 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--fs-track);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.panel {
+  position: sticky;
+  top: 16px;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 18px;
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius);
+}
+
+.legend {
+  padding: 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.unavailability {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--fs-radius);
+  background: var(--fs-warning-soft);
+}
+
+.reasonRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.reasonRow > :first-child {
+  flex: 1;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pushRight {
+  margin-left: auto;
+}
+
+@media (max-width: 1199px) {
+  .withPanel {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .panel {
+    position: static;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar :global(.p-button),
+  .search {
+    flex: 1 1 100%;
+    max-width: none;
+  }
+
+  .twoCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .actions :global(.p-button) {
+    flex: 1 1 100%;
+  }
+
+  .pushRight {
+    margin-left: 0;
+  }
+}
