@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FlowSync – Mockup UI v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===== Design tokens (stessi colori del mockup v1) ===== */
+:root{
+  --bg:#f4f6f9; --surface:#fff; --border:#e3e7ee; --border-soft:#f0f2f6; --border-strong:#c9d1dc;
+  --text:#1b2230; --muted:#5a6474; --muted-2:#4b5563;
+  --nav:#111827; --nav-active:#1f2937; --nav-text:#d1d5db; --nav-line:#374151;
+  --primary:#0b57d0; --primary-soft:#e8f0fe; --primary-text:#0b4fbd;
+  --success:#1e7a3c; --success-soft:#e6f4ea;
+  --danger:#b42318; --danger-soft:#fdecea; --danger-line:#f1b0aa;
+  --warning:#b45309; --warning-soft:#fff4e5; --warning-text:#7a3a00;
+  --track:#eef1f5; --teal:#2dd4bf;
+  --c101:#3b5bdb; --c102:#2b8a3e; --c103:#c2410c; --c104:#7048e8;
+}
+html{background:#f5f4ef;color:#1f1e1d;font:14px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+body{margin:0;padding:48px;display:flex;flex-direction:column;align-items:flex-start;gap:56px}
+a{color:var(--primary)} a:hover{color:#083f99}
+
+/* ===== Lavagna ===== */
+.intro{max-width:1440px;background:#fff;border:1px solid #e2dfd6;border-radius:12px;padding:24px 28px;box-sizing:border-box}
+.intro h1{margin:0 0 6px;font-size:22px}
+.intro p{margin:0 0 10px;color:#5b5a56}
+.intro .cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin-top:14px}
+.intro h3{margin:0 0 6px;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#6b6a68}
+.intro ul{margin:0;padding-left:18px;color:#3a3936} .intro li{margin:3px 0}
+.board h2{margin:0 0 12px;font-size:13px;font-weight:500;color:#6b6a68}
+.board .badge-new{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:#2dd4bf;color:#053b35;font-size:11px;font-weight:700;vertical-align:1px}
+.board .badge-slim{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:999px;background:#fde68a;color:#5b3a00;font-size:11px;font-weight:700;vertical-align:1px}
+
+/* ===== Schermata ===== */
+.screen{width:1440px;min-height:900px;display:flex;background:var(--bg);color:var(--text);font-size:14px;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.side{flex:0 0 220px;background:var(--nav);padding:20px 14px;display:flex;flex-direction:column;gap:4px;box-sizing:border-box}
+.logo{display:flex;align-items:center;gap:10px;color:#fff;font-weight:700;font-size:18px;padding:6px 12px 18px}
+.logo b{color:var(--teal);font-weight:700}
+.side .group{color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:14px 12px 4px}
+.side a{display:flex;align-items:center;min-height:40px;padding:0 12px;border-radius:8px;color:var(--nav-text);text-decoration:none}
+.side a.on{background:var(--nav-active);color:#fff;font-weight:600}
+.side .foot{margin-top:auto;padding:12px;border-top:1px solid var(--nav-line);color:#9ca3af;font-size:12px;line-height:1.5}
+.side .foot span{color:#e5e7eb;font-weight:600}
+main{flex:1;min-width:0;padding:28px 32px;box-sizing:border-box;display:flex;flex-direction:column;gap:20px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.head h1{margin:0;font-size:24px;font-weight:700}
+.head p{margin:4px 0 0;color:var(--muted)}
+.crumb{color:var(--muted);font-size:13px;margin-bottom:4px} .crumb a{text-decoration:none}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px;box-sizing:border-box}
+.card h2{margin:0;font-size:16px}
+.card .sub{color:var(--muted);font-size:13px;margin-top:-6px}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.muted{color:var(--muted)} .small{font-size:13px} .xs{font-size:12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;white-space:nowrap}
+
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+.kpi .l{color:var(--muted);font-size:13px}
+.kpi .v{font-size:28px;font-weight:700;margin-top:4px}
+.kpi .n{font-size:13px;margin-top:2px;color:var(--muted)}
+.kpi.sm{padding:12px 14px;border-radius:10px} .kpi.sm .l{font-size:12px} .kpi.sm .v{font-size:20px;margin-top:0}
+.good{color:var(--success)!important} .bad{color:var(--danger)!important}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid var(--border-strong);background:#fff;color:var(--text);font:inherit;font-weight:500;text-decoration:none;cursor:pointer;box-sizing:border-box}
+.btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+.btn.success{background:var(--success);border-color:var(--success);color:#fff;font-weight:600}
+.btn.danger{border-color:var(--danger);color:var(--danger);font-weight:600}
+.btn.sm{min-height:32px;padding:0 10px;font-size:13px}
+.btn.block{width:100%}
+
+.tag{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.tag.blue{background:var(--primary-soft);color:var(--primary-text)}
+.tag.green{background:var(--success-soft);color:var(--success)}
+.tag.red{background:var(--danger-soft);color:var(--danger)}
+.tag.amber{background:var(--warning-soft);color:var(--warning-text)}
+.tag.grey{background:var(--track);color:var(--muted-2)}
+.tag.teal{background:#ccfbf1;color:#0f5e55}
+.chip{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--track);font-size:12px;margin:1px 2px 1px 0}
+
+table.t{width:100%;border-collapse:collapse}
+table.t th{text-align:left;color:var(--muted);font-size:13px;font-weight:500;padding:10px 8px;border-bottom:1px solid var(--border)}
+table.t td{padding:11px 8px;border-bottom:1px solid var(--border-soft);vertical-align:middle}
+table.t tr.sel td{background:#f5f8ff}
+table.t tr:last-child td{border-bottom:0}
+
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:13px;font-weight:500}
+.input{min-height:40px;padding:0 12px;border:1px solid var(--border-strong);border-radius:8px;background:#fff;display:flex;align-items:center;color:var(--text);box-sizing:border-box}
+.input.ph{color:#9aa3b0}
+textarea.input{padding:10px 12px;min-height:96px;font:inherit;resize:none;width:100%}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters .input{min-width:160px}
+.seg{display:inline-flex;gap:4px;padding:4px;background:var(--track);border-radius:10px}
+.seg span{min-height:32px;padding:0 12px;border-radius:8px;display:flex;align-items:center;color:var(--muted-2)}
+.seg span.on{background:#fff;color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border)}
+.tabs span{padding:10px 14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs span.on{color:var(--primary);border-color:var(--primary);font-weight:600}
+
+.note{display:flex;gap:12px;padding:12px;border-radius:8px;align-items:flex-start}
+.note .dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex:none}
+.note b{display:block;font-weight:600}
+.note.amber{background:var(--warning-soft)} .note.amber .dot{background:var(--warning)}
+.note.red{background:var(--danger-soft)} .note.red .dot{background:var(--danger)}
+.note.blue{background:var(--primary-soft)} .note.blue .dot{background:var(--primary)}
+.alert{display:flex;gap:12px;padding:12px 14px;border-radius:10px;background:var(--danger-soft);border:1px solid var(--danger-line);color:#7a1a12}
+.info{padding:10px 12px;border-radius:8px;background:#f7f9fc;border:1px dashed var(--border-strong);color:var(--muted);font-size:13px}
+
+.bars{display:grid;grid-template-columns:120px minmax(0,1fr) 44px;gap:10px 12px;align-items:center}
+.track{height:12px;background:var(--track);border-radius:6px;overflow:hidden}
+.track i{display:block;height:12px;background:var(--primary);border-radius:6px}
+
+/* Stepper */
+.steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.step{padding:10px 12px;border-radius:10px;background:#fff;border:1px solid var(--border)}
+.step .k{font-size:12px;color:var(--muted)} .step .t{font-weight:600}
+.step.done{border-color:#b7dfc3;background:var(--success-soft)}
+.step.warn{border-color:#f4cf98;background:var(--warning-soft)}
+
+/* Grafo commessa */
+.graph{position:relative;height:250px;background:#fafbfd;background-image:radial-gradient(#dde3eb 1px,transparent 1px);background-size:16px 16px;border-radius:10px;border:1px solid var(--border)}
+.node{position:absolute;width:124px;padding:8px 10px;background:#fff;border:1px solid var(--border-strong);border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,.05);box-sizing:border-box}
+.node b{display:block;font-size:13px} .node span{font-size:12px;color:var(--muted)}
+.node.sel{border:2px solid var(--primary)}
+.graph svg{position:absolute;inset:0}
+
+/* Gantt */
+.gantt{display:grid;grid-template-columns:130px minmax(0,1fr);row-gap:6px;min-width:760px}
+.gantt .days{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));color:var(--muted);font-size:12px;font-weight:600}
+.gantt .days div{padding:6px 8px;border-left:1px solid var(--border)}
+.gantt .res{display:flex;align-items:center;font-weight:500}
+.lane{position:relative;height:44px;background:#fafbfd;background-image:linear-gradient(to right,var(--border) 1px,transparent 1px);background-size:20% 100%;border-radius:6px}
+.bar{position:absolute;top:7px;height:30px;border-radius:6px;color:#fff;font-size:12px;display:flex;align-items:center;padding:0 6px;box-sizing:border-box;overflow:hidden;white-space:nowrap}
+.bar.c101{background:var(--c101)} .bar.c102{background:var(--c102)} .bar.c103{background:var(--c103)} .bar.c104{background:var(--c104)}
+.bar.sel{outline:3px solid #fbbf24;outline-offset:1px}
+.bar.off{background:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 4px,#f3f4f6 4px,#f3f4f6 8px);border:1px solid var(--border-strong);color:var(--muted-2)}
+.bar.ot{background:repeating-linear-gradient(45deg,#fde68a,#fde68a 4px,#fef3c7 4px,#fef3c7 8px);border:1px solid var(--warning)}
+.bar.ghost{background:transparent;border:2px dashed var(--danger);color:var(--danger);font-size:11px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--muted-2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* Piani candidati */
+.plan{position:relative}
+.plan.best{border:2px solid var(--primary)}
+.plan .ribbon{position:absolute;top:-11px;right:16px}
+.plan dl{display:grid;grid-template-columns:1fr auto;gap:8px 12px;margin:0}
+.plan dt{color:var(--muted)} .plan dd{margin:0;font-weight:600;text-align:right}
+.scale{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.scale .track{flex:1}
+
+/* Operatore */
+.op-top{display:flex;justify-content:space-between;align-items:center;background:var(--nav);color:#fff;padding:14px 28px}
+.big{min-height:56px;font-size:16px;padding:0 24px}
+.reason{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.reason span{border:1px solid var(--border-strong);border-radius:10px;min-height:52px;display:flex;align-items:center;justify-content:center;background:#fff}
+.reason span.on{border:2px solid var(--danger);color:var(--danger);font-weight:600;background:var(--danger-soft)}
+
+/* Login */
+.login-wrap{flex:1;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#111827 0%,#1f2937 55%,#0f3d3a 100%)}
+.login{width:400px;background:#fff;border-radius:16px;padding:32px;display:flex;flex-direction:column;gap:16px;box-shadow:0 20px 40px rgba(0,0,0,.25)}
+.login .logo{color:var(--text);padding:0;font-size:22px}
+
+/* Modello */
+.metric{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:10px;background:#f7f9fc}
+.metric .v{font-size:22px;font-weight:700}
+.chain{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chain .tag{font-size:13px;padding:6px 12px}
+.drawer dl{display:grid;grid-template-columns:120px 1fr;gap:8px 10px;margin:0}
+.drawer dt{color:var(--muted)} .drawer dd{margin:0}
+</style>
+</head>
+<body>
+
+<!-- ======================================================= -->
+<section class="intro">
+  <h1>FlowSync · Mockup UI v2</h1>
+  <p>Versione rivista del mockup v1 (<code>FlowSync – Mockup UI.html</code>). Aggiunge le pagine che mancavano e toglie le funzioni che non hanno un riscontro nel sistema. Riferimento per lo sviluppo del frontend in React.</p>
+  <div class="cols">
+    <div>
+      <h3>Pagine nuove</h3>
+      <ul>
+        <li>Login (si implementa per ultimo)</li>
+        <li>Elenco piani</li>
+        <li>Configurazione (risorse, calendari, competenze, profili)</li>
+        <li>Modello AI (versioni e metriche, sola lettura)</li>
+        <li>Audit</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Snellito</h3>
+      <ul>
+        <li>Sidebar: “Piani candidati” e “Gantt risorse” stanno dentro <i>Piani</i></li>
+        <li>Commesse: tolti “Importa CSV/JSON” e la colonna “Stima M1”</li>
+        <li>Nuova pianificazione: tolto il toggle Form/Testo e la scelta del numero di piani (sono sempre 3)</li>
+        <li>Gantt: tolto “Blocca assegnazione”; zoom solo Settimana/Giorno</li>
+        <li>Operatore: nessuna modifica di sostanza</li>
+      </ul>
+    </div>
+    <div>
+      <h3>I 3 piani</h3>
+      <ul>
+        <li><b>A · Economico</b>: più lento, costo minimo, niente straordinari</li>
+        <li><b>B · Bilanciato</b>: compromesso, scelto in base ai pesi</li>
+        <li><b>C · Veloce</b>: chiude prima ma costa di più (straordinari)</li>
+        <li>Per ogni richiesta, confronto con le regole ATC ed EDD</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= 0 LOGIN -->
+<section class="board"><h2>0 · Login <span class="badge-new">NUOVA</span></h2>
+<div class="screen">
+  <div class="login-wrap">
+    <div class="login">
+      <div class="logo" data-logo></div>
+      <div>
+        <div style="font-size:20px;font-weight:700">Accedi</div>
+        <div class="muted small">Pianificazione della produzione assistita da AI</div>
+      </div>
+      <div class="field"><label>Nome utente</label><div class="input">gneri</div></div>
+      <div class="field"><label>Password</label><div class="input">••••••••••</div></div>
+      <a class="btn primary block" href="#s1">Accedi</a>
+      <div class="info">Il ruolo (Pianificatore, Operatore, Amministratore) arriva dal token: il pianificatore va alla Dashboard, l’operatore alle sue attività di oggi.</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- ======================================================= 1 DASHBOARD -->
+<section class="board" id="s1"><h2>1 · Dashboard</h2>
+<div class="screen">
+  <nav class="side" data-active="dashboard"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Buongiorno, Giulia</h1><p>Martedì 17 novembre · Officina meccanica · profilo Fabbrica</p></div>
+      <div class="actions"><a class="btn primary" href="#s3">+ Nuova pianificazione</a></div>
+    </div>
+    <div class="grid4">
+      <div class="kpi"><div class="l">Puntualità (settimana)</div><div class="v">94%</div><div class="n good">+3 punti rispetto alla scorsa</div></div>
+      <div class="kpi"><div class="l">Commesse in ritardo</div><div class="v">1</div><div class="n bad">C-104 · 6 ore oltre la scadenza</div></div>
+      <div class="kpi"><div class="l">Utilizzo medio risorse</div><div class="v">78%</div><div class="n">6 risorse attive</div></div>
+      <div class="kpi"><div class="l">Aderenza al piano</div><div class="v">91%</div><div class="n">attività iniziate in orario</div></div>
+    </div>
+    <div class="row">
+      <section class="card" style="flex:1 1 340px">
+        <h2>Avvisi</h2>
+        <div class="note red"><span class="dot"></span><div><b>Guasto segnalato da M. Rossi</b><span class="muted small">Saldatrice S2, ore 10:42 · <a href="#s5">ripianifica</a></span></div></div>
+        <div class="note blue"><span class="dot"></span><div><b>3 piani pronti da valutare</b><span class="muted small">Richiesta delle 9:15 · <a href="#s4">confronta i piani</a></span></div></div>
+        <div class="note amber"><span class="dot"></span><div><b>Fresa CNC 2 in manutenzione</b><span class="muted small">Giovedì 19 nov, 8:00–17:00 · già inserita come indisponibilità</span></div></div>
+      </section>
+      <section class="card" style="flex:1 1 340px">
+        <h2>Utilizzo per risorsa (settimana)</h2>
+        <div class="bars">
+          <span>Taglio laser</span><div class="track"><i style="width:86%"></i></div><span style="text-align:right">86%</span>
+          <span>Fresa CNC 1</span><div class="track"><i style="width:92%"></i></div><span style="text-align:right">92%</span>
+          <span>Fresa CNC 2</span><div class="track"><i style="width:61%"></i></div><span style="text-align:right">61%</span>
+          <span>Saldatura</span><div class="track"><i style="width:88%"></i></div><span style="text-align:right">88%</span>
+          <span>Verniciatura</span><div class="track"><i style="width:70%"></i></div><span style="text-align:right">70%</span>
+          <span>Collaudo</span><div class="track"><i style="width:69%"></i></div><span style="text-align:right">69%</span>
+        </div>
+      </section>
+    </div>
+    <section class="card">
+      <div class="head"><h2>Piani recenti</h2><a href="#s7" class="small">Vedi tutti i piani →</a></div>
+      <table class="t">
+        <tr><th>Piano</th><th>Creato</th><th>Generato da</th><th>Durata totale</th><th>Ritardo</th><th>Costo stimato</th><th>Stato</th></tr>
+        <tr><td><a href="#s4">Richiesta 17 nov · 3 piani</a></td><td>17 nov, 9:15</td><td>AI (POLICY v1.3)</td><td>3 g 7 h – 5 g 1 h</td><td>0 – 3 h</td><td>€ 8.900 – 11.400</td><td><span class="tag blue">Da valutare</span></td></tr>
+        <tr><td><a href="#s5">Settimana 46 · Bilanciato</a></td><td>10 nov, 8:30</td><td>AI (POLICY v1.2)</td><td>4 g 2 h</td><td>6 h</td><td>€ 9.200</td><td><span class="tag green">In esecuzione</span></td></tr>
+        <tr><td><a href="#s5">Ripianificazione guasto</a></td><td>6 nov, 14:02</td><td>Regola ATC (riserva)</td><td>3 g 7 h</td><td>2 h</td><td>€ 9.900</td><td><span class="tag grey">Concluso</span></td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 2 COMMESSE -->
+<section class="board"><h2>2 · Commesse e grafo delle attività <span class="badge-slim">SNELLITA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="commesse"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Commesse</h1><p>I lavori da pianificare: scadenza, priorità e attività collegate da precedenze.</p></div>
+      <div class="actions"><span class="btn primary">+ Nuova commessa</span></div>
+    </div>
+    <div class="row">
+      <section class="card" style="flex:0 0 360px">
+        <div class="filters"><div class="input ph" style="flex:1">Cerca commessa o cliente</div><div class="seg"><span class="on">Aperte</span><span>Tutte</span></div></div>
+        <table class="t">
+          <tr><th>Codice</th><th>Cliente</th><th>Scadenza</th><th>Priorità</th></tr>
+          <tr class="sel"><td><b>C-101</b></td><td>Rinaldi Carrelli</td><td>ven 20 nov</td><td><span class="tag red">Alta</span></td></tr>
+          <tr><td><b>C-102</b></td><td>Edil Marche</td><td>lun 23 nov</td><td><span class="tag amber">Media</span></td></tr>
+          <tr><td><b>C-103</b></td><td>Motori Esino</td><td>mer 25 nov</td><td><span class="tag amber">Media</span></td></tr>
+          <tr><td><b>C-104</b></td><td>Inox Service</td><td class="bad">mancante</td><td><span class="tag grey">Bassa</span></td></tr>
+        </table>
+      </section>
+      <section class="card" style="flex:1 1 600px;min-width:0">
+        <div class="head">
+          <div><h2>C-101 · Telaio carrello</h2><div class="muted small" style="margin-top:4px">Scadenza ven 20 nov · peso 3 · 6 attività · <span class="tag blue">Aperta</span></div></div>
+          <div class="actions"><span class="btn sm">Modifica dati</span><span class="btn sm">+ Attività</span></div>
+        </div>
+        <div class="muted small">Grafo delle attività · trascina da un nodo all’altro per creare una precedenza. Un ciclo viene rifiutato.</div>
+        <div class="graph">
+          <svg width="100%" height="100%">
+            <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8a94a6"/></marker></defs>
+            <g stroke="#8a94a6" stroke-width="1.6" fill="none" marker-end="url(#ar)">
+              <path d="M140 70 L160 70"/><path d="M140 70 C150 70 150 180 160 180"/>
+              <path d="M284 70 L304 70"/><path d="M284 180 C294 180 294 70 304 70"/>
+              <path d="M428 70 L448 70"/><path d="M572 70 L592 70"/>
+            </g>
+          </svg>
+          <div class="node" style="left:16px;top:46px"><b>Taglio</b><span>Laser · 2 h</span></div>
+          <div class="node" style="left:160px;top:46px"><b>Fresatura</b><span>CNC 1 o 2 · 3 h</span></div>
+          <div class="node" style="left:160px;top:156px"><b>Piegatura</b><span>Pressa · 1 h</span></div>
+          <div class="node sel" style="left:304px;top:46px"><b>Saldatura</b><span>S1 o S2 · 3 h</span></div>
+          <div class="node" style="left:448px;top:46px"><b>Verniciatura</b><span>Cabina · <i>da stimare</i></span></div>
+          <div class="node" style="left:592px;top:46px"><b>Collaudo</b><span>Qualità · 1 h</span></div>
+        </div>
+        <table class="t">
+          <tr><th>Attività</th><th>Competenza</th><th>Risorse ammesse</th><th>Durata</th><th>Dopo</th></tr>
+          <tr><td>Taglio</td><td><span class="chip">TAGLIO</span></td><td>Taglio laser</td><td>2 h</td><td class="muted">—</td></tr>
+          <tr><td>Fresatura</td><td><span class="chip">FRESATURA</span></td><td>Fresa CNC 1 (3 h), Fresa CNC 2 (3 h 30)</td><td>3 h</td><td>Taglio</td></tr>
+          <tr><td>Piegatura</td><td><span class="chip">PIEGATURA</span></td><td>Pressa</td><td>1 h</td><td>Taglio</td></tr>
+          <tr class="sel"><td>Saldatura</td><td><span class="chip">SALDATURA</span></td><td>Saldatrice S1, Saldatrice S2</td><td>3 h</td><td>Fresatura, Piegatura</td></tr>
+          <tr><td>Verniciatura</td><td><span class="chip">VERNICIATURA</span></td><td>Cabina verniciatura</td><td class="muted">vuota → la stima l’AI</td><td>Saldatura</td></tr>
+        </table>
+      </section>
+    </div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 3 NUOVA PIANIFICAZIONE -->
+<section class="board" id="s3"><h2>3 · Nuova pianificazione (richiesta a parole + validazione) <span class="badge-slim">SNELLITA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="nuova"></nav>
+  <main>
+    <div class="head"><div><h1>Nuova pianificazione</h1><p>Descrivi cosa ti serve: il sistema lo traduce, controlla i dati e prepara 3 piani alternativi.</p></div></div>
+    <div class="steps">
+      <div class="step done"><div class="k">1 · LLM</div><div class="t">Richiesta capita</div></div>
+      <div class="step warn"><div class="k">2 · Validazione</div><div class="t">2 dati mancanti</div></div>
+      <div class="step"><div class="k">3 · M1</div><div class="t">Stima durate</div></div>
+      <div class="step"><div class="k">4 · M2</div><div class="t">Costruzione piani</div></div>
+      <div class="step"><div class="k">5 · Confronto</div><div class="t">AI vs ATC / EDD</div></div>
+    </div>
+    <div class="row">
+      <div style="flex:1 1 520px;display:flex;flex-direction:column;gap:16px">
+        <section class="card">
+          <h2>La tua richiesta</h2>
+          <textarea class="input" readonly>Pianifica da domani a martedì 24 le commesse C-101, C-102, C-103 e C-104. La C-101 va consegnata entro venerdì 20. La fresa 2 è ferma giovedì per manutenzione. Se possibile evitiamo gli straordinari.</textarea>
+          <div class="actions"><span class="btn primary">Interpreta</span><span class="btn">Cancella</span></div>
+        </section>
+        <section class="card">
+          <h2>Quanto conta ogni obiettivo</h2>
+          <div class="bars" style="grid-template-columns:150px minmax(0,1fr) 28px">
+            <span>Puntualità</span><div class="track"><i style="width:80%"></i></div><b>8</b>
+            <span>Evitare straordinari</span><div class="track"><i style="width:70%"></i></div><b>7</b>
+            <span>Ridurre i setup</span><div class="track"><i style="width:40%"></i></div><b>4</b>
+          </div>
+          <div class="muted small">“Evitare straordinari” è salito a 7 perché lo hai scritto nella richiesta. I pesi orientano il piano <b>Bilanciato</b>; Economico e Veloce restano gli estremi.</div>
+        </section>
+      </div>
+      <div style="flex:1 1 520px;display:flex;flex-direction:column;gap:16px">
+        <section class="card">
+          <h2>Ecco cosa ho capito</h2>
+          <table class="t">
+            <tr><td class="muted" style="width:130px">Orizzonte</td><td>mer 18 – mar 24 nov, turni 8–12 / 13–17</td><td><a class="small">modifica</a></td></tr>
+            <tr><td class="muted">Commesse</td><td>C-101, C-102, C-103, C-104 (22 attività)</td><td><a class="small">modifica</a></td></tr>
+            <tr><td class="muted">Vincoli rigidi</td><td>C-101 entro ven 20 nov<br>Fresa CNC 2 ferma gio 8–17</td><td><a class="small">modifica</a></td></tr>
+            <tr><td class="muted">Preferenze</td><td>Evitare straordinari → peso 7</td><td><a class="small">modifica</a></td></tr>
+          </table>
+          <div class="muted small">I vincoli rigidi non vengono mai violati; le preferenze diventano pesi degli obiettivi.</div>
+        </section>
+        <section class="card" style="border-color:#f4cf98">
+          <h2>Prima di pianificare mi servono 2 dati</h2>
+          <div class="field"><label><b>C-104</b> non ha una scadenza. Quando va consegnata?</label><div class="input ph">gg/mm/aaaa</div></div>
+          <div class="field"><label>Per la <b>saldatura di C-103</b> quale postazione si può usare?</label><div class="seg"><span class="on">Saldatrice S1 o S2</span><span>Solo S1 (pezzo grande)</span></div></div>
+          <a class="btn primary" href="#s4">Conferma e genera i 3 piani</a>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 4 PIANI CANDIDATI -->
+<section class="board" id="s4"><h2>4 · Confronto dei 3 piani (Economico · Bilanciato · Veloce)</h2>
+<div class="screen">
+  <nav class="side" data-active="piani"></nav>
+  <main>
+    <div class="head">
+      <div><div class="crumb"><a href="#s7">Piani</a> › Richiesta 17 nov, 9:15</div><h1>3 piani pronti: scegli tu</h1><p>Tutti rispettano i vincoli. Cambia il compromesso tra tempo e costo.</p></div>
+      <span class="tag blue">Generati in 1,8 s · AI (POLICY v1.3)</span>
+    </div>
+    <div class="grid3">
+      <section class="card plan">
+        <div><span class="tag teal">Più lento · più economico</span></div>
+        <h2 style="font-size:20px">Piano A · Economico</h2>
+        <dl>
+          <dt>Durata totale</dt><dd>5 g 1 h</dd>
+          <dt>Ritardo totale</dt><dd class="bad">3 h (C-104)</dd>
+          <dt>Straordinari</dt><dd>0 h</dd>
+          <dt>Cambi di setup</dt><dd>6</dd>
+          <dt>Utilizzo medio</dt><dd>86%</dd>
+          <dt>Costo stimato</dt><dd style="font-size:18px">€ 8.900</dd>
+        </dl>
+        <div class="muted small">Nessuno straordinario e pochi cambi di setup, ma C-104 slitta di mezza giornata.</div>
+        <div class="actions"><a class="btn" href="#s5">Apri nel Gantt</a><span class="btn">Scegli</span></div>
+      </section>
+      <section class="card plan best">
+        <span class="tag blue ribbon" style="background:var(--primary);color:#fff">Migliore con i tuoi pesi</span>
+        <div><span class="tag blue">Compromesso</span></div>
+        <h2 style="font-size:20px">Piano B · Bilanciato</h2>
+        <dl>
+          <dt>Durata totale</dt><dd>4 g 6 h</dd>
+          <dt>Ritardo totale</dt><dd class="good">0 h</dd>
+          <dt>Straordinari</dt><dd>2 h</dd>
+          <dt>Cambi di setup</dt><dd>7</dd>
+          <dt>Utilizzo medio</dt><dd>81%</dd>
+          <dt>Costo stimato</dt><dd style="font-size:18px">€ 9.600</dd>
+        </dl>
+        <div class="muted small">Nessun ritardo, 2 ore di straordinario martedì in saldatura.</div>
+        <div class="actions"><a class="btn" href="#s5">Apri nel Gantt</a><span class="btn primary">Scegli</span></div>
+      </section>
+      <section class="card plan">
+        <div><span class="tag amber">Più veloce · più costoso</span></div>
+        <h2 style="font-size:20px">Piano C · Veloce</h2>
+        <dl>
+          <dt>Durata totale</dt><dd>3 g 7 h</dd>
+          <dt>Ritardo totale</dt><dd class="good">0 h</dd>
+          <dt>Straordinari</dt><dd>9 h</dd>
+          <dt>Cambi di setup</dt><dd>10</dd>
+          <dt>Utilizzo medio</dt><dd>72%</dd>
+          <dt>Costo stimato</dt><dd style="font-size:18px">€ 11.400</dd>
+        </dl>
+        <div class="muted small">Consegna tutto un giorno prima, usando il sabato mattina in verniciatura.</div>
+        <div class="actions"><a class="btn" href="#s5">Apri nel Gantt</a><span class="btn">Scegli</span></div>
+      </section>
+    </div>
+    <section class="card">
+      <h2>Rispetto alle regole classiche</h2>
+      <div class="sub">Gli stessi dati pianificati con le regole di riserva, per vedere quanto aggiunge l’AI.</div>
+      <table class="t">
+        <tr><th>Metodo</th><th>Durata totale</th><th>Ritardo totale</th><th>Straordinari</th><th>Costo stimato</th><th style="width:30%">Ritardo (scala)</th></tr>
+        <tr><td><b>AI · Piano B</b></td><td>4 g 6 h</td><td class="good">0 h</td><td>2 h</td><td>€ 9.600</td><td><div class="scale"><div class="track"><i style="width:2%"></i></div>0 h</div></td></tr>
+        <tr><td>Regola ATC</td><td>4 g 7 h</td><td>8 h</td><td>4 h</td><td>€ 10.100</td><td><div class="scale"><div class="track"><i style="width:62%;background:var(--warning)"></i></div>8 h</div></td></tr>
+        <tr><td>Regola EDD</td><td>5 g 1 h</td><td class="bad">11 h</td><td>3 h</td><td>€ 10.300</td><td><div class="scale"><div class="track"><i style="width:85%;background:var(--danger)"></i></div>11 h</div></td></tr>
+      </table>
+    </section>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 5 GANTT -->
+<section class="board" id="s5"><h2>5 · Gantt delle risorse (modifica e approvazione) <span class="badge-slim">SNELLITA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="piani"></nav>
+  <main style="padding:24px 28px;gap:16px">
+    <div class="head">
+      <div>
+        <div class="crumb"><a href="#s7">Piani</a> › <a href="#s4">Richiesta 17 nov</a> › Piano B</div>
+        <h1>Piano B · Bilanciato</h1>
+        <div class="actions" style="margin-top:6px"><span class="tag blue">Generato da: AI (POLICY v1.3) · confidenza 87%</span><span class="tag amber">1 modifica manuale</span></div>
+      </div>
+      <div class="actions">
+        <div class="seg"><span>Giorno</span><span class="on">Settimana</span></div>
+        <span class="btn">Ripianifica da adesso</span>
+        <span class="btn danger">Rifiuta</span>
+        <span class="btn success">Approva</span>
+      </div>
+    </div>
+    <div class="grid4">
+      <div class="kpi sm"><div class="l">Durata totale</div><div class="v">4 g 6 h</div></div>
+      <div class="kpi sm"><div class="l">Ritardo totale</div><div class="v good">0 h</div></div>
+      <div class="kpi sm"><div class="l">Straordinari</div><div class="v">2 h</div></div>
+      <div class="kpi sm"><div class="l">Costo stimato <span style="color:var(--primary-text)">· ricalcolato</span></div><div class="v">€ 9.640</div></div>
+    </div>
+    <div class="alert"><strong>Spostamento non valido</strong><span>La Saldatura di C-102 non può iniziare prima della fine della Fresatura (gio 19, 13:00). La barra è tornata al suo posto.</span></div>
+    <div class="row">
+      <section class="card" style="flex:3 1 640px;min-width:0;padding:14px;overflow-x:auto">
+        <div class="gantt">
+          <div></div><div class="days"><div>Mer 18</div><div>Gio 19</div><div>Ven 20</div><div>Lun 23</div><div>Mar 24</div></div>
+          <div class="res">Taglio laser</div><div class="lane"><div class="bar c101" style="left:0;width:8%">C-101</div><div class="bar c102" style="left:8%;width:8%">C-102</div><div class="bar c103" style="left:16%;width:8%">C-103</div><div class="bar c104" style="left:24%;width:6%">C-104</div></div>
+          <div class="res">Fresa CNC 1</div><div class="lane"><div class="bar c101" style="left:8%;width:12%">C-101 Fresatura</div><div class="bar c102" style="left:20%;width:12%">C-102 Fresatura</div><div class="bar c104" style="left:40%;width:10%">C-104 Fresatura</div></div>
+          <div class="res">Fresa CNC 2</div><div class="lane"><div class="bar off" style="left:20%;width:20%">Manutenzione</div><div class="bar c103" style="left:42%;width:12%">C-103 Fresatura</div></div>
+          <div class="res">Saldatrice S1</div><div class="lane"><div class="bar c101 sel" style="left:20%;width:14%">C-101 Saldatura</div><div class="bar c103" style="left:56%;width:14%">C-103 Saldatura</div></div>
+          <div class="res">Saldatrice S2</div><div class="lane"><div class="bar ghost" style="left:22%;width:12%">non valido</div><div class="bar c102" style="left:34%;width:12%">C-102 Saldatura</div><div class="bar c104" style="left:60%;width:10%">C-104</div><div class="bar ot" style="left:96%;width:4%" title="Straordinario 2 h"></div></div>
+          <div class="res">Verniciatura</div><div class="lane"><div class="bar c101" style="left:40%;width:16%">C-101 Verniciatura</div><div class="bar c102" style="left:60%;width:12%">C-102</div><div class="bar c104" style="left:72%;width:8%">C-104</div><div class="bar c103" style="left:80%;width:12%">C-103</div></div>
+          <div class="res">Collaudo</div><div class="lane"><div class="bar c101" style="left:56%;width:4%"></div><div class="bar c102" style="left:72%;width:4%"></div><div class="bar c104" style="left:84%;width:4%"></div><div class="bar c103" style="left:92%;width:4%"></div></div>
+        </div>
+        <div class="legend" style="margin-top:14px">
+          <span><i style="background:var(--c101)"></i>C-101</span><span><i style="background:var(--c102)"></i>C-102</span><span><i style="background:var(--c103)"></i>C-103</span><span><i style="background:var(--c104)"></i>C-104</span>
+          <span><i class="bar off" style="position:static;height:12px;padding:0"></i>Indisponibile</span><span><i style="background:#fde68a;border:1px solid var(--warning)"></i>Straordinario</span>
+          <span>Trascina una barra per spostarla o cambiarle risorsa</span>
+        </div>
+      </section>
+      <aside class="card" style="flex:1 1 280px">
+        <div class="muted small">Attività selezionata</div>
+        <h2>C-101 · Saldatura telaio</h2>
+        <table class="t small">
+          <tr><td class="muted">Risorsa</td><td>Saldatrice S1</td></tr>
+          <tr><td class="muted">Inizio</td><td>gio 19, 8:00</td></tr>
+          <tr><td class="muted">Fine</td><td>gio 19, 11:40</td></tr>
+          <tr><td class="muted">Durata dichiarata</td><td>3 h</td></tr>
+          <tr><td class="muted">Stima AI (M1)</td><td><b>3 h 40</b> <span class="muted">(3 h 10 – 4 h 20)</span></td></tr>
+        </table>
+        <div class="field"><label>Sposta su</label><div class="seg"><span class="on">Saldatrice S1</span><span>Saldatrice S2</span></div></div>
+        <div class="field"><label>Motivo della modifica (va nell’audit)</label><textarea class="input" style="min-height:70px" readonly>Spostata per manutenzione programmata della S2</textarea></div>
+        <span class="btn">Annulla modifiche</span>
+      </aside>
+    </div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 6 OPERATORE -->
+<section class="board"><h2>6 · Operatore: attività di oggi</h2>
+<div class="screen" style="flex-direction:column">
+  <div class="op-top">
+    <div class="logo" data-logo style="padding:0"></div>
+    <div class="actions" style="color:#d1d5db">Reparto saldatura · Marco Rossi · Operatore <span class="btn sm" style="background:transparent;color:#fff;border-color:#4b5563">Esci</span></div>
+  </div>
+  <main style="max-width:980px;margin:0 auto;width:100%">
+    <div class="head"><div><h1>Le tue attività di oggi</h1><p>Giovedì 19 novembre · turno 8:00–12:00 / 13:00–17:00</p></div></div>
+    <section class="card" style="border:2px solid var(--primary)">
+      <div><span class="tag blue">In corso da 1 h 52</span></div>
+      <div style="font-size:22px;font-weight:700">C-101 · Saldatura telaio</div>
+      <div class="muted">Saldatrice S1 · previsto 8:00–11:40 · cliente Rinaldi Carrelli</div>
+      <div class="actions"><span class="btn big">Pausa</span><span class="btn success big">Termina</span></div>
+    </section>
+    <section class="card">
+      <h2>Prossime</h2>
+      <div class="head" style="padding:4px 0">
+        <div><b>C-102 · Saldatura staffe</b><div class="muted small">Saldatrice S2 · 13:30 – ven 10:00 · dopo la fresatura (finisce alle 13:00)</div></div>
+        <span class="btn primary">Inizia (alle 13:30)</span>
+      </div>
+    </section>
+    <section class="card">
+      <h2>Segnala un problema</h2>
+      <div class="sub">Il pianificatore riceve subito l’avviso e può ripianificare.</div>
+      <div class="reason"><span class="on">Guasto macchina</span><span>Materiale mancante</span><span>Sono in ritardo</span><span>Altro</span></div>
+      <div class="field"><label>Cosa è successo (facoltativo)</label><textarea class="input" style="min-height:70px" readonly>La S2 non si accende, ho avvisato la manutenzione.</textarea></div>
+      <div><span class="btn danger">Invia segnalazione</span></div>
+    </section>
+    <div class="muted small">Gli orari di inizio e fine che registri qui servono al sistema per stimare meglio le durate delle prossime attività.</div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 7 ELENCO PIANI -->
+<section class="board" id="s7"><h2>7 · Elenco piani <span class="badge-new">NUOVA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="piani"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Piani</h1><p>Tutte le richieste di pianificazione e i piani generati. Ogni richiesta produce 3 piani.</p></div>
+      <div class="actions"><a class="btn primary" href="#s3">+ Nuova pianificazione</a></div>
+    </div>
+    <div class="filters">
+      <div class="input ph" style="min-width:260px">Cerca per commessa o piano</div>
+      <div class="input">Stato: tutti ▾</div>
+      <div class="input">Ultimi 30 giorni ▾</div>
+      <div class="seg"><span class="on">Tutti</span><span>Normali</span><span>Shadow</span></div>
+    </div>
+    <section class="card" style="padding:8px 18px">
+      <table class="t">
+        <tr><th>Richiesta</th><th>Piano</th><th>Commesse</th><th>Creato</th><th>Generato da</th><th>Durata</th><th>Ritardo</th><th>Costo</th><th>Stato</th><th></th></tr>
+        <tr><td rowspan="3" style="border-bottom:1px solid var(--border)"><b>17 nov, 9:15</b><div class="muted xs">G. Neri · orizzonte 18–24 nov</div></td>
+            <td>A · Economico</td><td class="small">C-101…C-104</td><td>17 nov</td><td>AI (POLICY v1.3)</td><td>5 g 1 h</td><td class="bad">3 h</td><td>€ 8.900</td><td><span class="tag blue">Da valutare</span></td><td><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td><b>B · Bilanciato</b></td><td class="small">C-101…C-104</td><td>17 nov</td><td>AI (POLICY v1.3)</td><td>4 g 6 h</td><td class="good">0 h</td><td>€ 9.600</td><td><span class="tag blue">Da valutare</span></td><td><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td style="border-bottom:1px solid var(--border)">C · Veloce</td><td class="small" style="border-bottom:1px solid var(--border)">C-101…C-104</td><td style="border-bottom:1px solid var(--border)">17 nov</td><td style="border-bottom:1px solid var(--border)">AI (POLICY v1.3)</td><td style="border-bottom:1px solid var(--border)">3 g 7 h</td><td class="good" style="border-bottom:1px solid var(--border)">0 h</td><td style="border-bottom:1px solid var(--border)">€ 11.400</td><td style="border-bottom:1px solid var(--border)"><span class="tag blue">Da valutare</span></td><td style="border-bottom:1px solid var(--border)"><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td><b>16 nov, 17:40</b><div class="muted xs">G. Neri · prova scenario</div></td><td colspan="7" class="muted"><span class="tag grey" style="margin-right:8px">In elaborazione…</span> il motore sta calcolando i 3 piani</td><td><span class="tag grey">In attesa</span></td><td></td></tr>
+        <tr><td><b>10 nov, 8:30</b><div class="muted xs">G. Neri · settimana 46</div></td><td>B · Bilanciato</td><td class="small">C-095…C-100</td><td>10 nov</td><td>AI (POLICY v1.2)</td><td>4 g 2 h</td><td class="bad">6 h</td><td>€ 9.200</td><td><span class="tag green">Approvato · in esecuzione</span></td><td><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td><b>6 nov, 14:02</b><div class="muted xs">Ripianificazione · guasto S2</div></td><td>Ripianificato</td><td class="small">C-091…C-094</td><td>6 nov</td><td>Regola ATC (riserva)</td><td>3 g 7 h</td><td class="bad">2 h</td><td>€ 9.900</td><td><span class="tag grey">Concluso</span></td><td><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td><b>3 nov, 9:00</b><div class="muted xs">G. Neri</div></td><td>C · Veloce</td><td class="small">C-091…C-094</td><td>3 nov</td><td>AI (POLICY v1.2)</td><td>3 g 4 h</td><td class="good">0 h</td><td>€ 10.800</td><td><span class="tag red">Rifiutato</span></td><td><a class="small" href="#s5">Gantt</a></td></tr>
+        <tr><td><b>2 nov, 8:10</b><div class="muted xs">Shadow · confronto</div></td><td>B · Bilanciato</td><td class="small">C-088…C-090</td><td>2 nov</td><td>—</td><td colspan="3" class="bad small">Servizio AI non disponibile</td><td><span class="tag red">Fallito</span></td><td></td></tr>
+      </table>
+    </section>
+    <div class="muted small">Stati: In attesa → Da valutare → Approvato / Rifiutato. Un piano approvato viene “Sostituito” quando se ne approva uno nuovo sullo stesso periodo.</div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 8 CONFIGURAZIONE -->
+<section class="board"><h2>8 · Configurazione (risorse, calendari, competenze, profili) <span class="badge-new">NUOVA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="config"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Configurazione</h1><p>Dati di base usati da ogni pianificazione. Modificabili solo dall’amministratore.</p></div>
+      <div class="actions"><span class="btn primary">+ Nuova risorsa</span></div>
+    </div>
+    <div class="tabs"><span class="on">Risorse</span><span>Calendari</span><span>Competenze</span><span>Profili di dominio</span></div>
+    <div class="row">
+      <section class="card" style="flex:2 1 620px;padding:8px 18px">
+        <table class="t">
+          <tr><th>Codice</th><th>Nome</th><th>Tipo</th><th>Competenze</th><th>Calendario</th><th>Costo orario</th><th>Stato</th></tr>
+          <tr><td class="mono">R-LAS-01</td><td>Taglio laser</td><td>Macchina</td><td><span class="chip">TAGLIO</span></td><td>2 turni</td><td>€ 65</td><td><span class="tag green">Attiva</span></td></tr>
+          <tr><td class="mono">R-CNC-01</td><td>Fresa CNC 1</td><td>Macchina</td><td><span class="chip">FRESATURA</span></td><td>2 turni</td><td>€ 80</td><td><span class="tag green">Attiva</span></td></tr>
+          <tr class="sel"><td class="mono">R-CNC-02</td><td>Fresa CNC 2</td><td>Macchina</td><td><span class="chip">FRESATURA</span></td><td>2 turni</td><td>€ 72</td><td><span class="tag amber">Manutenzione gio</span></td></tr>
+          <tr><td class="mono">R-SAL-01</td><td>Saldatrice S1</td><td>Macchina</td><td><span class="chip">SALDATURA</span><span class="chip">PEZZI GRANDI</span></td><td>2 turni</td><td>€ 55</td><td><span class="tag green">Attiva</span></td></tr>
+          <tr><td class="mono">R-SAL-02</td><td>Saldatrice S2</td><td>Macchina</td><td><span class="chip">SALDATURA</span></td><td>2 turni</td><td>€ 55</td><td><span class="tag red">Guasta</span></td></tr>
+          <tr><td class="mono">R-VER-01</td><td>Cabina verniciatura</td><td>Stanza</td><td><span class="chip">VERNICIATURA</span></td><td>1 turno</td><td>€ 48</td><td><span class="tag green">Attiva</span></td></tr>
+          <tr><td class="mono">P-ROSSI</td><td>Marco Rossi</td><td>Persona</td><td><span class="chip">SALDATURA</span><span class="chip">COLLAUDO</span></td><td>2 turni</td><td>€ 32</td><td><span class="tag green">Attiva</span></td></tr>
+        </table>
+      </section>
+      <aside class="card" style="flex:1 1 320px">
+        <h2>Fresa CNC 2</h2>
+        <div class="grid2" style="gap:12px">
+          <div class="field"><label>Codice</label><div class="input mono">R-CNC-02</div></div>
+          <div class="field"><label>Tipo</label><div class="input">Macchina ▾</div></div>
+        </div>
+        <div class="field"><label>Nome</label><div class="input">Fresa CNC 2</div></div>
+        <div class="field"><label>Competenze</label><div class="input"><span class="chip">FRESATURA ×</span></div></div>
+        <div class="grid2" style="gap:12px">
+          <div class="field"><label>Calendario</label><div class="input">2 turni ▾</div></div>
+          <div class="field"><label>Costo orario</label><div class="input">€ 72</div></div>
+        </div>
+        <div class="field"><label>Indisponibilità programmate</label>
+          <div class="note amber" style="padding:10px"><span class="dot"></span><div><b>Manutenzione</b><span class="muted small">gio 19 nov, 8:00–17:00</span></div></div>
+          <span class="btn sm">+ Aggiungi indisponibilità</span>
+        </div>
+        <div class="actions"><span class="btn primary">Salva</span><span class="btn danger">Disattiva</span></div>
+      </aside>
+    </div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 9 MODELLO AI -->
+<section class="board"><h2>9 · Modello AI (sola lettura) <span class="badge-new">NUOVA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="modello"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Modello AI</h1><p>Quali modelli stanno pianificando e quanto sono affidabili. Un nuovo modello si pubblica solo dalla pipeline di addestramento.</p></div>
+      <span class="tag green">Servizio AI attivo · CP-SAT disponibile</span>
+    </div>
+    <div class="grid2">
+      <section class="card">
+        <div class="head"><div><div class="muted small">M2 · Policy (decide l’ordine delle attività)</div><h2 style="font-size:20px;margin-top:2px">m2-policy-1.3.0</h2></div><span class="tag green">Attivo dal 28 ott</span></div>
+        <div class="grid4" style="gap:10px">
+          <div class="metric"><span class="muted xs">Scarto da CP-SAT</span><span class="v">4%</span></div>
+          <div class="metric"><span class="muted xs">Meglio di ATC</span><span class="v">81%</span></div>
+          <div class="metric"><span class="muted xs">Meglio di EDD</span><span class="v">93%</span></div>
+          <div class="metric"><span class="muted xs">Tempo medio</span><span class="v">0,42 s</span></div>
+        </div>
+        <div class="muted small">Addestrato sul dataset <span class="mono">ds-2026-10-25</span> · compatibile con ProblemSpec 1.0</div>
+      </section>
+      <section class="card">
+        <div class="head"><div><div class="muted small">M1 · Context (stima durate e setup mancanti)</div><h2 style="font-size:20px;margin-top:2px">m1-context-1.1.0</h2></div><span class="tag green">Attivo dal 20 ott</span></div>
+        <div class="grid4" style="gap:10px">
+          <div class="metric"><span class="muted xs">Errore medio stime</span><span class="v">12%</span></div>
+          <div class="metric"><span class="muted xs">Stime / settimana</span><span class="v">38</span></div>
+          <div class="metric"><span class="muted xs">Copertura intervallo</span><span class="v">80%</span></div>
+          <div class="metric"><span class="muted xs">Tempo medio</span><span class="v">35 ms</span></div>
+        </div>
+        <div class="muted small">Impara dagli orari registrati dagli operatori.</div>
+      </section>
+    </div>
+    <div class="row">
+      <section class="card" style="flex:1 1 420px">
+        <h2>Cosa succede se l’AI non è sicura</h2>
+        <div class="sub">Sotto il 60% di confidenza, o in caso di errore, il piano viene calcolato con un metodo di riserva.</div>
+        <div class="chain"><span class="tag blue">AI · Policy</span>→<span class="tag grey">CP-SAT</span>→<span class="tag grey">Regola ATC</span>→<span class="tag grey">Regola EDD</span></div>
+        <div class="bars" style="grid-template-columns:150px minmax(0,1fr) 44px">
+          <span>Piani dall’AI</span><div class="track"><i style="width:93%"></i></div><span style="text-align:right">39</span>
+          <span>Riserva CP-SAT</span><div class="track"><i style="width:5%;background:#64748b"></i></div><span style="text-align:right">2</span>
+          <span>Riserva ATC / EDD</span><div class="track"><i style="width:2%;background:#64748b"></i></div><span style="text-align:right">1</span>
+        </div>
+        <div class="muted xs">Ultimi 30 giorni · 42 piani</div>
+      </section>
+      <section class="card" style="flex:2 1 560px;padding:18px 18px 8px">
+        <h2>Storico versioni</h2>
+        <table class="t">
+          <tr><th>Versione</th><th>Componente</th><th>Pubblicata</th><th>Scarto CP-SAT / Errore</th><th>Stato</th></tr>
+          <tr><td class="mono">m2-policy-1.4.0-rc1</td><td>Policy</td><td>14 nov</td><td>3,6%</td><td><span class="tag amber">In valutazione</span></td></tr>
+          <tr><td class="mono">m2-policy-1.3.0</td><td>Policy</td><td>28 ott</td><td>4%</td><td><span class="tag green">Attivo</span></td></tr>
+          <tr><td class="mono">m1-context-1.1.0</td><td>Context</td><td>20 ott</td><td>12%</td><td><span class="tag green">Attivo</span></td></tr>
+          <tr><td class="mono">m2-policy-1.2.0</td><td>Policy</td><td>10 ott</td><td>6,1%</td><td><span class="tag grey">Ritirato</span></td></tr>
+          <tr><td class="mono">m1-context-1.0.0</td><td>Context</td><td>2 ott</td><td>17%</td><td><span class="tag grey">Ritirato</span></td></tr>
+        </table>
+      </section>
+    </div>
+  </main>
+</div>
+</section>
+
+<!-- ======================================================= 10 AUDIT -->
+<section class="board"><h2>10 · Audit <span class="badge-new">NUOVA</span></h2>
+<div class="screen">
+  <nav class="side" data-active="audit"></nav>
+  <main>
+    <div class="head">
+      <div><h1>Audit</h1><p>Chi ha fatto cosa, quando e con quale modello. Ogni piano è riproducibile dallo stesso input e dalla stessa versione.</p></div>
+      <div class="actions"><span class="btn">Esporta CSV</span></div>
+    </div>
+    <div class="filters">
+      <div class="input">Periodo: 1–17 nov ▾</div>
+      <div class="input">Azione: tutte ▾</div>
+      <div class="input">Utente: tutti ▾</div>
+      <div class="input ph" style="min-width:220px">Piano (es. PLAN-0041)</div>
+    </div>
+    <div class="row">
+      <section class="card" style="flex:2 1 640px;padding:8px 18px">
+        <table class="t">
+          <tr><th>Quando</th><th>Azione</th><th>Piano</th><th>Utente</th><th>Motore</th><th>Input</th></tr>
+          <tr class="sel"><td>17 nov, 10:58</td><td><span class="tag amber">Modifica</span></td><td class="mono">PLAN-0042</td><td>gneri</td><td class="small">—</td><td class="mono">9f2c…e1</td></tr>
+          <tr><td>17 nov, 9:15</td><td><span class="tag blue">Piani generati</span></td><td class="mono">PLAN-0041/42/43</td><td>gneri</td><td class="small">POLICY · m2-1.3.0</td><td class="mono">9f2c…e1</td></tr>
+          <tr><td>16 nov, 17:41</td><td><span class="tag red">AI non disponibile</span></td><td class="mono">PLAN-0040</td><td>gneri</td><td class="small">—</td><td class="mono">77ab…02</td></tr>
+          <tr><td>10 nov, 8:42</td><td><span class="tag green">Approvato</span></td><td class="mono">PLAN-0037</td><td>gneri</td><td class="small">POLICY · m2-1.2.0</td><td class="mono">c41d…9a</td></tr>
+          <tr><td>6 nov, 14:02</td><td><span class="tag grey">Riserva usata</span></td><td class="mono">PLAN-0033</td><td>sistema</td><td class="small">ATC (confidenza 0,48)</td><td class="mono">a0e9…3c</td></tr>
+          <tr><td>6 nov, 13:55</td><td><span class="tag amber">Ripianificazione</span></td><td class="mono">PLAN-0033</td><td>gneri</td><td class="small">evento: guasto S2</td><td class="mono">a0e9…3c</td></tr>
+          <tr><td>3 nov, 9:20</td><td><span class="tag red">Rifiutato</span></td><td class="mono">PLAN-0031</td><td>gneri</td><td class="small">POLICY · m2-1.2.0</td><td class="mono">5b17…d4</td></tr>
+        </table>
+      </section>
+      <aside class="card drawer" style="flex:1 1 320px">
+        <div class="muted small">Record AUD-0912</div>
+        <h2>Modifica del Piano B</h2>
+        <dl>
+          <dt>Quando</dt><dd>17 nov 2026, 10:58:12</dd>
+          <dt>Utente</dt><dd>gneri (Pianificatore)</dd>
+          <dt>Piano</dt><dd class="mono">PLAN-0042 → PLAN-0042.1</dd>
+          <dt>Modello</dt><dd class="mono">m2-policy-1.3.0</dd>
+          <dt>Hash input</dt><dd class="mono">sha256:9f2c…e1</dd>
+          <dt>Hash output</dt><dd class="mono">sha256:41ab…7f</dd>
+          <dt>Motivo</dt><dd>Spostata per manutenzione programmata della S2</dd>
+          <dt>Modifiche</dt><dd>C-101 Saldatura: S2 → S1, gio 8:00</dd>
+        </dl>
+        <a class="btn" href="#s5">Apri il piano</a>
+      </aside>
+    </div>
+  </main>
+</div>
+</section>
+
+<script>
+/* Sidebar e logo condivisi tra le schermate (solo per il mockup) */
+const LOGO = '<svg width="28" height="28" viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="112" fill="#0f172a" stroke="#334155" stroke-width="16"/><rect x="88" y="112" width="300" height="84" rx="42" fill="#2dd4bf"/><rect x="168" y="216" width="220" height="84" rx="42" fill="#5eead4"/><rect x="244" y="320" width="144" height="84" rx="42" fill="#99f6e4"/><line x1="428" y1="100" x2="428" y2="412" stroke="#fbbf24" stroke-width="32" stroke-linecap="round"/></svg><span><b>Flow</b>Sync</span>';
+const NAV = [
+  ['dashboard','Dashboard','#s1'],
+  ['commesse','Commesse',''],
+  ['nuova','Nuova pianificazione','#s3'],
+  ['piani','Piani','#s7'],
+  ['-','Sistema'],
+  ['config','Configurazione',''],
+  ['modello','Modello AI',''],
+  ['audit','Audit',''],
+];
+document.querySelectorAll('[data-logo]').forEach(el => el.innerHTML = LOGO);
+document.querySelectorAll('nav.side').forEach(nav => {
+  const active = nav.dataset.active;
+  let html = '<div class="logo">' + LOGO + '</div>';
+  for (const [key, label, href] of NAV) {
+    if (key === '-') { html += '<div class="group">' + label + '</div>'; continue; }
+    html += '<a href="' + (href || '#') + '"' + (key === active ? ' class="on" aria-current="page"' : '') + '>' + label + '</a>';
+  }
+  html += '<div class="foot">Giulia Neri · Pianificatore<br>Modello attivo <span>M2 Policy v1.3</span></div>';
+  nav.innerHTML = html;
+});
+</script>
+</body>
+</html>
