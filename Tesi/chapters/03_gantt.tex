@@ -1,0 +1,61 @@
+\chapter{Project plan}
+\label{chap:gantt}
+
+The project started on 26 October 2026 and ends with the delivery on 10 February 2027.
+The work is organised in five groups of activities and five milestones, shown in the Gantt chart
+of Figure~\ref{fig:gantt}.
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=\textwidth]{gantt}
+  \caption{Gantt chart of the FlowSync project}
+  \label{fig:gantt}
+\end{figure}
+
+\section{Work breakdown}
+\label{sec:wbs}
+% TODO: one paragraph per group of activities.
+\begin{itemize}
+  \item \textbf{Analysis and documentation}: domain, requirements and architecture decisions,
+        ProblemSpec and API contracts; documentation is kept up to date until the delivery.
+  \item \textbf{Data and AI}: instance generator and benchmark converters, dispatcher and
+        EDD/ATC baselines, CP-SAT teacher and dataset, pilot model, M1 context model, AI service,
+        generalisation experiments.
+  \item \textbf{Backend and DB}: MySQL schema and Flyway migrations, security and CRUD, planning
+        and AI client, decisions, execution, KPIs and audit, public API and events.
+  \item \textbf{Frontend}: mockups and user flows, React setup, orders and graph editor, Gantt
+        view and plan review, KPI dashboard.
+  \item \textbf{Integration, evaluation and delivery}: Docker Compose and end-to-end integration,
+        experimental evaluation, testing, final documentation review, presentation.
+\end{itemize}
+
+\section{Milestones}
+\label{sec:milestones}
+
+\begin{table}[htpb]
+  \centering
+  \begin{tabular}{@{}llp{8cm}@{}}
+    \toprule
+    \textbf{Milestone} & \textbf{Date} & \textbf{Goal} \\
+    \midrule
+    M0 & 6 Nov 2026  & Validation of the project with the supervisor \\
+    M1 & 11 Dec 2026 & Pilot outcome: does the first model beat ATC? (go / no-go) \\
+    M2 & 23 Dec 2026 & Minimal end-to-end system \\
+    M3 & 29 Jan 2027 & Feature freeze \\
+    M4 & 10 Feb 2027 & Delivery \\
+    \bottomrule
+  \end{tabular}
+  \caption{Project milestones}
+  \label{tab:milestones}
+\end{table}
+
+\section{Parallel lanes and dependencies}
+\label{sec:lanes}
+% TODO: the three development lanes (AI, backend, frontend) run in parallel from 9 November;
+% the backend starts against a mock of the AI service so it does not wait for the models;
+% the Christmas break runs from 24 December to 7 January.
+
+\section{Risks}
+\label{sec:risks}
+% TODO: main risks (e.g. the model does not beat ATC at M1: fallback on dispatching rules;
+% integration delays) and the buffer before the delivery.

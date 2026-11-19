@@ -1,0 +1,186 @@
+\chapter{Introduction}
+\label{chap:intro}
+
+Every organisation that has to carry out many activities with a limited set of resources faces,
+sooner or later, a scheduling problem: which activity should be executed by which resource, and
+when, so that deadlines are met and resources are used well. In a workshop this means deciding
+the order of the operations on each machine; in a public office, which clerk processes which
+file and in which order; in a project, how to arrange the tasks that share the same team. The
+problem is easy to state, but hard to solve well: the number of possible plans grows
+exponentially with the number of activities, and the data on which the decision is based
+(durations, setup times, availability) is uncertain and changes every day.
+
+This thesis presents \emph{FlowSync}, a web platform that supports the planner in this task. The
+planner describes the problem, possibly in natural language; FlowSync turns the description into
+a structured model, proposes one or more candidate plans together with their indicators, and
+leaves the final decision to the human. The plans are produced by a machine learning model, which
+is trained offline and then answers in a short time, instead of an optimisation solver running
+at every request. This chapter describes the application domain studied
+(Section~\ref{sec:domain}), the motivations of the work (Section~\ref{sec:motivations}), its
+goals (Section~\ref{sec:goals}) and how the work was organised (Section~\ref{sec:contributions}).
+
+\section{Application domain}
+\label{sec:domain}
+
+FlowSync addresses \emph{scheduling} in a broad sense. Instead of targeting a single industry, it
+works on a model that is common to several domains, which are then obtained by changing the
+meaning of the entities and the default weights of the objectives.
+
+\subsection{A common model}
+\label{sec:common-model}
+
+The model is built on a small number of concepts:
+
+\begin{itemize}
+  \item an \textbf{activity} is a unit of work with a duration; activities belong to a
+        \textbf{work order} (a job, a file, a project);
+  \item a \textbf{resource} is whatever executes an activity: a machine, a person, a team, a room.
+        Each activity can be executed only by a subset of the resources, the \emph{eligible}
+        ones, for example those that have the required skill;
+  \item a \textbf{precedence} constrains two activities of the same work order: the second cannot
+        start before the first has finished;
+  \item a \textbf{setup time} is the time needed to prepare a resource when it switches from one
+        activity to another; it depends on the pair of activities involved;
+  \item a \textbf{calendar} defines the working shifts and holidays of a resource, while an
+        \textbf{unavailability} represents a maintenance, a leave or a breakdown;
+  \item a \textbf{deadline} and a \textbf{priority} are attached to each work order.
+\end{itemize}
+
+Activities and precedences form a graph; the planner's problem is to choose, for each activity,
+a resource and a start time such that all constraints hold. Among the feasible plans, the
+quality is measured by one or more objectives: the \emph{makespan} (the time at which the last
+activity ends), the \emph{weighted tardiness} (how much and how important the late orders are),
+the \emph{overtime} and the total \emph{setup time}. Different domains weigh these objectives in
+different ways, and FlowSync stores a \emph{domain profile} with the default weights, which the
+planner can adjust.
+
+\subsection{Manufacturing}
+\label{sec:domain-factory}
+
+The first domain is the production workshop. A work order is a production order made of a
+sequence of operations (for example cutting, milling, finishing), each of which can be executed
+on one of several machines of the right type. This is the \emph{flexible job shop} problem, one of
+the most studied scheduling problems~\cite{brandimarte1993}. Setup times are relevant: changing
+tool or material between two consecutive operations can take longer than the operation itself, and
+the cost depends on the order in which operations are sequenced. Machines are not always
+available, because of planned maintenance, and orders arrive continuously, so that the plan has to
+be recomputed often. The demonstration workshop used in the prototype, with its CNC machines and a
+handful of production orders, follows this setting.
+
+\subsection{Public administration}
+\label{sec:domain-pa}
+
+The second domain is the public administration. Here the work orders are administrative files
+that go through a sequence of steps (registration, check, approval), the resources are the
+employees of the offices, and the skills define who is allowed to carry out a step. Deadlines are
+often fixed by law, so that tardiness has a concrete cost, while setup times are usually absent or
+negligible. The structure is the same as in the factory: only the vocabulary changes. This is
+the main reason for choosing a generic model: the same engine can support domains that, at first
+sight, have little in common.
+
+\subsection{Projects}
+\label{sec:domain-projects}
+
+The third domain is project management, in which the activities of a project are linked by
+precedences and compete for shared resources. This is the \emph{resource-constrained project
+scheduling problem} (RCPSP), for which well-known benchmark libraries
+exist~\cite{kolisch1997}. A project is a work order whose activities form a general graph rather
+than a simple chain, and this makes it a useful test of the generality of the model.
+
+\subsection{Scope}
+\label{sec:scope}
+
+The work focuses on the \emph{assignment and sequencing} of activities. Some related problems are
+deliberately left out: in particular, the construction of staff rotas and the management of leave
+requests are not addressed, and leave only enters the model as an unavailability of a resource.
+The system also does not control the machines or collect data automatically from them: the actual
+start and end of each activity are recorded by the operators through the application.
+% TODO: complete with the other limits of the prototype (e.g. no integration with ERP systems).
+
+\section{Motivations}
+\label{sec:motivations}
+
+In many small and medium organisations, planning is still done by hand, often on a spreadsheet.
+This works while the number of activities is small, but it does not scale: with dozens of orders
+and several machines, the planner can no longer evaluate the alternatives, and the plan is built
+by experience and by the most urgent request. Each unexpected event, such as a breakdown or a
+rush order, forces the planner to start again.
+
+The classical alternatives have their own limits. \emph{Exact solvers} such as constraint
+programming can find optimal or near-optimal plans, but scheduling problems are NP-hard, and the
+computation time grows quickly with the size of the instance; when the plan must be recomputed
+several times a day, waiting minutes or hours for each answer is not acceptable.
+\emph{Dispatching rules}, such as earliest due date (EDD) or the apparent tardiness cost
+rule (ATC)~\cite{vepsalainen1987}, are instantaneous and easy to explain, but they make each
+decision looking only at the current state, and the quality of the resulting plan can be far from
+the optimum.
+
+Machine learning offers a middle way. A model trained offline on a large number of instances
+can learn a dispatching policy that is richer than a hand-written rule, and at run time it
+needs only a fast forward pass. Plans are built step by step by a simulator, so that they respect
+by construction the constraints of the problem. A second use of learning concerns the data:
+durations and setup times are not known exactly, and they can be estimated, with a measure of
+confidence, from the history of what happened in the past.
+
+Finally, an automatic plan is useful only if the planner trusts it. For this reason FlowSync is
+designed as a \emph{decision support} tool and not as an autopilot: it shows several candidate
+plans, with their indicators, and the planner approves, rejects or modifies them. Describing the
+problem in natural language, and being asked for the missing information when needed, further
+lowers the barrier for users who are not experts in optimisation.
+
+The project was also carried out under a precise constraint: the optimisation engine must be a
+machine learning model, and exact solvers cannot be used when the system is running. The
+constraint programming solver is therefore used only offline, to produce the examples from which
+the model learns.
+
+\section{Goals}
+\label{sec:goals}
+
+The goal of the thesis is to design and implement a complete, domain-independent platform for
+AI-assisted scheduling, and to evaluate it. In more detail:
+
+\begin{enumerate}
+  \item define a \textbf{generic problem model}, able to represent factory, public administration
+        and project scheduling with the same concepts (Section~\ref{sec:common-model});
+  \item use a \textbf{machine learning model as the optimisation engine}, trained by imitation
+        of a constraint programming solver used only as an offline teacher, with the ATC and EDD
+        rules as fallback and as baselines;
+  \item produce plans that are \textbf{feasible by construction}, through an event-driven
+        simulator that applies the decisions of the model;
+  \item obtain plans whose quality is \textbf{competitive with the baselines} on benchmark
+        instances, in a response time compatible with interactive use;
+  \item keep the \textbf{planner in control}, with multiple candidate plans, objective indicators
+        and an explicit approval step;
+  \item deliver a \textbf{working web application} that integrates frontend, backend, database
+        and AI service.
+\end{enumerate}
+% TODO: add quantitative targets once the evaluation protocol is fixed (e.g. improvement over ATC
+% on weighted tardiness, maximum response time).
+
+\section{Team organisation and contributions}
+\label{sec:contributions}
+
+FlowSync was developed by a team of three students, each responsible for one area:
+
+\begin{itemize}
+  \item \textbf{Leonardo Pierucci}: artificial intelligence and data (instance generator,
+        dispatcher and baselines, training of M1 and M2, AI service);
+  \item \textbf{Alessio Brutti}: backend and database (Spring Boot, MySQL, Flyway,
+        integration with the AI service);
+  \item \textbf{Mattia Brizi}: frontend (React, process graph editor, resource Gantt chart,
+        dashboard).
+\end{itemize}
+
+The analysis of the problem, the definition of the interfaces between the three parts, the
+documentation and the integration tests were carried out together.
+% TODO: check with the supervisor whether the thesis requires an individual statement of
+% contribution, and if so detail here what each student did.
+
+\section{Thesis structure}
+\label{sec:structure}
+This chapter has described the application domain and the motivations of the work.
+Chapter~\ref{chap:background} introduces the background on scheduling problems and their
+solution methods, from exact solvers to machine learning. Chapter~\ref{chap:gantt} presents the
+project plan, Chapter~\ref{chap:methodologies} the methodologies adopted, and
+Chapter~\ref{chap:architecture} the software architecture of FlowSync.
+% TODO: extend when the remaining chapters are added.

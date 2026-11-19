@@ -1,0 +1,37 @@
+\chapter{Application domain and requirements}
+\label{chap:requirements}
+
+\section{Application domain}
+\label{sec:domain}
+% TODO: Factory, Public Administration and Project profiles: what resources, activities,
+% constraints and objectives are in each. What is out of scope (e.g. leave management: it only
+% enters as unavailability).
+
+\section{Actors}
+\label{sec:actors}
+% TODO: administrator, planner, operator; use case diagram.
+
+\section{Functional requirements}
+\label{sec:fr}
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}llp{8.3cm}l@{}}
+    \toprule
+    \textbf{ID} & \textbf{Actor} & \textbf{Requirement} & \textbf{Priority} \\
+    \midrule
+    FR-01 & All      & Authentication and role-based access & Must \\
+    FR-14 & Planner  & Display the plan as a resource Gantt chart & Must \\
+    FR-15 & Planner  & Move an activity with constraint validation & Must \\
+    FR-21 & Operator & Record the start and end of activities & Must \\
+    \bottomrule
+  \end{tabular}
+  \caption{Excerpt of the functional requirements (TODO: full list)}
+  \label{tab:fr}
+\end{table}
+
+\section{Non-functional requirements}
+\label{sec:nfr}
+% TODO: response time, guaranteed plan feasibility, security (JWT, roles), traceability (audit),
+% reproducibility (Docker Compose), data privacy.

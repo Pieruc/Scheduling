@@ -1,0 +1,783 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{anyt/global//global/global/global}
+  \entry{balas1969}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=BE}{%
+         family={Balas},
+         familyi={B\bibinitperiod},
+         given={Egon},
+         giveni={E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BE1}
+    \strng{fullhash}{BE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Bal69}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \verb{doi}
+    \verb 10.1287/opre.17.6.941
+    \endverb
+    \field{number}{6}
+    \field{pages}{941\bibrangedash 957}
+    \field{title}{Machine sequencing via disjunctive graphs: an implicit
+  enumeration algorithm}
+    \field{volume}{17}
+    \field{journaltitle}{Operations Research}
+    \field{year}{1969}
+  \endentry
+
+  \entry{bengio2021}{article}{}{}
+    \name{author}{3}{}{%
+      {{hash=BY}{%
+         family={Bengio},
+         familyi={B\bibinitperiod},
+         given={Yoshua},
+         giveni={Y\bibinitperiod},
+      }}%
+      {{hash=LA}{%
+         family={Lodi},
+         familyi={L\bibinitperiod},
+         given={Andrea},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=PA}{%
+         family={Prouvost},
+         familyi={P\bibinitperiod},
+         given={Antoine},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BYLAPA1}
+    \strng{fullhash}{BYLAPA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{BLP21}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \verb{doi}
+    \verb 10.1016/j.ejor.2020.07.063
+    \endverb
+    \field{number}{2}
+    \field{pages}{405\bibrangedash 421}
+    \field{title}{Machine learning for combinatorial optimization: a
+  methodological tour d'horizon}
+    \field{volume}{290}
+    \field{journaltitle}{European Journal of Operational Research}
+    \field{year}{2021}
+  \endentry
+
+  \entry{blazewicz1983}{article}{}{}
+    \name{author}{3}{}{%
+      {{hash=BJ}{%
+         family={B{\l}a{\.z}ewicz},
+         familyi={B\bibinitperiod},
+         given={Jacek},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=LJK}{%
+         family={Lenstra},
+         familyi={L\bibinitperiod},
+         given={Jan\bibnamedelima Karel},
+         giveni={J\bibinitperiod\bibinitdelim K\bibinitperiod},
+      }}%
+      {{hash=RKAHG}{%
+         family={Rinnooy\bibnamedelima Kan},
+         familyi={R\bibinitperiod\bibinitdelim K\bibinitperiod},
+         given={A.\bibnamedelima H.\bibnamedelima G.},
+         giveni={A\bibinitperiod\bibinitdelim H\bibinitperiod\bibinitdelim
+  G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BJLJKRKAHG1}
+    \strng{fullhash}{BJLJKRKAHG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{BLRK83}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \verb{doi}
+    \verb 10.1016/0166-218X(83)90012-4
+    \endverb
+    \field{number}{1}
+    \field{pages}{11\bibrangedash 24}
+    \field{title}{Scheduling subject to resource constraints: classification
+  and complexity}
+    \field{volume}{5}
+    \field{journaltitle}{Discrete Applied Mathematics}
+    \field{year}{1983}
+  \endentry
+
+  \entry{brandimarte1993}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=BP}{%
+         family={Brandimarte},
+         familyi={B\bibinitperiod},
+         given={Paolo},
+         giveni={P\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BP1}
+    \strng{fullhash}{BP1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Bra93}
+    \field{sortinit}{B}
+    \field{sortinithash}{B}
+    \verb{doi}
+    \verb 10.1007/BF02023073
+    \endverb
+    \field{number}{3}
+    \field{pages}{157\bibrangedash 183}
+    \field{title}{Routing and scheduling in a flexible job shop by tabu search}
+    \field{volume}{41}
+    \field{journaltitle}{Annals of Operations Research}
+    \field{year}{1993}
+  \endentry
+
+  \entry{bpic2015}{online}{}{}
+    \name{author}{1}{}{%
+      {{hash=vDB}{%
+         prefix={van},
+         prefixi={v\bibinitperiod},
+         family={Dongen},
+         familyi={D\bibinitperiod},
+         given={Boudewijn},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {Eindhoven University of Technology}%
+    }
+    \strng{namehash}{DBv1}
+    \strng{fullhash}{DBv1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Don15}
+    \field{sortinit}{D}
+    \field{sortinithash}{D}
+    \field{title}{{BPI Challenge 2015}}
+    \verb{url}
+    \verb https://research.tue.nl/en/datasets/bpi-challenge-2015-municipality-2
+    \verb /
+    \endverb
+    \field{year}{2015}
+  \endentry
+
+  \entry{garey1976}{article}{}{}
+    \name{author}{3}{}{%
+      {{hash=GMR}{%
+         family={Garey},
+         familyi={G\bibinitperiod},
+         given={M.\bibnamedelima R.},
+         giveni={M\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+      {{hash=JDS}{%
+         family={Johnson},
+         familyi={J\bibinitperiod},
+         given={D.\bibnamedelima S.},
+         giveni={D\bibinitperiod\bibinitdelim S\bibinitperiod},
+      }}%
+      {{hash=SR}{%
+         family={Sethi},
+         familyi={S\bibinitperiod},
+         given={Ravi},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GMRJDSSR1}
+    \strng{fullhash}{GMRJDSSR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{GJS76}
+    \field{sortinit}{G}
+    \field{sortinithash}{G}
+    \verb{doi}
+    \verb 10.1287/moor.1.2.117
+    \endverb
+    \field{number}{2}
+    \field{pages}{117\bibrangedash 129}
+    \field{title}{The complexity of flowshop and jobshop scheduling}
+    \field{volume}{1}
+    \field{journaltitle}{Mathematics of Operations Research}
+    \field{year}{1976}
+  \endentry
+
+  \entry{hussein2017imitation}{article}{}{}
+    \name{author}{4}{}{%
+      {{hash=HA}{%
+         family={Hussein},
+         familyi={H\bibinitperiod},
+         given={Ahmed},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=GMM}{%
+         family={Gaber},
+         familyi={G\bibinitperiod},
+         given={Mohamed\bibnamedelima Medhat},
+         giveni={M\bibinitperiod\bibinitdelim M\bibinitperiod},
+      }}%
+      {{hash=EE}{%
+         family={Elyan},
+         familyi={E\bibinitperiod},
+         given={Eyad},
+         giveni={E\bibinitperiod},
+      }}%
+      {{hash=JC}{%
+         family={Jayne},
+         familyi={J\bibinitperiod},
+         given={Chrisina},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HA+1}
+    \strng{fullhash}{HAGMMEEJC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Hus+17}
+    \field{sortinit}{H}
+    \field{sortinithash}{H}
+    \verb{doi}
+    \verb 10.1145/3054912
+    \endverb
+    \field{number}{2}
+    \field{pages}{21:1\bibrangedash 21:35}
+    \field{title}{Imitation Learning: A Survey of Learning Methods}
+    \field{volume}{50}
+    \field{journaltitle}{ACM Computing Surveys}
+    \field{year}{2017}
+  \endentry
+
+  \entry{koenker1978}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=KR}{%
+         family={Koenker},
+         familyi={K\bibinitperiod},
+         given={Roger},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=BG}{%
+         family={Bassett},
+         familyi={B\bibinitperiod},
+         given={Gilbert},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KRBG1}
+    \strng{fullhash}{KRBG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{KB78}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{number}{1}
+    \field{pages}{33\bibrangedash 50}
+    \field{title}{Regression quantiles}
+    \field{volume}{46}
+    \field{journaltitle}{Econometrica}
+    \field{year}{1978}
+  \endentry
+
+  \entry{kolisch1997}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=KR}{%
+         family={Kolisch},
+         familyi={K\bibinitperiod},
+         given={Rainer},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=SA}{%
+         family={Sprecher},
+         familyi={S\bibinitperiod},
+         given={Arno},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KRSA1}
+    \strng{fullhash}{KRSA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{KS97}
+    \field{sortinit}{K}
+    \field{sortinithash}{K}
+    \field{number}{1}
+    \field{pages}{205\bibrangedash 216}
+    \field{title}{{PSPLIB} -- A project scheduling problem library}
+    \field{volume}{96}
+    \field{journaltitle}{European Journal of Operational Research}
+    \field{year}{1997}
+  \endentry
+
+  \entry{roadfines}{online}{}{}
+    \name{author}{2}{}{%
+      {{hash=dLM}{%
+         prefix={de},
+         prefixi={d\bibinitperiod},
+         family={Leoni},
+         familyi={L\bibinitperiod},
+         given={Massimiliano},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MF}{%
+         family={Mannhardt},
+         familyi={M\bibinitperiod},
+         given={Felix},
+         giveni={F\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {4TU.ResearchData}%
+    }
+    \strng{namehash}{LMdMF1}
+    \strng{fullhash}{LMdMF1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{LM15}
+    \field{sortinit}{L}
+    \field{sortinithash}{L}
+    \field{title}{Road Traffic Fine Management Process}
+    \verb{url}
+    \verb https://data.4tu.nl/articles/_/12683249/1
+    \endverb
+    \field{year}{2015}
+  \endentry
+
+  \entry{perron2023cpsat}{inproceedings}{}{}
+    \name{author}{3}{}{%
+      {{hash=PL}{%
+         family={Perron},
+         familyi={P\bibinitperiod},
+         given={Laurent},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=DF}{%
+         family={Didier},
+         familyi={D\bibinitperiod},
+         given={Fr{\'e}d{\'e}ric},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=GS}{%
+         family={Gay},
+         familyi={G\bibinitperiod},
+         given={Steven},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Schloss Dagstuhl -- Leibniz-Zentrum f{\"u}r Informatik}%
+    }
+    \strng{namehash}{PLDFGS1}
+    \strng{fullhash}{PLDFGS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{PDG23}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{booktitle}{29th International Conference on Principles and Practice
+  of Constraint Programming (CP 2023)}
+    \verb{doi}
+    \verb 10.4230/LIPIcs.CP.2023.3
+    \endverb
+    \field{pages}{3:1\bibrangedash 3:2}
+    \field{series}{Leibniz International Proceedings in Informatics (LIPIcs)}
+    \field{title}{The {CP-SAT-LP} Solver}
+    \field{volume}{280}
+    \field{year}{2023}
+  \endentry
+
+  \entry{ortools}{online}{}{}
+    \name{author}{2}{}{%
+      {{hash=PL}{%
+         family={Perron},
+         familyi={P\bibinitperiod},
+         given={Laurent},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=FV}{%
+         family={Furnon},
+         familyi={F\bibinitperiod},
+         given={Vincent},
+         giveni={V\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {Google}%
+    }
+    \strng{namehash}{PLFV1}
+    \strng{fullhash}{PLFV1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{PF}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \field{title}{{OR-Tools}}
+    \verb{url}
+    \verb https://developers.google.com/optimization
+    \endverb
+  \endentry
+
+  \entry{pinedo2022}{book}{}{}
+    \name{author}{1}{}{%
+      {{hash=PML}{%
+         family={Pinedo},
+         familyi={P\bibinitperiod},
+         given={Michael\bibnamedelima L.},
+         giveni={M\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \strng{namehash}{PML1}
+    \strng{fullhash}{PML1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Pin22}
+    \field{sortinit}{P}
+    \field{sortinithash}{P}
+    \verb{doi}
+    \verb 10.1007/978-3-031-05921-6
+    \endverb
+    \field{edition}{6}
+    \field{title}{Scheduling: Theory, Algorithms, and Systems}
+    \field{year}{2022}
+  \endentry
+
+  \entry{ramamonjison2022}{inproceedings}{}{}
+    \name{author}{8}{}{%
+      {{hash=RR}{%
+         family={Ramamonjison},
+         familyi={R\bibinitperiod},
+         given={Rindra},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=LH}{%
+         family={Li},
+         familyi={L\bibinitperiod},
+         given={Haley},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=YT}{%
+         family={Yu},
+         familyi={Y\bibinitperiod},
+         given={Timothy},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=HS}{%
+         family={He},
+         familyi={H\bibinitperiod},
+         given={Shiqi},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=RV}{%
+         family={Rengan},
+         familyi={R\bibinitperiod},
+         given={Vishnu},
+         giveni={V\bibinitperiod},
+      }}%
+      {{hash=BDA}{%
+         family={Banitalebi-Dehkordi},
+         familyi={B\bibinithyphendelim D\bibinitperiod},
+         given={Amin},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=ZZ}{%
+         family={Zhou},
+         familyi={Z\bibinitperiod},
+         given={Zirui},
+         giveni={Z\bibinitperiod},
+      }}%
+      {{hash=ZY}{%
+         family={Zhang},
+         familyi={Z\bibinitperiod},
+         given={Yong},
+         giveni={Y\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Association for Computational Linguistics}%
+    }
+    \strng{namehash}{RR+1}
+    \strng{fullhash}{RRLHYTHSRVBDAZZZY1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Ram+22}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{booktitle}{Proceedings of the 2022 Conference on Empirical Methods
+  in Natural Language Processing: Industry Track}
+    \verb{doi}
+    \verb 10.18653/v1/2022.emnlp-industry.4
+    \endverb
+    \field{pages}{29\bibrangedash 62}
+    \field{title}{Augmenting Operations Research with Auto-Formulation of
+  Optimization Models From Problem Descriptions}
+    \list{location}{1}{%
+      {Abu Dhabi, UAE}%
+    }
+    \field{year}{2022}
+  \endentry
+
+  \entry{ross2011dagger}{inproceedings}{}{}
+    \name{author}{3}{}{%
+      {{hash=RS}{%
+         family={Ross},
+         familyi={R\bibinitperiod},
+         given={St{\'e}phane},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=GG}{%
+         family={Gordon},
+         familyi={G\bibinitperiod},
+         given={Geoffrey},
+         giveni={G\bibinitperiod},
+      }}%
+      {{hash=BD}{%
+         family={Bagnell},
+         familyi={B\bibinitperiod},
+         given={Drew},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{RSGGBD1}
+    \strng{fullhash}{RSGGBD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{RGB11}
+    \field{sortinit}{R}
+    \field{sortinithash}{R}
+    \field{booktitle}{Proceedings of the Fourteenth International Conference on
+  Artificial Intelligence and Statistics}
+    \field{pages}{627\bibrangedash 635}
+    \field{series}{Proceedings of Machine Learning Research}
+    \field{title}{A Reduction of Imitation Learning and Structured Prediction
+  to No-Regret Online Learning}
+    \field{volume}{15}
+    \field{year}{2011}
+  \endentry
+
+  \entry{scarselli2009}{article}{}{}
+    \name{author}{5}{}{%
+      {{hash=SF}{%
+         family={Scarselli},
+         familyi={S\bibinitperiod},
+         given={Franco},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=GM}{%
+         family={Gori},
+         familyi={G\bibinitperiod},
+         given={Marco},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=TAC}{%
+         family={Tsoi},
+         familyi={T\bibinitperiod},
+         given={Ah\bibnamedelima Chung},
+         giveni={A\bibinitperiod\bibinitdelim C\bibinitperiod},
+      }}%
+      {{hash=HM}{%
+         family={Hagenbuchner},
+         familyi={H\bibinitperiod},
+         given={Markus},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MG}{%
+         family={Monfardini},
+         familyi={M\bibinitperiod},
+         given={Gabriele},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SF+1}
+    \strng{fullhash}{SFGMTACHMMG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Sca+09}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \field{number}{1}
+    \field{pages}{61\bibrangedash 80}
+    \field{title}{The graph neural network model}
+    \field{volume}{20}
+    \field{journaltitle}{IEEE Transactions on Neural Networks}
+    \field{year}{2009}
+  \endentry
+
+  \entry{song2023fjsp}{article}{}{}
+    \name{author}{4}{}{%
+      {{hash=SW}{%
+         family={Song},
+         familyi={S\bibinitperiod},
+         given={Wen},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=CX}{%
+         family={Chen},
+         familyi={C\bibinitperiod},
+         given={Xinyang},
+         giveni={X\bibinitperiod},
+      }}%
+      {{hash=LQ}{%
+         family={Li},
+         familyi={L\bibinitperiod},
+         given={Qiqiang},
+         giveni={Q\bibinitperiod},
+      }}%
+      {{hash=CZ}{%
+         family={Cao},
+         familyi={C\bibinitperiod},
+         given={Zhiguang},
+         giveni={Z\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SW+1}
+    \strng{fullhash}{SWCXLQCZ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Son+23}
+    \field{sortinit}{S}
+    \field{sortinithash}{S}
+    \verb{doi}
+    \verb 10.1109/TII.2022.3189725
+    \endverb
+    \field{number}{2}
+    \field{pages}{1600\bibrangedash 1610}
+    \field{title}{Flexible Job-Shop Scheduling via Graph Neural Network and
+  Deep Reinforcement Learning}
+    \field{volume}{19}
+    \field{journaltitle}{IEEE Transactions on Industrial Informatics}
+    \field{year}{2023}
+  \endentry
+
+  \entry{taillard1993}{article}{}{}
+    \name{author}{1}{}{%
+      {{hash=TE}{%
+         family={Taillard},
+         familyi={T\bibinitperiod},
+         given={{\'E}ric},
+         giveni={{\'E}\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{TE1}
+    \strng{fullhash}{TE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Tai93}
+    \field{sortinit}{T}
+    \field{sortinithash}{T}
+    \field{number}{2}
+    \field{pages}{278\bibrangedash 285}
+    \field{title}{Benchmarks for basic scheduling problems}
+    \field{volume}{64}
+    \field{journaltitle}{European Journal of Operational Research}
+    \field{year}{1993}
+  \endentry
+
+  \entry{vepsalainen1987}{article}{}{}
+    \name{author}{2}{}{%
+      {{hash=VAPJ}{%
+         family={Vepsalainen},
+         familyi={V\bibinitperiod},
+         given={Ari P.\bibnamedelima J.},
+         giveni={A\bibinitperiod\bibinitdelim P\bibinitperiod\bibinitdelim
+  J\bibinitperiod},
+      }}%
+      {{hash=MTE}{%
+         family={Morton},
+         familyi={M\bibinitperiod},
+         given={Thomas\bibnamedelima E.},
+         giveni={T\bibinitperiod\bibinitdelim E\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{VAPJMTE1}
+    \strng{fullhash}{VAPJMTE1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{VM87}
+    \field{sortinit}{V}
+    \field{sortinithash}{V}
+    \verb{doi}
+    \verb 10.1287/mnsc.33.8.1035
+    \endverb
+    \field{number}{8}
+    \field{pages}{1035\bibrangedash 1047}
+    \field{title}{Priority rules for job shops with weighted tardiness costs}
+    \field{volume}{33}
+    \field{journaltitle}{Management Science}
+    \field{year}{1987}
+  \endentry
+
+  \entry{zhang2020l2d}{inproceedings}{}{}
+    \name{author}{6}{}{%
+      {{hash=ZC}{%
+         family={Zhang},
+         familyi={Z\bibinitperiod},
+         given={Cong},
+         giveni={C\bibinitperiod},
+      }}%
+      {{hash=SW}{%
+         family={Song},
+         familyi={S\bibinitperiod},
+         given={Wen},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=CZ}{%
+         family={Cao},
+         familyi={C\bibinitperiod},
+         given={Zhiguang},
+         giveni={Z\bibinitperiod},
+      }}%
+      {{hash=ZJ}{%
+         family={Zhang},
+         familyi={Z\bibinitperiod},
+         given={Jie},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=TPS}{%
+         family={Tan},
+         familyi={T\bibinitperiod},
+         given={Puay\bibnamedelima Siew},
+         giveni={P\bibinitperiod\bibinitdelim S\bibinitperiod},
+      }}%
+      {{hash=XC}{%
+         family={Xu},
+         familyi={X\bibinitperiod},
+         given={Chi},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{ZC+1}
+    \strng{fullhash}{ZCSWCZZJTPSXC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{labelalpha}{Zha+20}
+    \field{sortinit}{Z}
+    \field{sortinithash}{Z}
+    \field{booktitle}{Advances in Neural Information Processing Systems}
+    \field{pages}{1621\bibrangedash 1632}
+    \field{title}{Learning to Dispatch for Job Shop Scheduling via Deep
+  Reinforcement Learning}
+    \field{volume}{33}
+    \field{year}{2020}
+  \endentry
+\enddatalist
+\endinput

@@ -1,0 +1,304 @@
+\chapter{Background and related work}
+\label{chap:background}
+
+This chapter introduces the concepts on which FlowSync is built. Section~\ref{sec:scheduling}
+defines the scheduling problems considered and the objectives used to compare plans, and
+Section~\ref{sec:graph} presents the graph representation that underlies both the exact methods
+and the learned ones. Sections~\ref{sec:cpsat} and~\ref{sec:dispatching} describe the two
+classical families of solution methods, constraint programming and dispatching rules, which in
+FlowSync play the role of teacher and of baseline respectively. Section~\ref{sec:ml-scheduling}
+reviews the use of machine learning for scheduling and Section~\ref{sec:llm} the use of language
+models to build the problem description. Section~\ref{sec:positioning} summarises how these
+pieces are combined in FlowSync.
+
+\section{Scheduling problems}
+\label{sec:scheduling}
+
+Scheduling is the allocation of limited resources to activities over time. The field has a
+standard classification, due to Graham and described in detail by Pinedo~\cite{pinedo2022}, that
+describes a problem by the machine environment (how many resources and how the activities flow
+through them), the constraints and the objective. The environments relevant to this work are
+the following:
+
+\begin{itemize}
+  \item in the \textbf{job shop}, each job is a chain of operations, each operation must be
+        executed on one specific machine, and a machine processes one operation at a time;
+  \item in the \textbf{flexible job shop}, each operation can be executed by any machine of a
+        given set, so that the problem includes also the choice of the machine
+        (\emph{routing})~\cite{brandimarte1993};
+  \item in the \textbf{resource-constrained project scheduling problem} (RCPSP), the activities
+        are linked by general precedence relations, instead of chains, and consume units of
+        resources that can be shared among several activities at the same time.
+\end{itemize}
+
+On top of these basic problems, real applications add \emph{sequence-dependent setup times} (the
+time to prepare a resource depends on the pair of consecutive activities), working
+\emph{calendars} and \emph{unavailabilities}, deadlines and priorities. These are the features
+that FlowSync includes in its common model (Section~\ref{sec:common-model}).
+
+\subsection{Formal model}
+
+Let $A$ be the set of activities and $R$ the set of resources. Each activity $a \in A$ belongs to
+a work order $j(a)$ and has a set of eligible resources $R_a \subseteq R$; if it is executed on
+$r \in R_a$, it lasts $p_{a,r}$. Let $P \subseteq A \times A$ be the set of precedences. A
+\emph{schedule} assigns to each activity a resource $\rho(a) \in R_a$ and a start time $s_a$ such
+that:
+\begin{align}
+  s_b &\ge s_a + p_{a,\rho(a)} && \text{for each } (a,b) \in P, \label{eq:prec}\\
+  s_b &\ge s_a + p_{a,r} + \sigma_r(a,b) \quad\text{or}\quad
+  s_a \ge s_b + p_{b,r} + \sigma_r(b,a), \label{eq:disj}
+\end{align}
+where~\eqref{eq:disj} holds for each pair of distinct activities $a, b$ with $\rho(a) = \rho(b) = r$,
+and $\sigma_r(a,b)$ is the setup time of resource $r$ between $a$ and $b$ (zero if absent).
+In addition, an activity can be processed only while its resource is available according to its
+calendar. Constraint~\eqref{eq:prec} states that an activity cannot start before its
+predecessors are finished; constraint~\eqref{eq:disj} states that two activities on the same
+resource cannot overlap, and that setups must fit between them. In the RCPSP the second
+constraint is replaced by a capacity limit on the sum of the resource units used at each instant.
+
+\subsection{Objectives}
+
+The quality of a schedule is measured by one or more objective functions. Let $C_j$ be the
+completion time of work order $j$, $d_j$ its due date and $w_j$ its weight. The objectives
+considered in this thesis are:
+\begin{itemize}
+  \item the \textbf{makespan} $C_{\max} = \max_j C_j$, the time at which the last activity ends;
+  \item the \textbf{total weighted tardiness} $\sum_j w_j T_j$, where $T_j = \max(0, C_j - d_j)$;
+  \item the \textbf{overtime}, the amount of work executed outside the regular shifts;
+  \item the \textbf{total setup time}.
+\end{itemize}
+In FlowSync these objectives are combined with weights that depend on the domain profile and that
+the planner can change, so that the same engine can serve different priorities.
+
+\subsection{Complexity and benchmarks}
+
+Scheduling problems are in general hard. The job shop is NP-hard even in simple
+cases~\cite{garey1976}, and the RCPSP is NP-hard in the strong sense~\cite{blazewicz1983}, so no
+algorithm is known that is guaranteed to find the optimal schedule in a time that grows
+polynomially with the size of the instance. For this reason, the research community
+compares methods on shared collections of instances. The benchmarks most relevant for this work
+are Taillard's instances for flow shop, job shop and open shop problems~\cite{taillard1993}, the
+ten flexible job shop instances of Brandimarte~\cite{brandimarte1993}, and the PSPLIB library for
+the RCPSP~\cite{kolisch1997}, which contains sets of projects of 30, 60, 90 and 120 activities.
+Most of these benchmarks target the makespan and do not include setups or calendars. For this
+reason FlowSync uses them for validation and testing, while the instances used for training are
+generated synthetically, with the features of the common model.
+
+\section{Disjunctive graph representation}
+\label{sec:graph}
+
+A scheduling instance can be represented as a graph, the \emph{disjunctive graph}, introduced for
+the job shop by Balas~\cite{balas1969}. The nodes are the activities, plus a source node $S$ and
+a sink node $T$. There are two kinds of arcs:
+\begin{itemize}
+  \item \textbf{conjunctive arcs} represent the precedences, and are always present; they connect
+        $S$ to the first activities and the last activities to $T$;
+  \item \textbf{disjunctive arcs} connect each pair of activities that compete for the same
+        resource. They are not oriented: they express that the two activities must be executed
+        one before the other, but not which one comes first.
+\end{itemize}
+Figure~\ref{fig:disjunctive} shows a small example with two jobs and three machines.
+
+\begin{figure}[t]
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[
+      act/.style={circle, draw, minimum size=8mm, inner sep=0pt, font=\small},
+      term/.style={circle, draw, fill=black!8, minimum size=8mm, inner sep=0pt, font=\small},
+      conj/.style={-{Stealth[length=2mm]}, thick},
+      disjA/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, dashed},
+      disjB/.style={{Stealth[length=2mm]}-{Stealth[length=2mm]}, densely dotted}]
+    \node[term] (S) at (-1.6,0.8) {$S$};
+    \node[act]  (a1) at (0,1.6) {$a_1$};
+    \node[act]  (a2) at (3,1.6) {$a_2$};
+    \node[act]  (a3) at (6,1.6) {$a_3$};
+    \node[act]  (b1) at (0,0) {$b_1$};
+    \node[act]  (b2) at (3,0) {$b_2$};
+    \node[term] (T) at (7.6,0.8) {$T$};
+    \draw[conj] (S) -- (a1);  \draw[conj] (a1) -- (a2); \draw[conj] (a2) -- (a3); \draw[conj] (a3) -- (T);
+    \draw[conj] (S) -- (b1);  \draw[conj] (b1) -- (b2); \draw[conj] (b2) -- (T);
+    \draw[disjA] (a1) -- node[pos=0.28, above, sloped, font=\scriptsize] {$M_1$} (b2);
+    \draw[disjB] (a2) -- node[pos=0.28, below, sloped, font=\scriptsize] {$M_2$} (b1);
+  \end{tikzpicture}}
+  \caption{Disjunctive graph of a job shop with two jobs. Solid arrows are the precedences
+    within the jobs ($a_1 \to a_2 \to a_3$ and $b_1 \to b_2$). The dashed and dotted double arrows
+    link the pairs of activities that share a machine: $a_1$ and $b_2$ on $M_1$, $a_2$ and $b_1$
+    on $M_2$; $a_3$ is alone on $M_3$ and needs no disjunctive arc. Choosing an orientation for each
+    pair produces a schedule.}
+  \label{fig:disjunctive}
+\end{figure}
+
+To build a schedule, one has to choose an orientation for every disjunctive arc, a
+\emph{selection}. A selection is feasible if the resulting graph has no cycle, and in that case
+the earliest start time of each activity is given by the longest path from $S$ to the activity;
+the longest path from $S$ to $T$ is the makespan. The scheduling problem becomes the search for
+the selection that minimises the objective. The representation also extends to the flexible job
+shop, where each operation is in addition linked to the machines that can execute it, and to
+setups, which add a weight to the arcs.
+
+This representation matters for two reasons. First, it makes explicit that scheduling is a
+\emph{graph} problem, so that its instances can be processed by graph-based models. Second, it
+describes the schedule as a sequence of decisions, one arc at a time, which is the view adopted
+by the learned dispatching policies discussed in Section~\ref{sec:ml-scheduling}. FlowSync builds
+this graph deterministically from the problem specification, as shown in the next chapters.
+
+\section{Exact methods: constraint programming}
+\label{sec:cpsat}
+
+\emph{Constraint programming} (CP) solves a problem by describing it with variables and
+constraints and by searching systematically for the solutions, using propagation to prune the
+search space. Scheduling is one of its most successful applications, thanks to dedicated
+modelling elements: an \emph{interval variable} represents an activity with its start, duration
+and end; a \emph{no-overlap} constraint states that the intervals on a resource are disjoint, and
+a \emph{cumulative} constraint limits the use of shared resources. Constraints~\eqref{eq:prec}
+and~\eqref{eq:disj} map directly onto these elements.
+
+The solver used in this work is CP-SAT, part of Google's OR-Tools suite~\cite{ortools}. It
+combines constraint propagation with techniques from Boolean satisfiability and with linear
+programming relaxations~\cite{perron2023cpsat}, and it is widely used as a strong baseline for
+scheduling. Given a time limit, CP-SAT returns a status:
+\texttt{OPTIMAL} when it has proved that the solution found is the best one,
+\texttt{FEASIBLE} when it has a valid solution but could not prove optimality,
+\texttt{INFEASIBLE} when it has proved that no solution exists, and \texttt{UNKNOWN} when it has
+found nothing within the limit.
+
+Exact solvers have clear advantages: they handle many kinds of constraints in a uniform way and
+they can prove optimality. Their limit is the computation time, which grows quickly with the
+size of the instance, and which is not predictable. For this reason FlowSync does not call
+CP-SAT when it serves a request. The solver is used only offline, to compute good schedules on
+synthetic instances: these schedules are the examples from which the neural model learns
+(Section~\ref{sec:ml-scheduling}). In this role CP-SAT is the \emph{teacher}.
+
+\section{Dispatching rules}
+\label{sec:dispatching}
+
+A \emph{dispatching rule} builds the schedule step by step. Whenever a resource becomes free, the
+rule computes a priority index for each activity that is ready (all its predecessors are done and
+it is eligible for the resource) and selects the one with the best index. The schedule is built
+in a single pass, and by construction it respects precedences and capacities. The most common
+rules are:
+\begin{itemize}
+  \item \textbf{EDD} (earliest due date): selects the activity of the order with the nearest
+        deadline;
+  \item \textbf{SPT} (shortest processing time): selects the shortest activity, which tends to
+        reduce the number of waiting orders;
+  \item \textbf{ATC} (apparent tardiness cost): introduced by Vepsäläinen and
+        Morton~\cite{vepsalainen1987} for job shops with weighted tardiness. In its basic form,
+        the index of activity $a$ at time $t$ is
+        \[
+          I_a(t) \;=\; \frac{w_a}{p_a}\,\exp\!\left(-\,\frac{\max(d_a - p_a - t,\,0)}{K\,\bar p}\right),
+        \]
+        where $w_a$, $p_a$ and $d_a$ are the weight, the duration and the due date associated
+        with the activity, $\bar p$ is the average duration of the waiting activities and $K$ a
+        look-ahead parameter. The index favours short and important activities, and it grows
+        quickly when the due date approaches.
+\end{itemize}
+Dispatching rules are instantaneous, simple to implement and to explain, and they scale to very
+large instances. Their weakness is that each decision depends only on the current state and on a
+fixed formula, so that the quality of the schedule can be far from the optimum, and different
+rules are best on different instances. In FlowSync, EDD and ATC have two roles: they are the
+\emph{baselines} that the learned model has to beat, and they are the \emph{fallback} used when
+the model cannot provide a plan.
+
+\section{Machine learning for scheduling}
+\label{sec:ml-scheduling}
+
+Machine learning has been applied to combinatorial optimisation in several ways. The survey of
+Bengio, Lodi and Prouvost~\cite{bengio2021} distinguishes between approaches that use a model to
+make decisions directly, those that use it to support a classical algorithm (for example by
+suggesting which branch to explore), and those that use it to configure the algorithm. The
+learned dispatching policies discussed here belong to the first group: a neural network replaces
+the hand-written priority formula of the previous section.
+
+\subsection{Learned dispatching policies}
+
+The idea is to keep the structure of a dispatcher, and to let a neural network compute the
+priorities. Zhang et al.~\cite{zhang2020l2d} represent the state of a job shop as a disjunctive
+graph, process it with a graph neural network and train, by reinforcement learning, a policy that
+chooses the next operation to dispatch. Since the network works on the graph, it does not depend on
+the size of the instance and, as reported by the authors, it generalises to instances larger than
+those seen in training. Song et al.~\cite{song2023fjsp} extend the approach to the flexible job
+shop: the state is a heterogeneous graph with operation and machine nodes, and the policy
+chooses jointly the operation and the machine. Graph neural networks~\cite{scarselli2009}
+compute, for each node, a vector that summarises the node and its neighbourhood by exchanging
+messages along the arcs: this is the tool that makes the disjunctive graph usable as input of a
+neural model.
+
+\subsection{Imitation learning}
+
+The approaches above learn by reinforcement learning, in which the model explores and receives a
+reward at the end of the schedule. A different path is \emph{imitation learning}, in which the
+model learns to reproduce the decisions of an expert~\cite{hussein2017imitation}. In its simplest
+form, \emph{behaviour cloning}, the expert decisions are collected as pairs (state, decision) and
+the model is trained with supervised learning to predict the decision from the state. This is
+simpler and more stable than reinforcement learning, because the signal is dense: every decision
+has a label. Its main limitation is that the model is exposed only to the states visited by the
+expert, and at run time, after a mistake, it can reach states that it has never seen. Methods that
+query the expert again on the states visited by the learner, such as DAgger~\cite{ross2011dagger},
+address this problem.
+
+FlowSync follows the imitation approach, with a specific choice of the expert: CP-SAT solves
+synthetic instances offline, and the decisions that lead to the best schedule found are the
+labels. The model is limited by the quality of the teacher, but in exchange it needs no reward
+design, and it runs at inference time without any solver.
+
+\subsection{Estimation of durations and setups}
+
+A second use of learning concerns the data. Durations and setup times are not known with
+certainty, and planning with a single average value hides the risk of delays. They can be
+estimated from the history of the executions with a regression model; in \emph{quantile
+regression}~\cite{koenker1978} the model predicts, instead of the mean, a chosen quantile of the
+distribution, so that an interval of values can be obtained and the confidence of the
+estimate is explicit. Event logs of real processes, such as the public logs of the Dutch
+municipalities~\cite{bpic2015} or of a traffic fine management process~\cite{roadfines}, are a source
+of examples of durations with this kind of variability, and are used in FlowSync as a testbed
+for this estimator.
+
+\section{Language models for data entry}
+\label{sec:llm}
+
+Describing a scheduling problem requires many pieces of information (activities, durations,
+precedences, resources, deadlines), and entering them through forms is slow and error-prone. Large
+language models (LLMs) can read a request written in natural language and extract these
+elements. The task is related to the \emph{auto-formulation} of optimisation models from text,
+studied for instance by Ramamonjison et al.~\cite{ramamonjison2022} for linear programs: the
+text is translated into a structured representation of the problem, which is then passed to a
+solver.
+
+Language models can however produce plausible but wrong output, and for this reason in FlowSync
+the LLM has a limited role. It does not decide the plan: it only fills a \emph{problem
+specification} (ProblemSpec), whose structure is fixed by a schema. The specification is then
+validated by deterministic code, which checks types, references and consistency (for example,
+that every precedence refers to existing activities), and the system asks the planner for the
+information that is missing instead of guessing it. In this way an error of the language model
+can produce an incomplete specification, which is detected, but not an infeasible schedule.
+
+\section{Positioning of FlowSync}
+\label{sec:positioning}
+
+The previous sections describe the building blocks, and FlowSync combines them in a specific
+way. Compared with the learned dispatching approaches of the literature, which target the job
+shop or the flexible job shop with the makespan as objective, FlowSync works on a common model
+that includes setups, calendars, deadlines and a weighted combination of objectives, and that
+covers factory, public administration and project scheduling. Compared with exact methods, it
+moves the cost of optimisation to an offline training phase, and keeps a classical dispatcher as
+fallback. Compared with a fully automatic system, it places the planner at the end of the
+process, with several candidate plans and their indicators. Table~\ref{tab:positioning} summarises the
+role of each method.
+
+\begin{table}[t]
+  \centering
+  \begin{tabular}{@{}p{3.1cm}p{5.2cm}p{4.2cm}@{}}
+    \toprule
+    Method & Role in FlowSync & Used \\
+    \midrule
+    CP-SAT & teacher: produces the labelled schedules & offline, training only \\
+    EDD, ATC & baselines and fallback & online (fallback) and in evaluation \\
+    Neural dispatching policy & optimisation engine & online \\
+    Quantile regression & estimate of durations and setups & online \\
+    LLM & translation of the request into a ProblemSpec & online, validated \\
+    \bottomrule
+  \end{tabular}
+  \caption{Methods described in this chapter and their role in FlowSync.}
+  \label{tab:positioning}
+\end{table}

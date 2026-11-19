@@ -1,0 +1,41 @@
+\chapter{Software architecture}
+\label{chap:architecture}
+
+\section{Overview}
+\label{sec:overview}
+% TODO: React frontend, Spring Boot backend (modular monolith), Python AI service (FastAPI),
+% MySQL, MinIO, offline training pipeline. Insert the component diagram (Visual Paradigm).
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=\textwidth]{architecture}
+  \caption{FlowSync architecture}
+  \label{fig:architecture}
+\end{figure}
+
+\section{Frontend}
+\label{sec:frontend}
+% TODO: main screens (new planning request, plan comparison, resource Gantt chart, operator view)
+% and libraries.
+
+\section{Backend}
+\label{sec:backend}
+% TODO: Security, Configuration, Orders, Planning, Decisions, Execution & KPI, Audit, AI Client
+% (Resilience4j) and Integration modules.
+
+\section{AI service}
+\label{sec:ai-service}
+% TODO: internal POST /optimize endpoint, validation, ATC/EDD fallback.
+
+\section{Persistence}
+\label{sec:persistence}
+% TODO: MySQL schema, Flyway migrations, JPA entities; domain class diagram.
+
+\section{Contracts between components}
+\label{sec:contracts}
+% TODO: public REST API + JWT, ProblemSpec -> PlanResult, model registration, unified instance
+% schema.
+
+\section{Deployment}
+\label{sec:deployment}
+% TODO: Docker Compose, one container per block, training profile with GPU.

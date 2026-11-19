@@ -1,0 +1,128 @@
+\pdfoutput=1 % force PDF output even if the compiler starts in DVI mode (the class loads hyperref with the pdftex option)
+% The UNICAM class loads babel with [italian]: main=english makes English the document language
+% (captions, hyphenation, "Contents", "Figure", "Bibliography") without modifying the class.
+\PassOptionsToPackage{main=english}{babel}
+\PassOptionsToClass{openany}{book} % chapters start on the next page: no blank pages in between
+\documentclass{unicam_thesis}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TITLE PAGE DATA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{FlowSync \\[0.3cm] AI-Production Scheduling Optimization}
+
+\university{University of Camerino}%
+\school{Science and Technology}%
+\course{Master's Degree in Computer Science (LM-18)}%
+
+\author{Mattia Brizi, Alessio Brutti, Leonardo Pierucci}%  % PDF metadata
+\advisor{Prof.\ Flavio Corradini}%
+\coadvisor2{}%                       % co-supervisor, if any: name here and label below
+\academicyear{2026/2027}%            % TODO: academic year of the defence
+\matricola{}%                        % unused: student IDs are below
+
+% Team (alphabetical order by surname)
+\newcommand{\autoreA}{Mattia Brizi}      \newcommand{\matricolaA}{123021}
+\newcommand{\autoreB}{Alessio Brutti}    \newcommand{\matricolaB}{138351}
+\newcommand{\autoreC}{Leonardo Pierucci} \newcommand{\matricolaC}{137701}
+\newcommand{\etichettaautori}{Students}
+\newcommand{\etichettarelatore}{Supervisor}
+\newcommand{\etichettacorrelatore}{}     % e.g. {Co-supervisor}; empty = not shown
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% END TITLE PAGE DATA
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% TITLE PAGE (English, three students)
+% Same layout as unicam_thesis.cls; only \maketitle is redefined here.
+\makeatletter
+\newcommand{\autore}[2]{{\bfseries\large #1}\\{\small Student ID #2}\par\vspace{0.25cm}}
+\renewcommand{\maketitle}{%
+  \thispagestyle{empty}%
+  \setlength{\parindent}{0mm}\setlength{\parskip}{0mm}%
+  \begin{center}
+    \includegraphics[width=15mm]{Immagini/stemma}\par
+    \vspace{0.15cm}
+    {\rmfamily \Large \bfseries \@theuniversity \par}
+    \vspace{0.15cm}\hrule\vspace{0.15cm}
+    {\rmfamily \Large \scshape School of \@theschool \par}
+    \vspace{0.15cm}
+    {\rmfamily \large \@thecourse \par}
+    \vspace*{\stretch{7}}
+    {\rmfamily \LARGE \bfseries \@thetitle \par}
+    \vspace*{\stretch{7}}
+  \end{center}
+  \begin{minipage}[t]{0.5\linewidth}\raggedright
+    \etichettaautori\par\vspace{0.15cm}
+    \autore{\autoreA}{\matricolaA}
+    \autore{\autoreB}{\matricolaB}
+    \autore{\autoreC}{\matricolaC}
+  \end{minipage}%
+  \begin{minipage}[t]{0.5\linewidth}\raggedleft
+    \etichettarelatore\par\vspace{0.15cm}
+    {\bfseries\large \@theadvisor\par}
+    \if\relax\detokenize\expandafter{\etichettacorrelatore}\relax\else
+      \vspace{0.6cm}
+      \etichettacorrelatore\par\vspace{0.15cm}
+      {\bfseries\large \@thecoadvisor2\par}
+    \fi
+  \end{minipage}
+  \vspace*{\stretch{7}}
+  \hrule\vspace{0.15cm}
+  \begin{center}{\large Academic Year \@theacademicyear}\end{center}
+  \newpage
+  \setlength{\parindent}{1em}\setlength{\parskip}{2pt}%
+  \cleardoublepage
+}
+\makeatother
+
+\theoremstyle{definition} \newtheorem{example}{Example}[chapter]
+\theoremstyle{definition} \newtheorem{definition}{Definition}[chapter]
+\theoremstyle{plain}      \newtheorem{theorem}{Theorem}[chapter]
+
+% English names for code listings (the class sets them only for Italian)
+\addto\captionsenglish{\renewcommand{\lstlistingname}{Listing}\renewcommand{\lstlistlistingname}{List of Listings}}
+
+\graphicspath{{Screenshot/},{Immagini/},{API/},{Source/}}
+\bibliography{biblio.bib}
+
+\begin{document}
+
+\maketitle
+
+\input{chapters/00_abstract}
+
+% Lists of listings/figures/tables removed on request; uncomment to restore.
+\tableofcontents
+% \lstlistoflistings
+% \listoffigures
+% \listoftables
+
+\input{chapters/01_introduction}
+\input{chapters/02_background}
+\input{chapters/03_gantt}
+\input{chapters/04_methodologies}
+\input{chapters/05_architecture}
+
+% Chapters to be added later (drafts in chapters/later/):
+% \input{chapters/later/03_requirements}
+% \input{chapters/later/05_ai_module}
+% \input{chapters/later/06_implementation}
+% \input{chapters/later/07_evaluation}
+% \input{chapters/later/08_conclusions}
+
+\appendix
+
+\nocite{*} % TODO: remove once the references are cited in the text
+\printbibliography
+
+\printindex
+
+\include{chapters/acknowledgements}
+
+\end{document}

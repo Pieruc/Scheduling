@@ -1,0 +1,25 @@
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+% DRAFT: revise once the results are available (about 200-300 words).
+Production scheduling assigns activities to resources over time while respecting precedences,
+capacities, calendars and deadlines. The same problem appears well beyond the factory floor, for
+instance in public administration offices that process files through a sequence of steps.
+Exact solvers find optimal plans but their computation time grows quickly with the size of the
+instance, while classic dispatching rules are fast but myopic.
+
+This thesis presents \emph{FlowSync}, an AI-assisted scheduling platform built around the idea
+that the AI proposes the plan and the planner decides. A request, possibly written in natural
+language, is turned into a structured problem specification; a first neural model (M1) estimates
+uncertain durations and setups from historical execution logs, and a second model (M2) builds
+the schedule step by step inside an event-driven simulator, so that every plan is feasible by
+construction. M2 is trained by imitation, using a constraint programming solver (CP-SAT) only as
+an offline teacher on synthetic instances. The system is delivered as a web application
+(React frontend, Spring Boot backend, MySQL, Python AI service) deployed with Docker Compose.
+
+% TODO: one or two sentences with the main experimental results (e.g. comparison with ATC/EDD
+% on public benchmarks) and the main conclusion.
+
+\vspace{0.5cm}
+\noindent\textbf{Keywords:} production scheduling, imitation learning, dispatching rules,
+constraint programming, decision support systems.

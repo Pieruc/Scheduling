@@ -1,0 +1,22 @@
+\chapter{The artificial intelligence module}
+\label{chap:ai}
+
+\section{From request to plan}
+\label{sec:pipeline}
+% TODO: LLM (text -> ProblemSpec) -> validation (missing data) -> graph builder (disjunctive graph)
+% -> M1 (weights the graph) -> M2 + Dispatcher (candidate plans) -> KPIs.
+
+\section{M1 Context: duration estimation}
+\label{sec:m1}
+% TODO: quantile regression, confidence, turning preferences into objective weights; data: real
+% event logs (BPI Challenge~\cite{bpic2015}, Road Traffic Fines~\cite{roadfines}).
+
+\section{M2 Policy and Dispatcher}
+\label{sec:m2}
+% TODO: event-driven simulator, feasibility by construction, ranking of candidate activities,
+% generation of several candidate plans.
+
+\section{Training by imitation}
+\label{sec:imitation}
+% TODO: instance generator, CP-SAT as teacher, dataset construction, random weights, separation
+% between training, validation and test sets.
