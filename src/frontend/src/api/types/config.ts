@@ -19,8 +19,8 @@ export type Resource = {
   skills: string[]
   calendarId: string
   active: boolean
-  /** PROPOSTA §8: euro all'ora, serve al costo stimato dei piani */
-  costPerHour: number
+  /** PROPOSTA §8: euro all'ora, serve al costo stimato dei piani. null = non indicato */
+  costPerHour: number | null
   /** PROPOSTA §8 */
   unavailability: Unavailability[]
 }

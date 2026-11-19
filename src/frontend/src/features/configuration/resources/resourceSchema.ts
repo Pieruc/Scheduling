@@ -13,7 +13,7 @@ export const resourceSchema = z.object({
   capacity: z.number({ error: 'Inserisci la capacità.' }).int().min(1, 'Almeno 1.'),
   skills: z.array(z.string()).min(1, 'Scegli almeno una competenza.'),
   calendarId: z.string().min(1, 'Scegli un calendario.'),
-  costPerHour: z.number({ error: 'Inserisci il costo orario.' }).min(0, 'Non può essere negativo.'),
+  costPerHour: z.number().min(0, 'Non può essere negativo.').nullable(),
   unavailability: z.array(
     z
       .object({
@@ -39,7 +39,7 @@ export function toFormValues(resource?: Resource): ResourceFormValues {
     capacity: resource?.capacity ?? 1,
     skills: resource?.skills ?? [],
     calendarId: resource?.calendarId ?? 'CAL-2TURNI',
-    costPerHour: resource?.costPerHour ?? 0,
+    costPerHour: resource?.costPerHour ?? null,
     unavailability: (resource?.unavailability ?? []).map((u) => ({
       from: new Date(u.from),
       to: new Date(u.to),

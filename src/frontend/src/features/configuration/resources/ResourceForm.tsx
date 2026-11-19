@@ -196,7 +196,7 @@ export function ResourceForm({ resource, onSaved, onCancel }: ResourceFormProps)
                   maxFractionDigits={0}
                   min={0}
                   invalid={aria['aria-invalid']}
-                  onValueChange={(e) => field.onChange(e.value ?? undefined)}
+                  onValueChange={(e) => field.onChange(e.value ?? null)}
                   onBlur={field.onBlur}
                 />
               )}

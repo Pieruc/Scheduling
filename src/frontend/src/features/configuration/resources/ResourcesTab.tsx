@@ -122,7 +122,10 @@ export function ResourcesTab() {
                 body={(r: Resource) => calendarName.get(r.calendarId) ?? r.calendarId}
               />
             )}
-            <Column header="Costo orario" body={(r: Resource) => formatEuro(r.costPerHour)} />
+            <Column
+              header="Costo orario"
+              body={(r: Resource) => (r.costPerHour === null ? '—' : formatEuro(r.costPerHour))}
+            />
             <Column
               header="Stato"
               body={(r: Resource) => {
