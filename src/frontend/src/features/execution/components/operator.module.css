@@ -1,0 +1,255 @@
+/* Attività a sinistra, segnalazione a destra; sotto i 900px una sotto l'altra */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+}
+
+.meta {
+  color: var(--fs-muted);
+  font-size: 14px;
+}
+
+/* Attività in corso: la cosa più importante della pagina */
+.current {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.current + .current {
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--fs-border-soft);
+}
+
+.currentTitle {
+  margin: 4px 0 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.current .meta {
+  margin: 0;
+}
+
+.over {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+  font-size: 14px;
+}
+
+.over i {
+  margin-top: 3px;
+}
+
+/* Pulsanti grandi: si usano in piedi, a volte con i guanti */
+.bigButtons {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.bigButtons :global(.p-button) {
+  justify-content: center;
+  min-height: 56px;
+  font-size: 17px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.item:first-child {
+  padding-top: 0;
+}
+
+.item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.itemText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.itemTitle {
+  font-weight: 600;
+}
+
+.waiting {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+  color: var(--fs-warning-text);
+  font-size: 14px;
+}
+
+.startButton {
+  flex: 0 0 auto;
+  min-height: 48px;
+}
+
+.doneIcon {
+  flex: 0 0 auto;
+  color: var(--fs-success);
+  font-size: 22px;
+}
+
+/* Segnalazione */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formIntro {
+  margin: -4px 0 0;
+  color: var(--fs-muted);
+  font-size: 14px;
+}
+
+.kinds {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.kindGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+/* Il radio vero resta nella pagina (tastiera e lettori di schermo), ma invisibile */
+.kind {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 8px 12px;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: var(--fs-radius);
+  background: var(--fs-surface);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.kind input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.kind:hover {
+  background: var(--fs-bg);
+}
+
+.kind:has(input:checked) {
+  border: 2px solid var(--fs-danger);
+  padding: 7px 11px;
+  background: var(--fs-danger-soft);
+  color: #7a1a12;
+}
+
+.kind:has(input:focus-visible) {
+  outline: 3px solid var(--fs-primary);
+  outline-offset: 2px;
+}
+
+.fieldError {
+  display: block;
+  margin-top: 6px;
+  color: var(--fs-danger);
+  font-size: 13px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.fullWidth:global(.p-dropdown) {
+  min-height: 44px;
+}
+
+.submit {
+  justify-content: center;
+  min-height: 48px;
+}
+
+.footnote {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+@media (max-width: 899px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .startButton {
+    justify-content: center;
+  }
+
+  .doneIcon {
+    display: none;
+  }
+}

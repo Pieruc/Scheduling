@@ -3,6 +3,7 @@ import { alerts } from '@/mocks/data/alerts'
 import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels } from '@/mocks/data/models'
 import { configHandlers } from './config'
+import { operatorHandlers } from './operator'
 import { orderHandlers } from './orders'
 import { planningHandlers } from './planning'
 import { reviewHandlers } from './review'
@@ -17,6 +18,7 @@ export const handlers = [
   ...orderHandlers,
   ...planningHandlers,
   ...reviewHandlers,
+  ...operatorHandlers,
 
   http.get(api('/kpis'), async () => {
     await latency()

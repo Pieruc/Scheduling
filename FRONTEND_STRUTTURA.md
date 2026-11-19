@@ -146,7 +146,7 @@ URL o un campo, si tocca solo `api/`.
 | `/piani` | Elenco piani | 7 | `GET /plan-requests`\* |
 | `/piani/richieste/:id` | Confronto dei 3 piani | 4 | `GET /plan-requests/{id}`\* |
 | `/piani/:planId` | Gantt e revisione | 5 | `GET /plans/{id}/gantt`, `POST /plans/{id}/decisions`, `POST /plans/{id}/reschedule` |
-| `/operatore` | Attività di oggi | 6 | `GET /executions`, `POST /executions`, `POST /incidents`\* |
+| `/operatore` | Attività di oggi | 6 | `GET /operator/today`\*, `POST /executions`, `POST /incidents`\* |
 | `/configurazione/:tab` | Configurazione | 8 | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
 | `/modello` | Modello AI | 9 | `GET /models/active`, `GET /models` |
 | `/audit` | Audit | 10 | `GET /audit` |
@@ -263,9 +263,20 @@ chi fa il backend.
 4. **Stime di M1 nel piano**: per ogni attività con durata stimata, il valore e
    l'intervallo, cioè il `context_adjustments` del contratto B riportato nella
    risposta di `GET /plans/{id}`. Così non serve un endpoint di stima a parte.
-5. **Segnalazioni dell'operatore e avvisi**: `POST /incidents` (guasto, materiale
-   mancante, ritardo, altro + nota) e `GET /alerts` per la lista “Avvisi” della
-   dashboard.
+5. **Vista operatore, segnalazioni e avvisi** (forma esatta in
+   `src/frontend/src/api/types/execution.ts`):
+   - `GET /operator/today` → `OperatorDay`: turni, risorse dell'operatore e le sue
+     attività del piano approvato, ognuna con lo stato ricavato dagli eventi
+     (`TODO`, `IN_PROGRESS`, `PAUSED`, `DONE`), i minuti già lavorati, l'inizio del
+     tratto in corso e l'eventuale attività precedente non ancora finita
+     (`waitingFor`). Dopo il login l'operatore arriverà dal token.
+   - `POST /executions` (contratto A.6) risponde 201 con l'attività aggiornata e 409 se
+     il passaggio non è ammesso: un'attività alla volta in corso, niente inizio prima
+     della fine delle precedenti, niente ripresa o fine di un'attività non iniziata.
+   - `POST /incidents` `{ kind: BREAKDOWN | MISSING_MATERIAL | DELAY | OTHER,
+     resourceId?, planId?, activityId?, note?, timestamp }` → 201 `{ id }`; 422 se manca
+     la nota con `OTHER`. Ogni segnalazione diventa un avviso `INCIDENT` in
+     `GET /alerts`, la lista “Avvisi” della dashboard.
 6. **Elenco richieste**: `GET /plan-requests`, dalla più recente, ogni richiesta con i suoi
    piani (`PlanSummary`, senza assegnazioni). Per ora il frontend filtra nel browser; con
    molte richieste servono i parametri `q` (codice richiesta, piano o commessa),

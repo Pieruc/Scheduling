@@ -37,6 +37,37 @@ body {
   transform: translateY(1px);
 }
 
+/* Verde e rosso pieni del tema Lara non reggono il testo bianco (2,3:1 e 3,8:1):
+   si usano i colori dei token, sopra 4,5:1. Le varianti outlined e text restano del tema. */
+.p-button.p-button-success:not(.p-button-outlined, .p-button-text) {
+  border-color: var(--fs-success);
+  background: var(--fs-success);
+}
+
+.p-button.p-button-success:not(.p-button-outlined, .p-button-text):enabled:hover {
+  border-color: #17602f;
+  background: #17602f;
+}
+
+.p-button.p-button-danger:not(.p-button-outlined, .p-button-text) {
+  border-color: var(--fs-danger);
+  background: var(--fs-danger);
+}
+
+.p-button.p-button-danger:not(.p-button-outlined, .p-button-text):enabled:hover {
+  border-color: #931c13;
+  background: #931c13;
+}
+
+.p-button.p-button-outlined.p-button-success {
+  color: var(--fs-success);
+}
+
+.p-button.p-button-outlined.p-button-danger,
+.p-button.p-button-text.p-button-danger {
+  color: var(--fs-danger);
+}
+
 /* Link "Vai al contenuto": nascosto finché non lo si raggiunge con Tab */
 .skip-link {
   position: fixed;

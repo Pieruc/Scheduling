@@ -91,3 +91,6 @@ const shortDate = new Intl.DateTimeFormat('it-IT', {
 
 /** Data ISO -> "ven 20 nov" */
 export const formatShortDate = (iso: string) => shortDate.format(new Date(iso))
+
+/** Data ISO -> "13:30" */
+export const formatTime = (iso: string) => time.format(new Date(iso))

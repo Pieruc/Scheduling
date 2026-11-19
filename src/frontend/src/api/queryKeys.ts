@@ -18,6 +18,9 @@ export const queryKeys = {
     list: (limit?: number) => ['plan-requests', 'list', { limit }] as const,
     detail: (id: string) => ['plan-requests', 'detail', id] as const,
   },
+  operator: {
+    today: ['operator', 'today'] as const,
+  },
   models: {
     active: ['models', 'active'] as const,
   },

@@ -13,7 +13,7 @@ export function dateDaysAgo(days: number): string {
   return daysAgo(days).slice(0, 10)
 }
 
-function toIsoWithOffset(d: Date): string {
+export function toIsoWithOffset(d: Date): string {
   const pad = (n: number) => String(Math.abs(n)).padStart(2, '0')
   const offset = -d.getTimezoneOffset()
   const sign = offset >= 0 ? '+' : '-'
