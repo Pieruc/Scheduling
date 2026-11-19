@@ -55,8 +55,10 @@ class Profile(BaseModel):
 
     # Rilasci in U(0, release_spread * carico medio per risorsa).
     release_spread: float = Field(0.0, ge=0)
-    # due = rilascio + k * cammino critico del job, con k in questo intervallo.
-    due_tightness: tuple[float, float] = (1.5, 3.0)
+    # due = rilascio + cammino critico del job + s * makespan stimato, con s in
+    # questo intervallo. Il makespan stimato tiene conto del carico sulle risorse
+    # condivise: senza, quasi tutti i job risulterebbero in anticipo.
+    due_slack: tuple[float, float] = (0.0, 1.0)
     job_weights: list[float] = [1.0]
     priorities: IntRange = (1, 5)
 
@@ -73,7 +75,7 @@ class Profile(BaseModel):
     def _check(self) -> "Profile":
         for name in ("n_jobs", "n_resources", "activities_per_job", "duration",
                      "alternatives", "n_skills", "skills_per_resource", "priorities",
-                     "setup_families", "setup_duration", "due_tightness"):
+                     "setup_families", "setup_duration", "due_slack"):
             rng = getattr(self, name)
             if rng is not None and rng[0] > rng[1]:
                 raise ValueError(f"{name}: minimo maggiore del massimo")
@@ -83,8 +85,8 @@ class Profile(BaseModel):
                 raise ValueError(f"{name}: il minimo deve essere almeno 1")
         if self.n_skills is not None and self.n_skills[0] < 1:
             raise ValueError("n_skills: il minimo deve essere almeno 1")
-        if self.duration[0] < 1 or self.setup_duration[0] < 0 or self.due_tightness[0] <= 0:
-            raise ValueError("durate e due_tightness devono essere positive")
+        if self.duration[0] < 1 or self.setup_duration[0] < 0 or self.due_slack[0] < 0:
+            raise ValueError("durate positive, setup e due_slack non negativi")
         if not self.job_weights or min(self.job_weights) < 0:
             raise ValueError("job_weights non valido")
         if set(self.objective_alpha) != set(OBJECTIVES) or \
@@ -99,7 +101,7 @@ FACTORY = Profile(
     code="FACTORY", resource_type="MACHINE", resource_prefix="M",
     n_jobs=(5, 15), n_resources=(4, 10), activities_per_job=(3, 6),
     duration=(10, 120), duration_spread=0.3, alternatives=(1, 3),
-    release_spread=0.5, due_tightness=(1.3, 3.0), job_weights=[1.0, 1.0, 2.0, 3.0],
+    release_spread=0.5, due_slack=(0.0, 0.6), job_weights=[1.0, 1.0, 2.0, 3.0],
     setup_prob=0.5, setup_families=(2, 4), setup_duration=(5, 30),
 )
 
@@ -110,7 +112,7 @@ PA = Profile(
     n_jobs=(5, 20), n_resources=(4, 12), activities_per_job=(3, 8),
     duration=(15, 240), duration_spread=0.25,
     n_skills=(3, 6), skills_per_resource=(1, 3), branch_prob=0.25,
-    release_spread=1.0, due_tightness=(1.5, 4.0), job_weights=[1.0, 1.0, 1.0, 2.0, 5.0],
+    release_spread=1.0, due_slack=(0.0, 0.4), job_weights=[1.0, 1.0, 1.0, 2.0, 5.0],
     setup_prob=0.0,
     objective_alpha={"makespan": 1.0, "weighted_tardiness": 3.0, "setup": 1.0},
 )
@@ -200,10 +202,12 @@ def generate_instance(profile: Profile, seed: int) -> Instance:
         critical.append(math.ceil(max(finish)))
 
     load = total_work / n_res
+    # Stima grezza del makespan: il massimo tra carico medio per risorsa e job più lungo.
+    makespan_est = max(load, max(critical))
     jobs: list[Job] = []
     for j, path in enumerate(critical, start=1):
         release = rng.randint(0, int(profile.release_spread * load))
-        due = release + math.ceil(rng.uniform(*profile.due_tightness) * path)
+        due = release + path + math.ceil(rng.uniform(*profile.due_slack) * makespan_est)
         jobs.append(Job(id=f"J{j}", release_min=release, due_min=due,
                         weight=rng.choice(profile.job_weights),
                         priority=rng.randint(*profile.priorities)))

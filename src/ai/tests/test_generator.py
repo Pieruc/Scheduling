@@ -116,7 +116,7 @@ def test_calibration_narrows_profile_to_observed_data():
     assert tuned.alternatives == (1, 2)
     assert tuned.duration == (4, 7)
     # Ciò che i benchmark non contengono resta quello del profilo di partenza.
-    assert tuned.due_tightness == FACTORY.due_tightness
+    assert tuned.due_slack == FACTORY.due_slack
     assert tuned.setup_prob == FACTORY.setup_prob
     generated = generate_instance(tuned, 1)
     assert validate_instance(generated) == []
