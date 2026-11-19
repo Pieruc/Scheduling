@@ -15,3 +15,6 @@ src/ai/data/
 !src/frontend/.prettierrc.json
 !src/frontend/.prettierignore
 !src/frontend/.env.development
+
+#backend (Maven)
+src/backend/target/
