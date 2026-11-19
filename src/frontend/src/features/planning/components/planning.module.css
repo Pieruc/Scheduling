@@ -1,0 +1,156 @@
+/* Prima dell'interpretazione: richiesta + "Cosa riceverai". Dopo: richiesta (fissa in alto)
+   a sinistra, interpretazione a destra. Sotto i 1100px una sopra l'altra. */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.twoColumns {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.stickyCard {
+  position: sticky;
+  top: 16px;
+}
+
+.variants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.note,
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.note {
+  color: var(--fs-warning-text);
+}
+
+/* Vincoli e preferenze */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.factTitle {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.factList {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.factList li {
+  margin: 2px 0;
+}
+
+/* Pesi */
+.weight {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr) 28px;
+  gap: 14px;
+  align-items: center;
+  min-height: 44px;
+}
+
+.weightLabel {
+  font-weight: 500;
+}
+
+.weightValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Maniglia dello slider più grande: si prende anche con il dito */
+.slider :global(.p-slider-handle) {
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  margin-left: -11px;
+}
+
+.missingCard {
+  border-color: #f4cf98;
+}
+
+.choice :global(.p-button) {
+  min-height: 44px;
+}
+
+.submit {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1099px) {
+  .layout,
+  .twoColumns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .stickyCard {
+    position: static;
+  }
+}
+
+@media (max-width: 520px) {
+  /* Scelte una sotto l'altra, a tutta larghezza */
+  .choice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .choice :global(.p-button) {
+    width: 100%;
+    border-radius: var(--fs-radius) !important;
+    /* Il tema toglie il bordo destro ai pulsanti attaccati: separati, serve di nuovo */
+    border-right: 1px solid #d1d5db !important;
+  }
+
+  .facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .weight {
+    grid-template-columns: minmax(0, 1fr) 28px;
+  }
+
+  .weight .slider {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .submit :global(.p-button),
+  .actions :global(.p-button) {
+    flex: 1 1 100%;
+  }
+}

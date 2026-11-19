@@ -1,0 +1,72 @@
+.steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--fs-border);
+  border-radius: 10px;
+  background: var(--fs-surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.title {
+  font-weight: 600;
+}
+
+.done {
+  border-color: #b7dfc3;
+  background: var(--fs-success-soft);
+}
+.done .head {
+  color: var(--fs-success);
+}
+
+.current {
+  border-color: #b3cdf6;
+  background: var(--fs-primary-soft);
+}
+.current .head {
+  color: var(--fs-primary-text);
+}
+
+.warn {
+  border-color: #f4cf98;
+  background: var(--fs-warning-soft);
+}
+.warn .head {
+  color: var(--fs-warning-text);
+}
+
+.todo .title {
+  color: var(--fs-muted);
+  font-weight: 500;
+}
+
+/* Telefono: una fase per riga */
+@media (max-width: 760px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .step {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+}

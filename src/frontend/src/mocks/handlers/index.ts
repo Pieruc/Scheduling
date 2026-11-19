@@ -2,10 +2,10 @@ import { http, HttpResponse } from 'msw'
 import { alerts } from '@/mocks/data/alerts'
 import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels } from '@/mocks/data/models'
-import { planRequests } from '@/mocks/data/planRequests'
 import { configHandlers } from './config'
 import { orderHandlers } from './orders'
-import { api, latency, problem, simulatedFailure } from './utils'
+import { planningHandlers } from './planning'
+import { api, latency, simulatedFailure } from './utils'
 
 /**
  * Backend finto: stessi URL e stessi JSON dell'API pubblica (contratto A).
@@ -14,6 +14,7 @@ import { api, latency, problem, simulatedFailure } from './utils'
 export const handlers = [
   ...configHandlers,
   ...orderHandlers,
+  ...planningHandlers,
 
   http.get(api('/kpis'), async () => {
     await latency()
@@ -23,23 +24,6 @@ export const handlers = [
   http.get(api('/alerts'), async () => {
     await latency()
     return simulatedFailure() ?? HttpResponse.json(alerts)
-  }),
-
-  http.get(api('/plan-requests'), async ({ request }) => {
-    await latency()
-    const limit = Number(new URL(request.url).searchParams.get('limit')) || planRequests.length
-    return simulatedFailure() ?? HttpResponse.json(planRequests.slice(0, limit))
-  }),
-
-  http.get(api('/plan-requests/:id'), async ({ params }) => {
-    await latency()
-    const found = planRequests.find((r) => r.id === params.id)
-    return (
-      simulatedFailure() ??
-      (found
-        ? HttpResponse.json(found)
-        : problem(404, 'Not Found', `Richiesta ${params.id} inesistente.`))
-    )
   }),
 
   http.get(api('/models/active'), async () => {

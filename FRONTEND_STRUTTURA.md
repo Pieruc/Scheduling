@@ -233,13 +233,22 @@ chi fa il backend.
 
 1. **I 3 piani per richiesta.** Una richiesta produce i piani `ECONOMIC`
    (più lento, costo minimo), `BALANCED` e `FAST` (più veloce, più costoso), più il
-   confronto con le regole ATC ed EDD sugli stessi dati. Proposta:
-   `POST /plan-requests` → `202 { id, status }`;
-   `GET /plan-requests/{id}` → `{ status, plans: [{ id, variant, kpis, … }×3], baselines: [{ solver: "ATC", kpis }, { solver: "EDD", kpis }] }`.
-   I singoli piani restano su `/plans/{id}` (Gantt, decisioni).
-2. **Interpretazione LLM** della richiesta a parole: un endpoint che riceve il
-   testo e restituisce orizzonte, commesse, vincoli, pesi e **domande sui dati
-   mancanti** (es. “C-104 non ha scadenza”).
+   confronto con le regole ATC ed EDD sugli stessi dati. Forma esatta: tipi
+   `CreatePlanRequest`, `PlanRequest`, `Baseline` in `src/frontend/src/api/types/plans.ts`.
+   - `POST /plan-requests` con `{ text, horizonStart, horizonEnd, orderIds, weights, answers }`
+     → `202 { id, status: "PENDING" }` + header `Location`;
+   - `GET /plan-requests/{id}` → `{ status, stage, plans: [{ id, variant, kpis, summary, … }×3],
+     recommendedPlanId, baselines: [{ solver: "ATC" | "EDD", kpis }], elapsedSeconds }`.
+     Finché `status = PENDING` il frontend la richiede ogni 1,5 s; `stage` è la fase in corso
+     (`VALIDATION`, `CONTEXT`, `POLICY`, `BASELINES`) e alimenta lo stepper.
+   - `weights` = `{ punctuality, overtime, setup }` da 0 a 10 (gli slider della UI): il
+     backend li normalizza in `objective_weights` della ProblemSpec.
+   - I singoli piani restano su `/plans/{id}` (Gantt, decisioni).
+2. **Interpretazione LLM** della richiesta a parole: `POST /plan-requests/interpret`
+   con `{ text }` → `Interpretation` (stesso file): periodo, commesse, vincoli rigidi e
+   preferenze in parole, pesi con il motivo, e **domande sui dati mancanti**
+   (`DUE_DATE` per una scadenza, `CHOICE` con opzioni). Le risposte tornano in `answers`
+   di `POST /plan-requests`; se ne manca una, 422 con `path: "answers.<id domanda>"`.
 3. **Nuovi KPI**:
    - nei KPI di un piano: `overtimeMin`, `setupCount`, `estimatedCost` e
      `totalTardinessMin` (ritardo in minuti, più leggibile di `weightedTardiness`);

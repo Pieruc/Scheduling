@@ -1,0 +1,50 @@
+import { addLocale, locale } from 'primereact/api'
+
+/** Testi italiani dei componenti PrimeReact (calendari, selezioni, conferme). */
+export function setupItalianLocale() {
+  addLocale('it', {
+    firstDayOfWeek: 1,
+    dayNames: ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'],
+    dayNamesShort: ['dom', 'lun', 'mar', 'mer', 'gio', 'ven', 'sab'],
+    dayNamesMin: ['D', 'L', 'M', 'M', 'G', 'V', 'S'],
+    monthNames: [
+      'gennaio',
+      'febbraio',
+      'marzo',
+      'aprile',
+      'maggio',
+      'giugno',
+      'luglio',
+      'agosto',
+      'settembre',
+      'ottobre',
+      'novembre',
+      'dicembre',
+    ],
+    monthNamesShort: [
+      'gen',
+      'feb',
+      'mar',
+      'apr',
+      'mag',
+      'giu',
+      'lug',
+      'ago',
+      'set',
+      'ott',
+      'nov',
+      'dic',
+    ],
+    today: 'Oggi',
+    clear: 'Cancella',
+    weekHeader: 'Sett',
+    accept: 'Sì',
+    reject: 'No',
+    choose: 'Scegli',
+    cancel: 'Annulla',
+    emptyMessage: 'Nessun risultato',
+    emptyFilterMessage: 'Nessun risultato',
+    dateFormat: 'dd/mm/yy',
+  })
+  locale('it')
+}

@@ -1,0 +1,178 @@
+.crumb {
+  margin-bottom: -12px;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.good {
+  color: var(--fs-success);
+}
+
+.bad {
+  color: var(--fs-danger);
+}
+
+/* Le tre schede affiancate; sotto i 1100px una sotto l'altra */
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.planCard {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-card);
+  background: var(--fs-surface);
+}
+
+.recommended {
+  border: 2px solid var(--fs-primary);
+  padding: 17px;
+}
+
+.ribbon {
+  position: absolute;
+  top: -12px;
+  right: 16px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--fs-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.planTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  width: 100%;
+  margin: 0;
+}
+
+.kpis dt {
+  color: var(--fs-muted);
+}
+
+.kpis dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.cost {
+  font-size: 18px;
+}
+
+.summary {
+  flex: 1;
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.openLink {
+  gap: 8px;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+/* Tabella di confronto con le regole classiche */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare th,
+.compare td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--fs-border-soft);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.compare thead th {
+  color: var(--fs-muted);
+  font-size: 13px;
+  font-weight: 500;
+  border-bottom-color: var(--fs-border);
+}
+
+.compare tbody th {
+  font-weight: 500;
+}
+
+.aiRow th,
+.aiRow td {
+  background: #f5f8ff;
+}
+
+.aiRow th {
+  font-weight: 700;
+}
+
+.scaleCol {
+  width: 30%;
+}
+
+.track {
+  display: block;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--fs-track);
+}
+
+.fill,
+.fillAi {
+  display: block;
+  min-width: 2px;
+  height: 100%;
+  border-radius: 5px;
+  background: var(--fs-warning);
+}
+
+.fillAi {
+  background: var(--fs-primary);
+}
+
+@media (max-width: 1099px) {
+  .planGrid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .scaleCol {
+    display: none;
+  }
+
+  .openLink {
+    width: 100%;
+    justify-content: center;
+  }
+}

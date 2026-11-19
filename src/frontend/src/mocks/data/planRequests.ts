@@ -5,7 +5,7 @@ import { daysAgo } from './time'
  * Durate in minuti di lavoro. Ipotesi da confermare con backend e AI (FRONTEND_STRUTTURA §8):
  * una "giornata" = 8 h di turno, quindi "4 g 6 h" = 4 × 480 + 360 = 2280 minuti.
  */
-const kpis = (k: Partial<PlanKpis>): PlanKpis => ({
+export const kpis = (k: Partial<PlanKpis>): PlanKpis => ({
   makespanMin: 0,
   totalTardinessMin: 0,
   lateOrders: 0,
@@ -165,3 +165,41 @@ export const planRequests: PlanRequest[] = [
     error: 'Servizio AI non disponibile',
   },
 ]
+
+// Dati del mockup v2 (schermata 4) per la richiesta di esempio REQ-0012
+const example = planRequests[0]
+example.weights = { punctuality: 8, overtime: 7, setup: 4 }
+example.recommendedPlanId = 'PLAN-0042'
+example.elapsedSeconds = 1.8
+example.baselines = [
+  {
+    solver: 'ATC',
+    kpis: kpis({
+      makespanMin: 2340,
+      totalTardinessMin: 480,
+      lateOrders: 2,
+      overtimeMin: 240,
+      setupCount: 9,
+      avgUtilization: 0.79,
+      estimatedCost: 10100,
+    }),
+  },
+  {
+    solver: 'EDD',
+    kpis: kpis({
+      makespanMin: 2460,
+      totalTardinessMin: 660,
+      lateOrders: 2,
+      overtimeMin: 180,
+      setupCount: 11,
+      avgUtilization: 0.76,
+      estimatedCost: 10300,
+    }),
+  },
+]
+const summaries: Record<string, string> = {
+  'PLAN-0041': 'Nessuno straordinario e pochi cambi di setup, ma C-104 slitta di mezza giornata.',
+  'PLAN-0042': 'Nessun ritardo, 2 ore di straordinario martedì in saldatura.',
+  'PLAN-0043': 'Consegna tutto un giorno prima, usando il sabato mattina in verniciatura.',
+}
+example.plans.forEach((p) => (p.summary = summaries[p.id]))

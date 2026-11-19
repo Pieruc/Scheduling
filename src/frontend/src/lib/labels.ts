@@ -54,3 +54,10 @@ export const ORDER_STATUS: Record<OrderStatus, { label: string; tone: Tone }> = 
   DONE: { label: 'Completata', tone: 'green' },
   CANCELLED: { label: 'Annullata', tone: 'grey' },
 }
+
+/** Come si presenta ogni variante nel confronto dei 3 piani (mockup v2, schermata 4) */
+export const VARIANT_INFO: Record<PlanVariant, { letter: string; tagline: string; tone: Tone }> = {
+  ECONOMIC: { letter: 'A', tagline: 'Più lento · più economico', tone: 'green' },
+  BALANCED: { letter: 'B', tagline: 'Compromesso', tone: 'blue' },
+  FAST: { letter: 'C', tagline: 'Più veloce · più costoso', tone: 'amber' },
+}
