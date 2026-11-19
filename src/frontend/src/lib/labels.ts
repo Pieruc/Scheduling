@@ -1,6 +1,6 @@
 import type { ResourceType } from '@/api/types/config'
 import type { OrderStatus } from '@/api/types/orders'
-import type { PlanRequest, PlanVariant, Solver } from '@/api/types/plans'
+import type { PlanRequest, PlanStatus, PlanVariant, Solver } from '@/api/types/plans'
 
 /** Tono di colore di un'etichetta di stato (vedi components/StatusTag) */
 export type Tone = 'blue' | 'green' | 'red' | 'amber' | 'grey'
@@ -60,4 +60,17 @@ export const VARIANT_INFO: Record<PlanVariant, { letter: string; tagline: string
   ECONOMIC: { letter: 'A', tagline: 'Più lento · più economico', tone: 'green' },
   BALANCED: { letter: 'B', tagline: 'Compromesso', tone: 'blue' },
   FAST: { letter: 'C', tagline: 'Più veloce · più costoso', tone: 'amber' },
+}
+
+/**
+ * Stato di un singolo piano. SUPERSEDED = "Scartato": un altro piano della stessa richiesta
+ * (o una sua nuova versione) è stato approvato al suo posto.
+ */
+export const PLAN_STATUS: Record<PlanStatus, { label: string; tone: Tone }> = {
+  PENDING: { label: 'In attesa', tone: 'grey' },
+  PROPOSED: { label: 'Da valutare', tone: 'blue' },
+  APPROVED: { label: 'Approvato', tone: 'green' },
+  REJECTED: { label: 'Rifiutato', tone: 'red' },
+  SUPERSEDED: { label: 'Scartato', tone: 'grey' },
+  FAILED: { label: 'Fallito', tone: 'red' },
 }

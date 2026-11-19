@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { getPlanRequest } from '@/api/plans'
+import { getPlanRequest, getPlanRequests } from '@/api/plans'
 import { queryKeys } from '@/api/queryKeys'
 
 /** Ogni quanto si richiede lo stato di una richiesta ancora in calcolo */
@@ -28,4 +28,17 @@ export function usePlanRequest(id: string | undefined) {
   }, [status, queryClient])
 
   return query
+}
+
+/** Ogni quanto si ricarica l'elenco se c'è una richiesta ancora in calcolo */
+const LIST_POLL_MS = 5000
+
+/** Tutte le richieste di pianificazione, dalla più recente (elenco piani) */
+export function usePlanRequests() {
+  return useQuery({
+    queryKey: queryKeys.planRequests.list(),
+    queryFn: ({ signal }) => getPlanRequests({}, signal),
+    refetchInterval: (q) =>
+      q.state.data?.some((r) => r.status === 'PENDING') ? LIST_POLL_MS : false,
+  })
 }

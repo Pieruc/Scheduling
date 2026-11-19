@@ -266,7 +266,12 @@ chi fa il backend.
 5. **Segnalazioni dell'operatore e avvisi**: `POST /incidents` (guasto, materiale
    mancante, ritardo, altro + nota) e `GET /alerts` per la lista “Avvisi” della
    dashboard.
-6. **Elenco richieste**: `GET /plan-requests` con filtri per stato e periodo.
+6. **Elenco richieste**: `GET /plan-requests`, dalla più recente, ogni richiesta con i suoi
+   piani (`PlanSummary`, senza assegnazioni). Per ora il frontend filtra nel browser; con
+   molte richieste servono i parametri `q` (codice richiesta, piano o commessa),
+   `status` (`TO_REVIEW`, `APPROVED`, `REJECTED`, `PENDING`, `FAILED`), `from` (data) e
+   la paginazione. Una nuova versione creata nel Gantt prende il posto del piano originale
+   nell'elenco dei piani della richiesta.
 7. **Commesse**: in `Order` un campo `description` (es. "Telaio carrello") e
    `activityCount`, così l'elenco si mostra senza caricare ogni grafo. La priorità
    resta un intero: il frontend la mostra come 1 = Bassa, 2 = Media, 3 = Alta.
