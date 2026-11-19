@@ -77,7 +77,7 @@ def test_convert_tree_reports_bad_files(tmp_path):
 
 
 def _dataset_root() -> Path:
-    default = Path(__file__).resolve().parents[3] / "Dataset"
+    default = Path(__file__).resolve().parents[4] / "Dataset"
     return Path(os.environ.get("P06_DATASET_DIR", default))
 
 

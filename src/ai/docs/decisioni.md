@@ -2,7 +2,7 @@
 
 Scelte prese durante lo sviluppo, con il motivo. Le voci segnate **da
 concordare** toccano i contratti condivisi in
-[CONTRATTI_API.md](../../CONTRATTI_API.md) e vanno confermate con il resto del
+[CONTRATTI_API.md](../../../CONTRATTI_API.md) e vanno confermate con il resto del
 gruppo.
 
 ## 1. Schema delle istanze (contratto D)

@@ -29,7 +29,7 @@ def test_generated_instances_get_feasible_plans(profile, solve):
 
 
 def _dataset_root() -> Path:
-    default = Path(__file__).resolve().parents[3] / "Dataset"
+    default = Path(__file__).resolve().parents[4] / "Dataset"
     return Path(os.environ.get("P06_DATASET_DIR", default))
 
 

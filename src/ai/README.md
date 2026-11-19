@@ -4,7 +4,7 @@ Codice Python della parte AI: schema comune delle istanze, convertitori dei
 benchmark, generatore di istanze sintetiche, Dispatcher e regole di riferimento
 EDD/ATC. Corrisponde ai blocchi *Log & Benchmark Converters*, *Instance
 Generator* e *M2 Policy + Dispatcher / Fallback* di
-[Spiegazione_architettura_VPP.txt](../Spiegazione_architettura_VPP.txt).
+[Spiegazione_architettura_VPP.txt](../../Spiegazione_architettura_VPP.txt).
 
 Altri documenti:
 
@@ -28,14 +28,14 @@ Altri documenti:
 
 ## Installazione
 
-Serve Python 3.11 o successivo. Da questa cartella (`Scheduling/ai`):
+Serve Python 3.11 o successivo. Da questa cartella (`Scheduling/src/ai`):
 
 ```bash
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 ```
 
-Tutti i comandi seguenti si lanciano da `Scheduling/ai`. Su Windows si usa
+Tutti i comandi seguenti si lanciano da `Scheduling/src/ai`. Su Windows si usa
 `.\.venv\Scripts\python.exe`; altrove `.venv/bin/python`.
 
 ## Struttura
@@ -83,13 +83,13 @@ JSPLIB: per la valutazione bastano JSPLIB e Demirkol.
 
 ```bash
 # FJSP: tutte le sottocartelle (brandimarte, hurink/edata, ...)
-.\.venv\Scripts\python.exe -m p06_ai.converters.fjsp "..\..\Dataset\Job_Shop_Scheduling_Benchmark_Environments_and_Instances\data\fjsp" data\converted --license MIT
+.\.venv\Scripts\python.exe -m p06_ai.converters.fjsp "..\..\..\Dataset\Job_Shop_Scheduling_Benchmark_Environments_and_Instances\data\fjsp" data\converted --license MIT
 
 # JSPLIB, con ottimi e bound noti
-.\.venv\Scripts\python.exe -m p06_ai.converters.jsp ..\..\Dataset\JSPLIB\instances data\converted --dataset JSPLIB --metadata ..\..\Dataset\JSPLIB\instances.json
+.\.venv\Scripts\python.exe -m p06_ai.converters.jsp ..\..\..\Dataset\JSPLIB\instances data\converted --dataset JSPLIB --metadata ..\..\..\Dataset\JSPLIB\instances.json
 
 # Demirkol
-.\.venv\Scripts\python.exe -m p06_ai.converters.jsp "..\..\Dataset\Job_Shop_Scheduling_Benchmark_Environments_and_Instances\data\jsp\demirkol" data\converted --license MIT
+.\.venv\Scripts\python.exe -m p06_ai.converters.jsp "..\..\..\Dataset\Job_Shop_Scheduling_Benchmark_Environments_and_Instances\data\jsp\demirkol" data\converted --license MIT
 ```
 
 Output: `data/converted/<dataset>/<istanza>.json`. Il comando stampa quante

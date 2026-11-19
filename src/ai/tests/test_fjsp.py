@@ -49,7 +49,7 @@ def test_malformed_input_is_rejected(text):
 
 
 def _dataset_dir() -> Path:
-    default = Path(__file__).resolve().parents[3] / "Dataset" / \
+    default = Path(__file__).resolve().parents[4] / "Dataset" / \
         "Job_Shop_Scheduling_Benchmark_Environments_and_Instances" / "data" / "fjsp"
     return Path(os.environ.get("P06_FJSP_DIR", default))
 
