@@ -6,7 +6,7 @@ import { ErrorState } from '@/components/ErrorState'
 import { PageHeader } from '@/components/PageHeader'
 import { PipelineSteps, type Step, type StepState } from '@/components/PipelineSteps'
 import { StatusTag } from '@/components/StatusTag'
-import { solverLabel } from '@/lib/labels'
+import { solverLabel, VARIANT_LABEL } from '@/lib/labels'
 import { BaselineComparison } from './components/BaselineComparison'
 import { PlanCard } from './components/PlanCard'
 import { usePlanRequest } from './hooks'
@@ -73,6 +73,8 @@ export function CandidatesPage() {
   }
 
   const recommended = request.plans.find((p) => p.id === request.recommendedPlanId)
+  const approvedPlan = request.plans.find((p) => p.status === 'APPROVED')
+  const approved = approvedPlan?.variant ? VARIANT_LABEL[approvedPlan.variant] : approvedPlan?.id
   const policyPlan = request.plans[0]
 
   return (
@@ -80,16 +82,20 @@ export function CandidatesPage() {
       {crumb}
       <PageHeader
         title={
-          request.status === 'COMPLETED'
-            ? `${request.plans.length} piani pronti: scegli tu`
-            : request.status === 'FAILED'
-              ? 'Pianificazione non riuscita'
-              : 'Sto preparando i piani…'
+          approved
+            ? `Piano approvato: ${approved}`
+            : request.status === 'COMPLETED'
+              ? `${request.plans.length} piani pronti: scegli tu`
+              : request.status === 'FAILED'
+                ? 'Pianificazione non riuscita'
+                : 'Sto preparando i piani…'
         }
         subtitle={
-          request.status === 'COMPLETED'
-            ? 'Tutti rispettano i vincoli. Cambia il compromesso tra tempo e costo.'
-            : `${request.label} · ci vogliono pochi secondi.`
+          approvedPlan
+            ? 'La scelta è fatta: il piano approvato è quello in esecuzione.'
+            : request.status === 'COMPLETED'
+              ? 'Tutti rispettano i vincoli. Cambia il compromesso tra tempo e costo.'
+              : `${request.label} · ci vogliono pochi secondi.`
         }
         actions={
           request.status === 'COMPLETED' && policyPlan ? (
@@ -134,7 +140,12 @@ export function CandidatesPage() {
         <>
           <div className={styles.planGrid}>
             {request.plans.map((p) => (
-              <PlanCard key={p.id} plan={p} recommended={p.id === request.recommendedPlanId} />
+              <PlanCard
+                key={p.id}
+                plan={p}
+                // Dopo una scelta si evidenzia il piano approvato, non più il consigliato
+                recommended={!approvedPlan && p.id === request.recommendedPlanId}
+              />
             ))}
           </div>
           {recommended?.kpis && request.baselines?.length ? (

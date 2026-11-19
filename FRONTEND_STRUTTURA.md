@@ -270,6 +270,18 @@ chi fa il backend.
 7. **Commesse**: in `Order` un campo `description` (es. "Telaio carrello") e
    `activityCount`, così l'elenco si mostra senza caricare ogni grafo. La priorità
    resta un intero: il frontend la mostra come 1 = Bassa, 2 = Media, 3 = Alta.
+8. **Gantt e decisioni** (contratti A.4 e A.5): forma esatta in `GanttView`,
+   `DecisionRequest`, `DecisionResult` (`src/frontend/src/api/types/plans.ts`).
+   - `GET /plans/{id}/gantt` → righe per risorsa (con le fasce non disponibili), barre con
+     le risorse ammesse e la durata su ciascuna, precedenze, scadenze per commessa e, per
+     le durate stimate, la stima di M1 con intervallo e confidenza.
+   - Tempi in **minuti di lavoro** dall'inizio del periodo (giornata = `minutesPerDay`,
+     480 = turni 8–12 e 13–17): da confermare insieme al punto sulle durate qui sopra.
+   - `POST /plans/{id}/decisions`: `APPROVE`, `REJECT` con `reason`, `MODIFY` con `reason`
+     e `changes: [{ activityId, resourceId, start }]`. MODIFY risponde con l'id della nuova
+     versione (`PROPOSED`); il frontend controlla gli spostamenti con le stesse regole
+     (`src/frontend/src/lib/schedule.ts`) che il backend deve applicare (422 se non ammissibili).
+     Approvare un piano mette le altre alternative della richiesta a `SUPERSEDED`.
 
 ## 9. Fasi di lavoro
 

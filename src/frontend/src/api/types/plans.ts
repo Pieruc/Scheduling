@@ -130,3 +130,68 @@ export type CreatePlanRequest = {
   /** Risposte alle domande sui dati mancanti, per id della domanda */
   answers: Record<string, string>
 }
+
+/* ----------------------------------------------------------------------------------------
+ * Gantt e decisioni (contratti A.4 e A.5)
+ * Il tempo è in MINUTI DI LAVORO dall'inizio del periodo: ogni giorno lavorativo vale
+ * `minutesPerDay` (480 = turni 8–12 e 13–17). Ipotesi da confermare (FRONTEND_STRUTTURA §8).
+ * -------------------------------------------------------------------------------------- */
+
+/** Fascia in cui una risorsa non è disponibile (manutenzione, guasto) */
+export type GanttBlock = { start: number; end: number; reason: string }
+
+export type GanttResource = {
+  id: string
+  name: string
+  unavailable: GanttBlock[]
+}
+
+/** Un'attività assegnata a una risorsa (una barra del Gantt) */
+export type GanttBar = {
+  activityId: string
+  activityName: string
+  orderId: string
+  resourceId: string
+  start: number
+  end: number
+  /** Risorse su cui l'attività può essere spostata, con la durata su ciascuna (minuti) */
+  durations: Record<string, number>
+  /** Durata scritta nella commessa; null = non inserita, l'ha stimata l'AI */
+  declaredMin: number | null
+  /** Stima di M1 con intervallo all'80% (minuti), se presente */
+  estimate?: { value: number; low: number; high: number; confidence: number }
+}
+
+/** GET /plans/{id}/gantt (contratti A.4: "vista pronta per il Gantt, righe per risorsa") */
+export type GanttView = {
+  planId: string
+  requestId: string
+  status: PlanStatus
+  variant: PlanVariant | null
+  solver: Solver
+  modelVersion: string | null
+  confidence: number | null
+  kpis: PlanKpis
+  /** Giorni lavorativi del periodo (AAAA-MM-GG) */
+  days: string[]
+  minutesPerDay: number
+  resources: GanttResource[]
+  bars: GanttBar[]
+  precedences: { from: string; to: string }[]
+  /** Scadenza di ogni commessa in minuti di lavoro (null = nessuna) */
+  dueByOrder: Record<string, number | null>
+  /** Modifiche manuali già incluse in questa versione */
+  manualChanges: number
+}
+
+/** Una modifica manuale: attività spostata su una risorsa e/o a un nuovo inizio */
+export type PlanChange = { activityId: string; resourceId: string; start: number }
+
+/** POST /plans/{id}/decisions (contratti A.5) */
+export type DecisionRequest =
+  | { decision: 'APPROVE' }
+  | { decision: 'REJECT'; reason: string }
+  | { decision: 'MODIFY'; reason: string; changes: PlanChange[] }
+
+/** Risposta: con MODIFY, l'id della nuova versione del piano */
+export type DecisionResult = { planId: string; status: PlanStatus }

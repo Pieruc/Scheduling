@@ -10,6 +10,9 @@ export const queryKeys = {
   alerts: {
     all: ['alerts'] as const,
   },
+  plans: {
+    gantt: (planId: string) => ['plans', planId, 'gantt'] as const,
+  },
   planRequests: {
     all: ['plan-requests'] as const,
     list: (limit?: number) => ['plan-requests', 'list', { limit }] as const,

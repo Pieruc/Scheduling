@@ -1,0 +1,151 @@
+.crumb {
+  margin-bottom: -12px;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: -10px;
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+}
+
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--fs-track);
+  color: #4b5563;
+}
+
+/* Esito dell'ultimo spostamento */
+.message {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
+
+.messageError {
+  border: 1px solid #f1b0aa;
+  background: var(--fs-danger-soft);
+  color: #7a1a12;
+}
+
+.messageOk {
+  border: 1px solid #b7dfc3;
+  background: var(--fs-success-soft);
+  color: var(--fs-success);
+}
+
+/* Gantt a sinistra, pannelli a destra; sotto i 1200px uno sotto l'altro */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.chartCard {
+  min-width: 0;
+}
+
+.chartTools {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chartTools :global(.p-button) {
+  min-height: 40px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  margin: 0;
+}
+
+.details dt {
+  color: var(--fs-muted);
+}
+
+.details dd {
+  margin: 0;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.controlLabel {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.resourceChoice {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.resourceChoice :global(.p-button) {
+  flex: 1 1 auto;
+  min-height: 44px;
+}
+
+.shiftButtons {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.shiftButtons :global(.p-button) {
+  min-height: 44px;
+  padding: 0 4px;
+}
+
+.decisionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 1199px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 760px) {
+  .kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .decisionButtons :global(.p-button) {
+    flex: 1 1 100%;
+  }
+}

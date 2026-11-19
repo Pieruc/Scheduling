@@ -5,6 +5,7 @@ import { activeModels } from '@/mocks/data/models'
 import { configHandlers } from './config'
 import { orderHandlers } from './orders'
 import { planningHandlers } from './planning'
+import { reviewHandlers } from './review'
 import { api, latency, simulatedFailure } from './utils'
 
 /**
@@ -15,6 +16,7 @@ export const handlers = [
   ...configHandlers,
   ...orderHandlers,
   ...planningHandlers,
+  ...reviewHandlers,
 
   http.get(api('/kpis'), async () => {
     await latency()

@@ -1,6 +1,9 @@
 import { apiFetch } from '@/api/client'
 import type {
   CreatePlanRequest,
+  DecisionRequest,
+  DecisionResult,
+  GanttView,
   Interpretation,
   InterpretRequest,
   PlanRequest,
@@ -24,4 +27,21 @@ export function interpretRequest(body: InterpretRequest) {
 /** PROPOSTA §8: POST /plan-requests -> 202 { id, status: 'PENDING' }; poi si interroga GET /plan-requests/{id} */
 export function createPlanRequest(body: CreatePlanRequest) {
   return apiFetch<Pick<PlanRequest, 'id' | 'status'>>('/plan-requests', { method: 'POST', body })
+}
+
+/** GET /plans/{id}/gantt: il piano pronto da disegnare, una riga per risorsa (contratti A.4) */
+export function getPlanGantt(planId: string, signal?: AbortSignal) {
+  return apiFetch<GanttView>(`/plans/${encodeURIComponent(planId)}/gantt`, { signal })
+}
+
+/**
+ * POST /plans/{id}/decisions (contratti A.5): approva, rifiuta o modifica.
+ * MODIFY crea una nuova versione verificata dal backend (422 se non ammissibile);
+ * una decisione su un piano non PROPOSED risponde 409.
+ */
+export function postDecision(planId: string, body: DecisionRequest) {
+  return apiFetch<DecisionResult>(`/plans/${encodeURIComponent(planId)}/decisions`, {
+    method: 'POST',
+    body,
+  })
 }

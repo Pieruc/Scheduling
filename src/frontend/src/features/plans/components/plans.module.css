@@ -43,6 +43,11 @@
   padding: 17px;
 }
 
+.approved {
+  border: 2px solid var(--fs-success);
+  padding: 17px;
+}
+
 .ribbon {
   position: absolute;
   top: -12px;
@@ -53,6 +58,12 @@
   color: #fff;
   font-size: 12px;
   font-weight: 600;
+}
+
+.cardTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .planTitle {

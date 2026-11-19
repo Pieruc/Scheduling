@@ -1,0 +1,182 @@
+/* Il Gantt ha una larghezza minima: su schermi stretti scorre dentro il suo riquadro,
+   la pagina no. */
+.scroller {
+  overflow-x: auto;
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  row-gap: 6px;
+  min-width: 760px;
+}
+
+.axis {
+  display: grid;
+  grid-template-columns: repeat(var(--days), minmax(0, 1fr));
+  color: var(--fs-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.day {
+  padding: 6px 8px;
+  border-left: 1px solid var(--fs-border);
+  text-transform: capitalize;
+}
+
+.row {
+  display: contents;
+}
+
+.resName {
+  /* Il nome della risorsa resta visibile mentre il Gantt scorre in orizzontale */
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  padding-right: 8px;
+  background: var(--fs-surface);
+  font-weight: 500;
+}
+
+/* Riga: righe verticali a ogni giorno */
+.lane {
+  position: relative;
+  height: 48px;
+  border-radius: 6px;
+  background-color: #fafbfd;
+  background-image: linear-gradient(to right, var(--fs-border) 1px, transparent 1px);
+  background-size: calc(100% / var(--days)) 100%;
+}
+
+.blocked {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: 6px;
+  background: repeating-linear-gradient(45deg, #e5e7eb, #e5e7eb 4px, #f3f4f6 4px, #f3f4f6 8px);
+  color: #4b5563;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.bar {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  display: flex;
+  align-items: center;
+  min-width: 6px;
+  padding: 0 6px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bar);
+  color: #fff;
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    box-shadow 0.15s,
+    transform 0.15s;
+}
+
+.bar:hover {
+  box-shadow: 0 3px 8px rgba(17, 24, 39, 0.25);
+  transform: translateY(-1px);
+}
+
+.movable {
+  cursor: grab;
+  /* Il trascinamento funziona anche con il dito */
+  touch-action: none;
+}
+
+.dragging {
+  z-index: 2;
+  cursor: grabbing;
+  opacity: 0.85;
+  box-shadow: 0 6px 16px rgba(17, 24, 39, 0.3);
+}
+
+.selected {
+  outline: 3px solid #fbbf24;
+  outline-offset: 1px;
+}
+
+/* Durata non scritta nella commessa: l'ha stimata l'AI */
+.estimated {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 6px,
+    rgba(255, 255, 255, 0.18) 6px,
+    rgba(255, 255, 255, 0.18) 12px
+  );
+}
+
+.barText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  color: #4b5563;
+  font-size: 12px;
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.swatchBlocked {
+  border: 1px solid var(--fs-border-strong);
+  background: repeating-linear-gradient(45deg, #e5e7eb, #e5e7eb 3px, #f3f4f6 3px, #f3f4f6 6px);
+}
+
+.swatchEstimated {
+  background: #64748b;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.35) 3px,
+    rgba(255, 255, 255, 0.35) 6px
+  );
+}
+
+/* Telefono: colonna dei nomi più stretta, così si vede più tempo */
+@media (max-width: 600px) {
+  .chart {
+    grid-template-columns: 96px minmax(0, 1fr);
+  }
+
+  .resName {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+}

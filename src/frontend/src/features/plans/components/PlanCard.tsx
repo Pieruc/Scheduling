@@ -2,8 +2,15 @@ import { Link } from 'react-router'
 import type { PlanSummary } from '@/api/types/plans'
 import { StatusTag } from '@/components/StatusTag'
 import { formatEuro, formatHours, formatPercent, formatWorkDuration } from '@/lib/format'
-import { VARIANT_INFO, VARIANT_LABEL } from '@/lib/labels'
+import { VARIANT_INFO, VARIANT_LABEL, type Tone } from '@/lib/labels'
 import styles from './plans.module.css'
+
+/** Stato di un piano già deciso (i piani da valutare non mostrano nulla) */
+const DECIDED: Partial<Record<PlanSummary['status'], { label: string; tone: Tone }>> = {
+  APPROVED: { label: 'Approvato', tone: 'green' },
+  REJECTED: { label: 'Rifiutato', tone: 'red' },
+  SUPERSEDED: { label: 'Scartato', tone: 'grey' },
+}
 
 type PlanCardProps = {
   plan: PlanSummary
@@ -19,11 +26,18 @@ export function PlanCard({ plan, recommended }: PlanCardProps) {
 
   return (
     <article
-      className={`${styles.planCard} ${recommended ? styles.recommended : ''}`}
+      className={`${styles.planCard} ${recommended ? styles.recommended : ''} ${plan.status === 'APPROVED' ? styles.approved : ''}`}
       aria-labelledby={titleId}
     >
-      {recommended && <span className={styles.ribbon}>Migliore con i tuoi pesi</span>}
-      <StatusTag label={info.tagline} tone={info.tone} />
+      {recommended && plan.status === 'PROPOSED' && (
+        <span className={styles.ribbon}>Migliore con i tuoi pesi</span>
+      )}
+      <div className={styles.cardTags}>
+        <StatusTag label={info.tagline} tone={info.tone} />
+        {DECIDED[plan.status] && (
+          <StatusTag label={DECIDED[plan.status]!.label} tone={DECIDED[plan.status]!.tone} />
+        )}
+      </div>
       <h2 id={titleId} className={styles.planTitle}>
         Piano {info.letter} · {VARIANT_LABEL[variant]}
       </h2>
@@ -54,10 +68,10 @@ export function PlanCard({ plan, recommended }: PlanCardProps) {
       <Link
         to={`/piani/${plan.id}`}
         className={`p-button ${recommended ? '' : 'p-button-outlined'} ${styles.openLink}`}
+        aria-label={`Apri nel Gantt il piano ${info.letter}, ${VARIANT_LABEL[variant].toLowerCase()}`}
       >
         <i className="pi pi-chart-bar" aria-hidden="true" />
         Apri nel Gantt
-        <span className="visually-hidden"> il piano {info.letter}</span>
       </Link>
     </article>
   )
