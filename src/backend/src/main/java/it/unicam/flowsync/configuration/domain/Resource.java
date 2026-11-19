@@ -8,6 +8,8 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /** Macchina, persona, squadra o sala/sportello: una riga del Gantt. */
 @Entity
@@ -42,6 +44,10 @@ public class Resource {
 
     @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private boolean active = true;
+
+    /** Competenze della risorsa con il livello (1 base … 3 esperto). Si modifica solo dal servizio. */
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ResourceSkill> skills = new LinkedHashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;

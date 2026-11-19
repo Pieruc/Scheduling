@@ -1,5 +1,7 @@
-# Estratto per la parte DB di FlowSync (Spring Boot 3.x, MySQL 8)
+# FlowSync backend (Spring Boot 3.5, MySQL 8). Segreti e credenziali arrivano dall'ambiente.
 spring:
+  application:
+    name: flowsync-backend
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:3306/${DB_NAME:flowsync}?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC
     username: ${DB_USER:flowsync}
@@ -16,11 +18,46 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  pattern:
+    level: "%5p [%X{traceId:-}]"
+
+flowsync:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}       # almeno 32 caratteri (HS256); in produzione solo da variabile d'ambiente
+      access-ttl: PT15M           # contratto A.1: expiresIn = 900 s
+      refresh-ttl: P7D
+
 ---
-# Profilo dev: aggiunge i dati di esempio (utenti demo, officina, commesse C-101…C-104)
+# Profilo dev: dati di esempio (utenti demo, officina, commesse C-101…C-104) e valori di comodo.
+# Password degli utenti demo: flowsync-dev. Da NON usare fuori dallo sviluppo.
 spring:
   config:
     activate:
       on-profile: dev
+  datasource:
+    password: ${DB_PASSWORD:flowsync}
   flyway:
     locations: classpath:db/migration,classpath:db/seed
+flowsync:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-only-secret-change-me-0123456789abcdef}

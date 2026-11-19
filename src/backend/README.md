@@ -83,3 +83,70 @@ Il codice Java non è stato compilato: in questo ambiente Maven Central non è r
 - **Enum:** sono mappati con `@JdbcTypeCode(SqlTypes.VARCHAR)`, perché da Hibernate 6.2 su MySQL l'enum diventerebbe un `ENUM` nativo.
 
 Se la validazione segnala una colonna, quasi sempre si tratta di una differenza di tipo come queste.
+
+---
+
+# Backend REST
+
+Primo blocco implementato: fondamenta (errori, sicurezza), login JWT e modulo Configuration (risorse, competenze, calendari in sola lettura). Il resto del contratto A (`CONTRATTI_API.md`) segue modulo per modulo.
+
+## Avvio in locale
+
+```bash
+docker compose up -d                                   # MySQL 8.4 su localhost:3306 (utente flowsync / flowsync)
+SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run         # migrazioni Flyway + dati demo
+```
+
+Con il profilo `dev` si ha un segreto JWT di comodo e la password del DB `flowsync`; fuori da `dev` servono le variabili `DB_PASSWORD` e `JWT_SECRET` (almeno 32 caratteri). Utenti demo: `admin` (ADMIN), `gneri` (PLANNER), `mrossi` (OPERATOR), tutti con password `flowsync-dev`.
+
+- Swagger UI: <http://localhost:8080/swagger-ui.html> (bottone *Authorize*: incollare l'`accessToken` del login)
+- Salute: <http://localhost:8080/actuator/health>
+
+```bash
+curl -s localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' \
+     -d '{"username":"admin","password":"flowsync-dev"}'
+curl -s localhost:8080/api/v1/resources -H "Authorization: Bearer <accessToken>"
+```
+
+Con il frontend: in `src/frontend/.env.development` mettere `VITE_USE_MOCKS=false` e fare il proxy di `/api` verso `localhost:8080` nella configurazione di Vite. Il frontend non manda ancora l'header `Authorization` (c'è un commento in `api/client.ts`): finché non c'è la pagina di login, le chiamate dal browser avranno 401.
+
+## Test
+
+```bash
+mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero, unico per tutta la suite
+```
+
+| Classe | Cosa verifica |
+|---|---|
+| `SchemaAndMigrationsTest` | Il contesto parte: Flyway applica V1–V6 + seed e Hibernate (`ddl-auto: validate`) trova le entità coerenti con lo schema. **È il primo test da guardare.** |
+| `AuthApiTest` | Login, refresh, `/auth/me`, token manomesso o del tipo sbagliato, formato problem+json |
+| `ResourceApiTest` | Permessi per ruolo, CRUD, disattivazione, 404/409/422, competenze, riepilogo dei turni |
+| `ShiftSummarizerTest` | Logica pura del riepilogo turni (senza Docker) |
+
+## Endpoint implementati
+
+| Metodo | Path | Ruoli | Note |
+|---|---|---|---|
+| POST | `/api/v1/auth/login` | pubblico | access (15 min) + refresh (7 giorni) |
+| POST | `/api/v1/auth/refresh` | pubblico | accetta solo refresh token |
+| GET | `/api/v1/auth/me` | tutti | |
+| GET | `/api/v1/resources[?active=]` | tutti | |
+| GET | `/api/v1/resources/{id}` | tutti | `id` = codice (es. `LASER`) |
+| POST / PUT | `/api/v1/resources[/{id}]` | ADMIN | 409 codice doppio, 422 competenza o calendario inesistenti |
+| DELETE | `/api/v1/resources/{id}` | ADMIN | disattiva (204), idempotente |
+| GET | `/api/v1/skills`, `/api/v1/calendars` | tutti | alimentano le tendine del frontend |
+
+## Scelte
+
+- **L'`id` pubblico è il codice**, non la chiave BIGINT: `LASER`, `ORD-0012`. Il frontend non vede mai gli id numerici. Per i calendari, che non hanno un codice nello schema, l'`id` è la chiave numerica come stringa opaca (`"1"`).
+- **Errori sempre `application/problem+json`**, anche quelli dei filtri di sicurezza (401/403), con `traceId` (uguale all'header `X-Request-Id`, lo si ritrova nei log). Un input sintatticamente valido ma inconsistente è 422 con l'elenco `errors[{code, path, message}]`; il JSON malformato è 400.
+- **JWT HS256 con il resource server di Spring Security**, nessuna libreria in più. Access e refresh hanno un claim `token_use`: un refresh token non apre le API e un access token non rinnova. Il refresh rilegge l'utente dal DB, quindi un account disattivato o un ruolo cambiato valgono subito al rinnovo.
+- **Limite noto:** i refresh token non si possono revocare prima della scadenza (niente tabella dei token). Per un prototipo è accettabile; se serve il logout "vero" si aggiunge una tabella con i `jti` revocati.
+- **Nessun limite ai tentativi di login** per ora (da aggiungere prima di un uso reale).
+- **Le competenze di una risorsa** si inviano come elenco di codici; le nuove partono dal livello 1, quelle già presenti conservano il loro livello.
+
+## Difformità da chiarire con il frontend
+
+- `ResourceType` nel frontend è `MACHINE | PERSON | ROOM`, ma lo schema ammette anche `TEAM` e il backend lo restituisce.
+- Il frontend si aspetta `costPerHour` e `unavailability` nella risorsa (PROPOSTA §8 di `FRONTEND_STRUTTURA.md`): il backend per ora li ignora in scrittura e non li restituisce. Servono una colonna in più (migrazione V7) e una decisione sul contratto.
+- `CONTRATTI_API.md` e `Spiegazione_architettura_VPP.txt` nominano ancora Angular.

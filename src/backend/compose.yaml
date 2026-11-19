@@ -1,0 +1,24 @@
+# MySQL 8 per lo sviluppo locale:  docker compose up -d
+# Poi:  SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run   (il profilo dev usa utente e password di questo file)
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: flowsync-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: flowsync
+      MYSQL_USER: flowsync
+      MYSQL_PASSWORD: flowsync
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - flowsync-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  flowsync-mysql:
