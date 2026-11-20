@@ -333,6 +333,15 @@ chi fa il backend.
       (422 altrimenti) e l'elenco dei vincoli attivi; il frontend conosce
       `SEQUENCE_DEPENDENT_SETUP`, `ALTERNATIVE_RESOURCES`, `OVERTIME`, `HARD_DEADLINES`,
       `PRECEDENCE_LAGS`, `MULTI_RESOURCE` e mostra gli altri con il codice.
+12. **Login (versione di prova)**: per ora solo `POST /auth/login` →
+    `{ accessToken, expiresIn, user }` con in più `user.displayName` e
+    `user.department`. Il frontend manda `Authorization: Bearer <token>` a ogni
+    chiamata e, a una risposta 401, torna al login. Token e utente stanno in
+    sessionStorage; niente rinnovo (`/auth/refresh`) e niente `/auth/me` finché il
+    progetto è in fase preliminare. Menu e pagine dipendono dal ruolo
+    (`src/frontend/src/features/auth/permissions.ts`); i controlli veri restano al
+    backend (403). Con il backend finto: utenti `gneri` (PLANNER), `mrossi`
+    (OPERATOR), `lbianchi` (ADMIN), password `demo`.
 
 ## 9. Fasi di lavoro
 

@@ -1,4 +1,5 @@
 import { ApiError } from '@/api/errors'
+import { session } from '@/api/session'
 import type { ProblemDetails } from '@/api/types/common'
 
 /** URL di base dell'API pubblica (contratto A): /api/v1 */
@@ -20,15 +21,21 @@ type RequestOptions = {
  * passano dalle funzioni in api/*.ts, che usano questa.
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const response = await send(path, options, session.get()?.token ?? null)
+  // Token scaduto o non valido: si esce e il router riporta al login
+  if (response.status === 401 && session.get()) session.set(null)
+  if (!response.ok) throw new ApiError(await readProblem(response))
+  if (response.status === 204) return undefined as T
+  return (await response.json()) as T
+}
+
+async function send(path: string, options: RequestOptions, token: string | null) {
   const { method = 'GET', query, body, signal } = options
-
-  const headers: HeadersInit = { Accept: 'application/json' }
+  const headers: Record<string, string> = { Accept: 'application/json' }
   if (body !== undefined) headers['Content-Type'] = 'application/json'
-  // Qui, con il login, si aggiungerà: Authorization: Bearer <token>
-
-  let response: Response
+  if (token) headers.Authorization = `Bearer ${token}`
   try {
-    response = await fetch(BASE_URL + path + toQueryString(query), {
+    return await fetch(BASE_URL + path + toQueryString(query), {
       method,
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
@@ -38,10 +45,6 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
     if (cause instanceof DOMException && cause.name === 'AbortError') throw cause
     throw new ApiError({ status: 0, title: 'Network error' })
   }
-
-  if (!response.ok) throw new ApiError(await readProblem(response))
-  if (response.status === 204) return undefined as T
-  return (await response.json()) as T
 }
 
 function toQueryString(query?: Query): string {

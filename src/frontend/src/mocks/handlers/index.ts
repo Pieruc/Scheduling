@@ -3,6 +3,7 @@ import { alerts } from '@/mocks/data/alerts'
 import { auditRecords } from '@/mocks/data/audit'
 import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels, modelsStatus, modelVersions } from '@/mocks/data/models'
+import { authHandlers } from './auth'
 import { configHandlers } from './config'
 import { operatorHandlers } from './operator'
 import { orderHandlers } from './orders'
@@ -15,6 +16,8 @@ import { api, latency, simulatedFailure } from './utils'
  * Quando un endpoint vero è pronto, si toglie il suo handler da qui.
  */
 export const handlers = [
+  // Login di prova
+  ...authHandlers,
   ...configHandlers,
   ...orderHandlers,
   ...planningHandlers,

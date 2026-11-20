@@ -6,6 +6,7 @@ import { ConfirmDialog } from 'primereact/confirmdialog'
 import { ApiError } from '@/api/errors'
 import { setupItalianLocale } from '@/app/locale'
 import { ToastProvider } from '@/app/toast/ToastProvider'
+import { AuthProvider } from '@/features/auth/AuthProvider'
 
 setupItalianLocale()
 
@@ -23,12 +24,14 @@ const queryClient = new QueryClient({
   },
 })
 
-/** Provider globali dell'app. Alla fine qui arriverà anche l'autenticazione. */
+/** Provider globali dell'app: componenti, dati, sessione e notifiche. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <PrimeReactProvider value={{ ripple: true, locale: 'it' }}>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>{children}</ToastProvider>
+        <AuthProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </AuthProvider>
         {/* Finestra di conferma condivisa: si apre con confirmDialog({...}) */}
         <ConfirmDialog />
         {/* Pannello di debug delle chiamate: c'è solo in sviluppo */}

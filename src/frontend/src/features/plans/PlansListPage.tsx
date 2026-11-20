@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
 import { PageHeader } from '@/components/PageHeader'
+import { useCan } from '@/features/auth/authContext'
 import { PlansTable } from './components/PlansTable'
 import {
   applyFilters,
@@ -22,6 +23,8 @@ import styles from './components/plansList.module.css'
 
 /** Mockup v2, schermata 7: /piani */
 export function PlansListPage() {
+  // Solo il pianificatore crea nuove richieste
+  const canPlan = useCan('plan')
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
   const filters = readFilters(params)
@@ -50,11 +53,13 @@ export function PlansListPage() {
         title="Piani"
         subtitle="Tutte le richieste di pianificazione e i piani generati. Ogni richiesta produce 3 piani."
         actions={
-          <Button
-            label="Nuova pianificazione"
-            icon="pi pi-plus"
-            onClick={() => navigate('/pianifica')}
-          />
+          canPlan && (
+            <Button
+              label="Nuova pianificazione"
+              icon="pi pi-plus"
+              onClick={() => navigate('/pianifica')}
+            />
+          )
         }
       />
 
