@@ -23,6 +23,8 @@ export const queryKeys = {
   },
   models: {
     active: ['models', 'active'] as const,
+    versions: ['models', 'versions'] as const,
+    status: ['models', 'status'] as const,
   },
   resources: {
     all: ['resources'] as const,

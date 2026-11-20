@@ -148,7 +148,7 @@ URL o un campo, si tocca solo `api/`.
 | `/piani/:planId` | Gantt e revisione | 5 | `GET /plans/{id}/gantt`, `POST /plans/{id}/decisions`, `POST /plans/{id}/reschedule` |
 | `/operatore` | Attività di oggi | 6 | `GET /operator/today`\*, `POST /executions`, `POST /incidents`\* |
 | `/configurazione/:tab` | Configurazione | 8 | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
-| `/modello` | Modello AI | 9 | `GET /models/active`, `GET /models` |
+| `/modello` | Modello AI | 9 | `GET /models/active`, `GET /models`, `GET /models/status`\* |
 | `/audit` | Audit | 10 | `GET /audit` |
 | `/login` | Login (fase finale) | 0 | `POST /auth/login`, `/auth/refresh`, `/auth/me` |
 
@@ -298,6 +298,15 @@ chi fa il backend.
      versione (`PROPOSED`); il frontend controlla gli spostamenti con le stesse regole
      (`src/frontend/src/lib/schedule.ts`) che il backend deve applicare (422 se non ammissibili).
      Approvare un piano mette le altre alternative della richiesta a `SUPERSEDED`.
+9. **Modello AI** (forma esatta in `src/frontend/src/api/types/models.ts`):
+   - `GET /models/active`: oltre alle metriche del contratto, `winRateVsEdd` per la policy;
+     `weeklyEstimates`, `intervalCoverage`, `avgInferenceMs` per M1; `datasetVersion` e
+     `specVersion` per entrambi. Il frontend mostra solo le metriche che riceve.
+   - `GET /models`: storico `[{ version, component: POLICY | CONTEXT, publishedAt,
+     status: ACTIVE | CANDIDATE | RETIRED, metrics }]`, dalla più recente.
+   - `GET /models/status`: `{ aiServiceUp, cpSatAvailable, confidenceThreshold, days,
+     plansBySolver: { POLICY, CP_SAT, ATC, EDD } }`, per la catena di riserva e quante
+     volte è scattata.
 
 ## 9. Fasi di lavoro
 

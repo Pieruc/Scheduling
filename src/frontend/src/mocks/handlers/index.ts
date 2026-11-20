@@ -1,7 +1,7 @@
 import { http, HttpResponse } from 'msw'
 import { alerts } from '@/mocks/data/alerts'
 import { kpiSeries } from '@/mocks/data/kpis'
-import { activeModels } from '@/mocks/data/models'
+import { activeModels, modelsStatus, modelVersions } from '@/mocks/data/models'
 import { configHandlers } from './config'
 import { operatorHandlers } from './operator'
 import { orderHandlers } from './orders'
@@ -33,5 +33,15 @@ export const handlers = [
   http.get(api('/models/active'), async () => {
     await latency()
     return simulatedFailure() ?? HttpResponse.json(activeModels)
+  }),
+
+  http.get(api('/models/status'), async () => {
+    await latency()
+    return simulatedFailure() ?? HttpResponse.json(modelsStatus)
+  }),
+
+  http.get(api('/models'), async () => {
+    await latency()
+    return simulatedFailure() ?? HttpResponse.json(modelVersions)
   }),
 ]
