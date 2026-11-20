@@ -21,6 +21,10 @@ export const queryKeys = {
   operator: {
     today: ['operator', 'today'] as const,
   },
+  audit: {
+    all: ['audit'] as const,
+    list: (period: string) => ['audit', { period }] as const,
+  },
   models: {
     active: ['models', 'active'] as const,
     versions: ['models', 'versions'] as const,

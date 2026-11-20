@@ -20,6 +20,7 @@ export function useDecision(planId: string) {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.plans.gantt(planId) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.planRequests.all }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.audit.all }),
       ]),
   })
 }

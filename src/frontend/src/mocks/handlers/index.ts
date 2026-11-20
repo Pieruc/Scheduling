@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw'
 import { alerts } from '@/mocks/data/alerts'
+import { auditRecords } from '@/mocks/data/audit'
 import { kpiSeries } from '@/mocks/data/kpis'
 import { activeModels, modelsStatus, modelVersions } from '@/mocks/data/models'
 import { configHandlers } from './config'
@@ -33,6 +34,23 @@ export const handlers = [
   http.get(api('/models/active'), async () => {
     await latency()
     return simulatedFailure() ?? HttpResponse.json(activeModels)
+  }),
+
+  // GET /audit?planId=&from=&to= (contratti A.8)
+  http.get(api('/audit'), async ({ request }) => {
+    await latency()
+    const failure = simulatedFailure()
+    if (failure) return failure
+    const q = new URL(request.url).searchParams
+    const from = q.get('from') ? Date.parse(q.get('from')!) : -Infinity
+    const to = q.get('to') ? Date.parse(q.get('to')!) : Infinity
+    const planId = q.get('planId')
+    return HttpResponse.json(
+      auditRecords.filter((r) => {
+        const t = Date.parse(r.timestamp)
+        return t >= from && t <= to && (!planId || r.planId === planId)
+      }),
+    )
   }),
 
   http.get(api('/models/status'), async () => {

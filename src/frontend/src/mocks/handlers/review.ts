@@ -1,7 +1,10 @@
 import { http, HttpResponse } from 'msw'
 import type { ProblemDetails } from '@/api/types/common'
+import type { AuditRecord } from '@/api/types/audit'
 import type { DecisionRequest, GanttView } from '@/api/types/plans'
-import { applyChange, makespan, moveProblem, totalTardiness } from '@/lib/schedule'
+import { applyChange, makespan, moveProblem, totalTardiness, workTime } from '@/lib/schedule'
+import { addAudit, inputHashOf, outputHashOf } from '@/mocks/data/audit'
+import { toIsoWithOffset } from '@/mocks/data/time'
 import { findPlan, gantts, ganttFor, versionSummary } from '@/mocks/data/gantt'
 import { api, latency, problem, simulatedFailure } from './utils'
 
@@ -39,6 +42,19 @@ export const reviewHandlers = [
       return problem(409, 'Conflict', 'Il piano non è più da valutare: è già stato deciso.')
     }
     const body = (await request.json()) as DecisionRequest
+    // Ogni decisione riuscita lascia un record di audit
+    const audit = (details: NonNullable<AuditRecord['details']>) =>
+      addAudit({
+        timestamp: toIsoWithOffset(new Date()),
+        planId: id,
+        user: 'gneri',
+        action: 'DECISION',
+        modelVersion: found.plan.modelVersion,
+        solver: found.plan.solver,
+        inputHash: inputHashOf(found.request.id),
+        outputHash: outputHashOf(id),
+        details,
+      })
 
     if (body.decision === 'APPROVE') {
       found.plan.status = 'APPROVED'
@@ -46,6 +62,7 @@ export const reviewHandlers = [
       found.request.plans
         .filter((p) => p.id !== id && p.status === 'PROPOSED')
         .forEach((p) => (p.status = 'SUPERSEDED'))
+      audit({ decision: 'APPROVE' })
       return HttpResponse.json({ planId: id, status: 'APPROVED' }, { status: 201 })
     }
 
@@ -61,6 +78,7 @@ export const reviewHandlers = [
 
     if (body.decision === 'REJECT') {
       found.plan.status = 'REJECTED'
+      audit({ decision: 'REJECT', reason: body.reason.trim() })
       return HttpResponse.json({ planId: id, status: 'REJECTED' }, { status: 201 })
     }
 
@@ -91,6 +109,20 @@ export const reviewHandlers = [
     const index = found.request.plans.findIndex((p) => p.id === id)
     found.request.plans.splice(index, 1, versionSummary(found.plan, next))
     if (found.request.recommendedPlanId === id) found.request.recommendedPlanId = next.planId
+    const resName = (rid: string) => view.resources.find((r) => r.id === rid)?.name ?? rid
+    audit({
+      decision: 'MODIFY',
+      reason: body.reason.trim(),
+      newPlanId: next.planId,
+      changes: body.changes.map((c) => {
+        const bar = view.bars.find((b) => b.activityId === c.activityId)!
+        const where =
+          bar.resourceId === c.resourceId
+            ? resName(c.resourceId)
+            : `${resName(bar.resourceId)} → ${resName(c.resourceId)}`
+        return `${bar.orderId} ${bar.activityName}: ${where}, ${workTime(view, c.start)}`
+      }),
+    })
     return HttpResponse.json({ planId: next.planId, status: 'PROPOSED' }, { status: 201 })
   }),
 ]

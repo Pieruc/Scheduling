@@ -307,6 +307,14 @@ chi fa il backend.
    - `GET /models/status`: `{ aiServiceUp, cpSatAvailable, confidenceThreshold, days,
      plansBySolver: { POLICY, CP_SAT, ATC, EDD } }`, per la catena di riserva e quante
      volte è scattata.
+10. **Audit** (forma esatta in `src/frontend/src/api/types/audit.ts`): `GET /audit` del
+    contratto A.8, dal più recente, con in più `details` per leggere il record senza aprire
+    il piano: `decision` (APPROVE, REJECT, MODIFY), `reason`, `newPlanId`, `changes`
+    (spostamenti già in parole), `planIds` (i 3 piani di una richiesta), `confidence` e
+    `trigger` (causa della riserva o della ripianificazione). `outputHash` è `null` se
+    non è stato prodotto un piano. Il frontend manda `from`; azione, utente e ricerca per
+    piano li filtra nel browser (servirebbero i parametri `action` e `user`). L'export CSV
+    è generato nel browser dai record filtrati.
 
 ## 9. Fasi di lavoro
 

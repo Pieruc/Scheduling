@@ -1,0 +1,270 @@
+/* Tabella a sinistra, dettaglio a destra; sotto i 1200px il dettaglio va sotto */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.withDetail {
+  grid-template-columns: minmax(0, 1fr) 380px;
+}
+
+.tableCard {
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search {
+  flex: 1 1 220px;
+}
+
+.search :global(.p-inputtext) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.filter {
+  flex: 0 1 190px;
+}
+
+.fullWidth {
+  width: 100%;
+  min-height: 44px;
+}
+
+.count {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 0 8px;
+}
+
+.empty p {
+  margin: 0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--fs-border-soft);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  border-bottom-color: var(--fs-border);
+  color: var(--fs-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.table tbody tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.table tbody tr:hover {
+  background: var(--fs-bg);
+}
+
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.selected,
+.selected:hover {
+  background: var(--fs-primary-soft) !important;
+}
+
+.when {
+  white-space: nowrap;
+}
+
+.actionCell {
+  padding-top: 2px !important;
+  padding-bottom: 2px !important;
+}
+
+.rowButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 6px 0 0;
+  border: 0;
+  background: none;
+  color: var(--fs-muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Dettaglio */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detailHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recordId {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.detailTitle {
+  margin: 2px 0 0;
+  font-size: 18px;
+}
+
+.detailTitle:focus {
+  outline: none;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 14px;
+  margin: 0;
+}
+
+.fields dt {
+  color: var(--fs-muted);
+}
+
+.fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.changes {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.hashRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.hashRow .hash {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  /* .mono non va a capo: l'hash invece sì, ovunque */
+  white-space: normal;
+  word-break: break-all;
+}
+
+.copy {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin-top: -12px;
+}
+
+.repro {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.open {
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  text-decoration: none;
+}
+
+@media (max-width: 1199px) {
+  .withDetail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Telefono: ogni record è una scheda */
+@media (max-width: 767px) {
+  .filter {
+    flex: 1 1 140px;
+  }
+
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table,
+  .table tbody {
+    display: block;
+  }
+
+  .table tbody tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 2px 12px;
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--fs-border-soft);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table tbody td {
+    padding: 0 !important;
+    border: 0;
+  }
+
+  /* Riga 1: azione e piano; riga 2: quando; poi utente, motore, input */
+  .actionCell {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .planCell {
+    grid-row: 1;
+    grid-column: 2;
+    text-align: right;
+  }
+
+  .when,
+  .table td[data-label] {
+    grid-column: 1 / -1;
+    color: var(--fs-muted);
+    font-size: 13px;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label) ': ';
+  }
+}

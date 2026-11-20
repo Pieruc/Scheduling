@@ -1,10 +1,10 @@
 import type { PlanRequest } from '@/api/types/plans'
+import { DEFAULT_PERIOD, PERIOD_OPTIONS, type PeriodFilter } from '@/lib/period'
+
+export { DEFAULT_PERIOD, PERIOD_OPTIONS, type PeriodFilter }
 
 /** Filtro per stato: si applica alla richiesta, guardando i suoi piani */
 export type StatusFilter = 'all' | 'TO_REVIEW' | 'APPROVED' | 'REJECTED' | 'PENDING' | 'FAILED'
-
-/** Periodo in giorni, oppure tutto lo storico */
-export type PeriodFilter = '7' | '30' | '90' | 'all'
 
 export const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'all', label: 'Tutti gli stati' },
@@ -14,15 +14,6 @@ export const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'PENDING', label: 'In elaborazione' },
   { value: 'FAILED', label: 'Falliti' },
 ]
-
-export const PERIOD_OPTIONS: { value: PeriodFilter; label: string }[] = [
-  { value: '7', label: 'Ultimi 7 giorni' },
-  { value: '30', label: 'Ultimi 30 giorni' },
-  { value: '90', label: 'Ultimi 90 giorni' },
-  { value: 'all', label: 'Tutto lo storico' },
-]
-
-export const DEFAULT_PERIOD: PeriodFilter = '30'
 
 export type Filters = { q: string; status: StatusFilter; period: PeriodFilter }
 
