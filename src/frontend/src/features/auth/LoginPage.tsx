@@ -13,9 +13,10 @@ import { useAuth } from './authContext'
 import { can, homeOf } from './permissions'
 import styles from './auth.module.css'
 
+// Fase preliminare: i campi possono restare vuoti (il backend finto entra come pianificatore)
 const schema = z.object({
-  username: z.string().trim().min(1, 'Inserisci il nome utente.'),
-  password: z.string().min(1, 'Inserisci la password.'),
+  username: z.string().trim(),
+  password: z.string(),
 })
 type Values = z.infer<typeof schema>
 
@@ -129,9 +130,9 @@ export function LoginPage() {
 
         {MOCKS && (
           <p className={styles.demo}>
-            Utenti di prova: <strong>gneri</strong> (pianificatore), <strong>mrossi</strong>{' '}
-            (operatore), <strong>lbianchi</strong> (amministratore). Password per tutti:{' '}
-            <strong>demo</strong>.
+            Per fare prima premi «Accedi» a campi vuoti: entri come pianificatore. Altri utenti:{' '}
+            <strong>mrossi</strong> (operatore), <strong>lbianchi</strong> (amministratore), con la
+            password vuota o <strong>demo</strong>.
           </p>
         )}
       </main>

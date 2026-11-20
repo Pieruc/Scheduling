@@ -341,7 +341,8 @@ chi fa il backend.
     progetto è in fase preliminare. Menu e pagine dipendono dal ruolo
     (`src/frontend/src/features/auth/permissions.ts`); i controlli veri restano al
     backend (403). Con il backend finto: utenti `gneri` (PLANNER), `mrossi`
-    (OPERATOR), `lbianchi` (ADMIN), password `demo`.
+    (OPERATOR), `lbianchi` (ADMIN), password `demo` o vuota; con il nome vuoto
+    si entra come `gneri`.
 
 ## 9. Fasi di lavoro
 
