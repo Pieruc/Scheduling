@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getOrders, getProcessGraph, saveProcessGraph } from '@/api/orders'
+import {
+  cancelOrder,
+  createOrder,
+  getOrders,
+  getProcessGraph,
+  saveProcessGraph,
+  updateOrder,
+} from '@/api/orders'
 import { queryKeys } from '@/api/queryKeys'
-import type { ProcessGraph } from '@/api/types/orders'
+import type { OrderInput, ProcessGraph } from '@/api/types/orders'
 
 export function useOrders() {
   return useQuery({
@@ -27,5 +34,23 @@ export function useSaveProcessGraph(orderId: string) {
       queryClient.setQueryData(queryKeys.orders.graph(orderId), saved)
       return queryClient.invalidateQueries({ queryKey: queryKeys.orders.all, exact: true })
     },
+  })
+}
+
+/** Crea o modifica i dati di una commessa; poi ricarica l'elenco */
+export function useSaveOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ input, isNew }: { input: OrderInput; isNew: boolean }) =>
+      isNew ? createOrder(input) : updateOrder(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.orders.all, exact: true }),
+  })
+}
+
+export function useCancelOrder() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: cancelOrder,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.orders.all, exact: true }),
   })
 }

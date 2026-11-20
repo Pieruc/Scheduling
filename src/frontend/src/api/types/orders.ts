@@ -20,6 +20,9 @@ export type Order = {
   activityCount: number
 }
 
+/** Corpo di POST /orders e PUT /orders/{id}: stato e numero di attività li gestisce il backend */
+export type OrderInput = Omit<Order, 'status' | 'activityCount'>
+
 /** Un modo di eseguire un'attività: su quali risorse e in quanto tempo (contratti, A.3) */
 export type ActivityMode = {
   resourceIds: string[]

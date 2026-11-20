@@ -97,6 +97,46 @@
 }
 
 /* Dettaglio */
+.detailHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.detailActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.detailActions :global(.p-button),
+.addActivity,
+.editButton {
+  min-height: 44px;
+}
+
+.editButton {
+  width: 44px;
+}
+
+.sectionHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.empty {
+  margin: 0;
+  padding: 20px;
+  border: 1px dashed var(--fs-border-strong);
+  border-radius: var(--fs-radius);
+  color: var(--fs-muted);
+}
+
 .detailCard {
   gap: 18px;
 }

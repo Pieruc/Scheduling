@@ -1,3 +1,4 @@
+import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
 import { MultiSelect } from 'primereact/multiselect'
@@ -15,6 +16,8 @@ type ActivityTableProps = {
   onAdd: (from: string, to: string) => string | null
   onRemove: (from: string, to: string) => void
   onRejected: (reason: string) => void
+  /** Se presente, ogni riga ha il pulsante "Modifica" */
+  onEdit?: (activityId: string) => void
 }
 
 /** Riga già pronta da mostrare: tutto il testo è calcolato prima. */
@@ -41,7 +44,8 @@ function durationText(a: Activity) {
  * è l'alternativa da tastiera (e da telefono) al trascinamento.
  */
 export function ActivityTable(props: ActivityTableProps) {
-  const { activities, precedences, resourceName, skillName, onAdd, onRemove, onRejected } = props
+  const { activities, precedences, resourceName, skillName, onAdd, onRemove, onRejected, onEdit } =
+    props
 
   // Nuovo array a ogni cambio di dati: PrimeReact ridisegna le righe solo se cambia `value`.
   const rows: Row[] = useMemo(
@@ -120,6 +124,21 @@ export function ActivityTable(props: ActivityTableProps) {
           />
         )}
       />
+      {onEdit && (
+        <Column
+          header={<span className="visually-hidden">Azioni</span>}
+          body={(r: Row) => (
+            <Button
+              type="button"
+              icon="pi pi-pencil"
+              text
+              aria-label={`Modifica ${r.name}`}
+              onClick={() => onEdit(r.id)}
+              className={styles.editButton}
+            />
+          )}
+        />
+      )}
     </DataTable>
   )
 }

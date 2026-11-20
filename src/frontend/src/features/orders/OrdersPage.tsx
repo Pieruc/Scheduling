@@ -1,7 +1,10 @@
-import { Navigate, useParams } from 'react-router'
+import { Button } from 'primereact/button'
+import { useState } from 'react'
+import { Navigate, useNavigate, useParams } from 'react-router'
 import { Card } from '@/components/Card'
 import { PageHeader } from '@/components/PageHeader'
 import { OrderDetail } from './components/OrderDetail'
+import { OrderForm } from './components/OrderForm'
 import { OrderList } from './components/OrderList'
 import { useOrders } from './hooks'
 import styles from './components/orders.module.css'
@@ -9,6 +12,8 @@ import styles from './components/orders.module.css'
 /** Mockup v2, schermata 2: elenco a sinistra, commessa scelta a destra (/commesse/:orderId). */
 export function OrdersPage() {
   const { orderId } = useParams()
+  const navigate = useNavigate()
+  const [creating, setCreating] = useState(false)
   const { data: orders } = useOrders()
   const selected = orders?.find((o) => o.id === orderId)
 
@@ -23,7 +28,18 @@ export function OrdersPage() {
       <PageHeader
         title="Commesse"
         subtitle="I lavori da pianificare: scadenza, priorità e attività collegate da precedenze."
+        actions={
+          <Button label="Nuova commessa" icon="pi pi-plus" onClick={() => setCreating(true)} />
+        }
       />
+      {creating && (
+        <OrderForm
+          onClose={(saved) => {
+            setCreating(false)
+            if (saved) navigate(`/commesse/${saved.id}`)
+          }}
+        />
+      )}
       <div className={styles.layout}>
         <OrderList />
         {selected && <OrderDetail order={selected} />}

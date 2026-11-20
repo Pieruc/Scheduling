@@ -286,6 +286,11 @@ chi fa il backend.
 7. **Commesse**: in `Order` un campo `description` (es. "Telaio carrello") e
    `activityCount`, così l'elenco si mostra senza caricare ogni grafo. La priorità
    resta un intero: il frontend la mostra come 1 = Bassa, 2 = Media, 3 = Alta.
+   `POST /orders` e `PUT /orders/{id}` ricevono `OrderInput` (senza `status` e
+   `activityCount`): 422 con `path` per codice duplicato o scadenza prima del rilascio,
+   409 se la commessa non è più `OPEN`. `DELETE /orders/{id}` non cancella ma mette
+   `CANCELLED` (409 se è già in lavorazione). Le attività nuove hanno id scelti dal
+   frontend (`C105-A1`, ...) e si salvano con il grafo in `PUT /orders/{id}/process-graph`.
 8. **Gantt e decisioni** (contratti A.4 e A.5): forma esatta in `GanttView`,
    `DecisionRequest`, `DecisionResult` (`src/frontend/src/api/types/plans.ts`).
    - `GET /plans/{id}/gantt` → righe per risorsa (con le fasce non disponibili), barre con

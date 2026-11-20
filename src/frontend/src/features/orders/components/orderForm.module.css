@@ -1,0 +1,160 @@
+/* Finestre dei form di commessa e attività: larghe 560px, quasi a tutto schermo sul telefono */
+.dialog {
+  width: min(600px, calc(100vw - 32px));
+}
+
+.dialog :global(.p-dialog-content) {
+  padding-top: 4px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form :global(.p-inputtext),
+.form :global(.p-calendar),
+.form :global(.p-dropdown),
+.form :global(.p-multiselect),
+.form :global(.p-inputnumber) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.groupLabel {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.priority {
+  display: flex;
+}
+
+.priority :global(.p-button) {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.footer :global(.p-button) {
+  min-height: 44px;
+  margin: 0;
+}
+
+.danger {
+  margin-right: auto !important;
+}
+
+/* Modi di esecuzione di un'attività */
+.mode {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px 44px;
+  gap: 8px;
+  align-items: start;
+  padding: 10px;
+  border-radius: var(--fs-radius);
+  background: var(--fs-bg);
+}
+
+.remove {
+  width: 44px;
+  height: 44px;
+  margin-top: 25px;
+}
+
+.unknown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  grid-column: 1 / -1;
+  min-height: 44px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.unknown input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--fs-primary);
+}
+
+.fieldset {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.legend {
+  margin-bottom: 4px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.hint {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.add {
+  align-self: flex-start;
+  min-height: 44px;
+}
+
+.error {
+  color: var(--fs-danger);
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .twoCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mode {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .mode > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .mode > :nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .footer :global(.p-button) {
+    flex: 1 1 100%;
+  }
+
+  .danger {
+    margin-right: 0 !important;
+  }
+}
