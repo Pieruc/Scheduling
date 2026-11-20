@@ -18,7 +18,8 @@ export function useDecision(planId: string) {
     mutationFn: (body: DecisionRequest) => postDecision(planId, body),
     onSuccess: () =>
       Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.plans.gantt(planId) }),
+        // Tutti i Gantt: approvare può scartare altri piani (anche quello ripianificato)
+        queryClient.invalidateQueries({ queryKey: queryKeys.plans.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.planRequests.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.audit.all }),
       ]),

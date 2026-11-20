@@ -68,6 +68,23 @@ export type Baseline = {
   kpis: PlanKpis
 }
 
+/**
+ * Evento che fa ripianificare (contratti A.4: RESOURCE_DOWN | URGENT_ORDER | DELAY).
+ * PROPOSTA §8: campi diversi per tipo; `to: null` = fino a nuovo avviso.
+ */
+export type RescheduleEvent =
+  | { type: 'RESOURCE_DOWN'; resourceId: string; from: IsoDateTime; to: IsoDateTime | null }
+  | { type: 'URGENT_ORDER'; orderId: string; dueDate: IsoDateTime | null }
+  | { type: 'DELAY'; orderId: string; delayMin: number }
+
+/** POST /plans/{id}/reschedule (contratti A.4) */
+export type RescheduleRequest = {
+  event: RescheduleEvent
+  /** Le attività iniziate prima di questo istante restano dove sono */
+  freezeBefore: IsoDateTime
+  note?: string
+}
+
 /** PROPOSTA §8: una richiesta di pianificazione con i suoi (fino a) tre piani */
 export type PlanRequest = {
   id: string
@@ -90,6 +107,9 @@ export type PlanRequest = {
   elapsedSeconds?: number
   /** Motivo, se status = FAILED */
   error?: string
+  /** PROPOSTA §8: se è una ripianificazione, il piano di partenza e l'evento */
+  rescheduleOf?: string
+  event?: RescheduleEvent
 }
 
 /** PROPOSTA §8: domanda su un dato mancante, a cui il pianificatore deve rispondere */

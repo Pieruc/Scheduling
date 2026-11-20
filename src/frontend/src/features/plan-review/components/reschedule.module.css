@@ -1,0 +1,130 @@
+.crumb {
+  margin-bottom: -12px;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.text {
+  margin: 0;
+}
+
+/* Form a sinistra, effetto e pulsante a destra; sotto i 1000px uno sotto l'altro */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 16px;
+  align-items: start;
+}
+
+.layout :global(.p-dropdown),
+.layout :global(.p-calendar),
+.layout :global(.p-inputnumber),
+.layout :global(.p-inputtextarea) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.side {
+  position: sticky;
+  top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.submit {
+  justify-content: center;
+  min-height: 48px;
+}
+
+.twoCols {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+/* Tipo di evento: tre riquadri da toccare */
+.types {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.type {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 60px;
+  padding: 10px 12px;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: var(--fs-radius);
+  cursor: pointer;
+}
+
+.type input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.type > span {
+  display: flex;
+  flex-direction: column;
+}
+
+.typeLabel {
+  font-weight: 600;
+}
+
+.typeHint {
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.type:hover {
+  background: var(--fs-bg);
+}
+
+.type:has(input:checked) {
+  border: 2px solid var(--fs-primary);
+  padding: 9px 11px;
+  background: var(--fs-primary-soft);
+}
+
+.type:has(input:focus-visible) {
+  outline: 3px solid var(--fs-primary);
+  outline-offset: 2px;
+}
+
+.touched {
+  margin: 0;
+  padding-left: 18px;
+}
+
+@media (max-width: 999px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side {
+    position: static;
+  }
+}
+
+@media (max-width: 600px) {
+  .types,
+  .twoCols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

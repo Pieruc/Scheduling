@@ -149,3 +149,9 @@
     flex: 1 1 100%;
   }
 }
+
+.rescheduleLink {
+  gap: 8px;
+  min-height: 44px;
+  text-decoration: none;
+}

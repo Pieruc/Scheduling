@@ -107,6 +107,15 @@ export function CandidatesPage() {
         }
       />
 
+      {request.rescheduleOf && (
+        <p className={styles.rescheduleNote}>
+          <i className="pi pi-refresh" aria-hidden="true" /> Ripianificazione di{' '}
+          <Link to={`/piani/${request.rescheduleOf}`}>{request.rescheduleOf}</Link> dopo:{' '}
+          {request.label.replace(/^Ripianificazione: /, '')}. Approvando uno di questi piani, prende
+          il posto di quello in esecuzione.
+        </p>
+      )}
+
       {request.status !== 'COMPLETED' && (
         <PipelineSteps steps={steps(request)} label="Fasi della pianificazione" />
       )}

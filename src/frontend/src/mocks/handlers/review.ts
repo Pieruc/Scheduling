@@ -62,6 +62,9 @@ export const reviewHandlers = [
       found.request.plans
         .filter((p) => p.id !== id && p.status === 'PROPOSED')
         .forEach((p) => (p.status = 'SUPERSEDED'))
+      // Una ripianificazione approvata prende il posto del piano in esecuzione
+      const origin = found.request.rescheduleOf && findPlan(found.request.rescheduleOf)
+      if (origin) origin.plan.status = 'SUPERSEDED'
       audit({ decision: 'APPROVE' })
       return HttpResponse.json({ planId: id, status: 'APPROVED' }, { status: 201 })
     }

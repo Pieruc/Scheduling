@@ -10,6 +10,7 @@ export const alerts: Alert[] = [
     detail: 'Saldatrice S2 non si accende',
     createdAt: daysAgo(0, 10, 42),
     link: { label: 'Ripianifica', planId: 'PLAN-0037' },
+    event: { type: 'RESOURCE_DOWN', resourceId: 'R-SAL-02', from: daysAgo(0, 10, 42), to: null },
   },
   {
     id: 'AL-30',

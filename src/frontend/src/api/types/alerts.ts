@@ -1,4 +1,5 @@
 import type { IsoDateTime } from '@/api/types/common'
+import type { RescheduleEvent } from '@/api/types/plans'
 
 /** PROPOSTA §8: tipo di avviso mostrato nella dashboard */
 export type AlertType =
@@ -15,4 +16,6 @@ export type Alert = {
   createdAt: IsoDateTime
   /** Dove porta il link dell'avviso */
   link?: { label: string; planRequestId?: string; planId?: string }
+  /** PROPOSTA §8: per gli INCIDENT, l'evento con cui precompilare la ripianificazione */
+  event?: RescheduleEvent
 }

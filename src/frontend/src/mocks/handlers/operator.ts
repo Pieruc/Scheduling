@@ -96,6 +96,7 @@ export const operatorHandlers = [
       return problem(422, 'Unprocessable Entity', 'Descrivi il problema.')
     }
     const resource = operatorDay.resources.find((r) => r.id === body.resourceId)
+    const activity = operatorDay.activities.find((a) => a.activityId === body.activityId)
     const id = `AL-${nextIncident++}`
     alerts.unshift({
       id,
@@ -104,6 +105,13 @@ export const operatorHandlers = [
       detail: [resource?.name, body.note?.trim()].filter(Boolean).join(' · ') || 'Nessun dettaglio',
       createdAt: toIsoWithOffset(new Date(body.timestamp)),
       link: body.planId ? { label: 'Ripianifica', planId: body.planId } : undefined,
+      // Guasto e ritardo diventano l'evento con cui precompilare la ripianificazione
+      event:
+        body.kind === 'BREAKDOWN' && body.resourceId
+          ? { type: 'RESOURCE_DOWN', resourceId: body.resourceId, from: body.timestamp, to: null }
+          : body.kind === 'DELAY' && activity
+            ? { type: 'DELAY', orderId: activity.orderId, delayMin: 60 }
+            : undefined,
     })
     return HttpResponse.json({ id }, { status: 201 })
   }),

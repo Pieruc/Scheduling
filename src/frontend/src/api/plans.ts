@@ -7,6 +7,7 @@ import type {
   Interpretation,
   InterpretRequest,
   PlanRequest,
+  RescheduleRequest,
 } from '@/api/types/plans'
 
 /** PROPOSTA §8: GET /plan-requests, dalla più recente */
@@ -44,4 +45,16 @@ export function postDecision(planId: string, body: DecisionRequest) {
     method: 'POST',
     body,
   })
+}
+
+/**
+ * POST /plans/{id}/reschedule (contratti A.4): ripianifica un piano approvato dopo un evento.
+ * PROPOSTA §8: come una nuova richiesta, risponde 202 { id, status: 'PENDING' } con l'id della
+ * richiesta, che produce 3 piani e il confronto con ATC ed EDD. 409 se il piano non è approvato.
+ */
+export function reschedulePlan(planId: string, body: RescheduleRequest) {
+  return apiFetch<Pick<PlanRequest, 'id' | 'status'>>(
+    `/plans/${encodeURIComponent(planId)}/reschedule`,
+    { method: 'POST', body },
+  )
 }

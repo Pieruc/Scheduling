@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import type { Alert, AlertType } from '@/api/types/alerts'
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
+import { rescheduleHref } from '@/features/plan-review/rescheduleLink'
 import { formatDateTime } from '@/lib/format'
 import { useAlerts } from '../hooks'
 import styles from './dashboard.module.css'
@@ -13,8 +14,12 @@ const TONE: Record<AlertType, string> = {
   MAINTENANCE: styles.alertAmber,
 }
 
-function alertHref(link: NonNullable<Alert['link']>) {
+/** Dove porta l'avviso. Un guasto o un ritardo sul piano in esecuzione apre la ripianificazione */
+function alertHref(alert: Alert) {
+  const link = alert.link
+  if (!link) return null
   if (link.planRequestId) return `/piani/richieste/${link.planRequestId}`
+  if (link.planId && alert.type === 'INCIDENT') return rescheduleHref(link.planId, alert.event)
   if (link.planId) return `/piani/${link.planId}`
   return null
 }
@@ -28,7 +33,7 @@ export function AlertsCard() {
       {isError && <ErrorState error={error} onRetry={() => refetch()} />}
       {data?.length === 0 && <p className={styles.empty}>Nessun avviso aperto.</p>}
       {data?.map((alert) => {
-        const href = alert.link && alertHref(alert.link)
+        const href = alertHref(alert)
         return (
           <div key={alert.id} className={`${styles.alert} ${TONE[alert.type]}`}>
             <span className={styles.dot} aria-hidden="true" />

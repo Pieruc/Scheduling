@@ -13,6 +13,8 @@ import { ErrorState } from '@/components/ErrorState'
 import { FormField } from '@/components/FormField'
 import { KpiCard } from '@/components/KpiCard'
 import { PageHeader } from '@/components/PageHeader'
+import { useCan } from '@/features/auth/authContext'
+import { rescheduleHref } from './rescheduleLink'
 import { StatusTag } from '@/components/StatusTag'
 import { formatEuro, formatHours, formatPercent, formatWorkDuration } from '@/lib/format'
 import { solverLabel, VARIANT_INFO, VARIANT_LABEL, type Tone } from '@/lib/labels'
@@ -51,6 +53,7 @@ export function PlanGanttPage() {
 }
 
 function Review({ view }: { view: GanttView }) {
+  const canPlan = useCan('plan')
   const navigate = useNavigate()
   const toast = useToast()
   const decision = useDecision(view.planId)
@@ -194,7 +197,24 @@ function Review({ view }: { view: GanttView }) {
         <Link to={`/piani/richieste/${view.requestId}`}>Richiesta {view.requestId}</Link> ›{' '}
         {view.planId}
       </nav>
-      <PageHeader title={title} actions={<StatusTag label={status.label} tone={status.tone} />} />
+      <PageHeader
+        title={title}
+        actions={
+          <>
+            <StatusTag label={status.label} tone={status.tone} />
+            {/* Il piano in esecuzione si ripianifica dopo un imprevisto */}
+            {view.status === 'APPROVED' && canPlan && (
+              <Link
+                to={rescheduleHref(view.planId)}
+                className={`p-button p-button-outlined ${styles.rescheduleLink}`}
+              >
+                <i className="pi pi-refresh" aria-hidden="true" />
+                Ripianifica
+              </Link>
+            )}
+          </>
+        }
+      />
       <div className={styles.tags}>
         <StatusTag
           label={`Generato da ${solverLabel(view.solver, view.modelVersion)}${view.confidence ? ` · confidenza ${formatPercent(view.confidence)}` : ''}`}

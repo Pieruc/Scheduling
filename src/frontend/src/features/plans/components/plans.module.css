@@ -4,6 +4,17 @@
   font-size: 13px;
 }
 
+.rescheduleNote {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: -8px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+}
+
 .muted {
   margin: 0;
   color: var(--fs-muted);

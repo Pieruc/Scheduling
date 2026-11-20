@@ -145,6 +145,7 @@ URL o un campo, si tocca solo `api/`.
 | `/pianifica` | Nuova pianificazione | 3 | `POST /plan-requests/interpret`\*, `POST /plan-requests`\* |
 | `/piani` | Elenco piani | 7 | `GET /plan-requests`\* |
 | `/piani/richieste/:id` | Confronto dei 3 piani | 4 | `GET /plan-requests/{id}`\* |
+| `/piani/:planId/ripianifica` | Ripianifica dopo un imprevisto | – | `POST /plans/{id}/reschedule` |
 | `/piani/:planId` | Gantt e revisione | 5 | `GET /plans/{id}/gantt`, `POST /plans/{id}/decisions`, `POST /plans/{id}/reschedule` |
 | `/operatore` | Attività di oggi | 6 | `GET /operator/today`\*, `POST /executions`, `POST /incidents`\* |
 | `/configurazione/:tab` | Configurazione | 8 | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
@@ -343,6 +344,15 @@ chi fa il backend.
     backend (403). Con il backend finto: account `pianificatore` (PLANNER),
     `operatore` (OPERATOR), `amministratore` (ADMIN), password vuota o `demo`; con il
     nome vuoto si entra come `pianificatore`.
+13. **Ripianificazione** (contratti A.4, forma in `src/frontend/src/api/types/plans.ts`):
+    `POST /plans/{id}/reschedule` con `{ event, freezeBefore, note? }`. L'evento ha campi
+    per tipo: `RESOURCE_DOWN` `{ resourceId, from, to | null }`, `URGENT_ORDER`
+    `{ orderId, dueDate | null }`, `DELAY` `{ orderId, delayMin }`. Proposta: risponde
+    202 con l'id di una **richiesta** (non di un piano), che come le altre produce 3 piani
+    e il confronto con ATC ed EDD; la richiesta porta `rescheduleOf` ed `event`. 409 se il
+    piano non è `APPROVED`. Approvando uno dei nuovi piani, quello di partenza passa a
+    `SUPERSEDED`; gli avvisi `INCIDENT` su quel piano si chiudono. Gli avvisi di guasto
+    portano `event`, così la pagina "Ripianifica" arriva già compilata.
 
 ## 9. Fasi di lavoro
 

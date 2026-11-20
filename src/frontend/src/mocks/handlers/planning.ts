@@ -6,12 +6,17 @@ import type {
   MissingDataQuestion,
   PlanRequest,
   PlanRequestStage,
+  RescheduleEvent,
+  RescheduleRequest,
 } from '@/api/types/plans'
 import { formatRange, formatShortDate } from '@/lib/format'
 import { resources } from '@/mocks/data/config'
 import { orders } from '@/mocks/data/orders'
+import { alerts } from '@/mocks/data/alerts'
+import { addAudit, inputHashOf } from '@/mocks/data/audit'
+import { findPlan } from '@/mocks/data/gantt'
 import { planRequests } from '@/mocks/data/planRequests'
-import { daysAgo } from '@/mocks/data/time'
+import { daysAgo, toIsoWithOffset } from '@/mocks/data/time'
 import { api, latency, problem, simulatedFailure } from './utils'
 
 /** 422 con gli errori legati ai campi, come il backend vero */
@@ -118,7 +123,77 @@ function advance(request: PlanRequest) {
   request.baselines = template.baselines
 }
 
+/** L'evento in parole, per l'elenco piani e l'audit: "Guasto Saldatrice S2" */
+function eventText(e: RescheduleEvent) {
+  if (e.type === 'RESOURCE_DOWN') {
+    return `Guasto ${resources.find((r) => r.id === e.resourceId)?.name ?? e.resourceId}`
+  }
+  if (e.type === 'URGENT_ORDER') return `Commessa urgente ${e.orderId}`
+  return `Ritardo su ${e.orderId}`
+}
+
 export const planningHandlers = [
+  // POST /plans/{id}/reschedule: una nuova richiesta con 3 piani che parte dal piano approvato
+  http.post(api('/plans/:id/reschedule'), async ({ params, request }) => {
+    await latency()
+    const failure = simulatedFailure()
+    if (failure) return failure
+    const found = findPlan(params.id as string)
+    if (!found) return problem(404, 'Not Found', `Piano ${params.id} inesistente.`)
+    if (found.plan.status !== 'APPROVED') {
+      return problem(409, 'Conflict', 'Si ripianifica solo il piano approvato, in esecuzione.')
+    }
+    const body = (await request.json()) as RescheduleRequest
+    const e = body.event
+    if (e.type === 'RESOURCE_DOWN' && e.to && Date.parse(e.to) <= Date.parse(e.from)) {
+      return invalid('La fine del fermo deve venire dopo l’inizio.', [
+        { code: 'INVALID_RANGE', path: 'event.to', message: 'La fine deve venire dopo l’inizio.' },
+      ])
+    }
+    const label = eventText(e)
+    const id = `REQ-${String(planRequests.length + 8).padStart(4, '0')}`
+    const now = new Date()
+    // Si riparte da adesso fino alla fine del periodo (almeno 5 giorni)
+    const end = Math.max(Date.parse(found.request.horizonEnd), now.getTime() + 5 * 86_400_000)
+    planRequests.unshift({
+      id,
+      status: 'PENDING',
+      stage: 'VALIDATION',
+      createdAt: now.toISOString(),
+      createdBy: 'gneri',
+      label: `Ripianificazione: ${label}`,
+      orderIds: found.request.orderIds,
+      horizonStart: body.freezeBefore,
+      horizonEnd: toIsoWithOffset(new Date(end)),
+      weights: found.request.weights,
+      plans: [],
+      rescheduleOf: found.plan.id,
+      event: e,
+    })
+    startedAt.set(id, Date.now())
+    addAudit({
+      timestamp: toIsoWithOffset(now),
+      planId: found.plan.id,
+      user: 'gneri',
+      action: 'RESCHEDULE',
+      modelVersion: null,
+      solver: null,
+      inputHash: inputHashOf(id),
+      outputHash: null,
+      details: { trigger: label, reason: body.note },
+    })
+    // Gli avvisi di guasto su questo piano sono stati gestiti
+    for (let i = alerts.length - 1; i >= 0; i--) {
+      if (alerts[i].type === 'INCIDENT' && alerts[i].link?.planId === found.plan.id) {
+        alerts.splice(i, 1)
+      }
+    }
+    return HttpResponse.json(
+      { id, status: 'PENDING' },
+      { status: 202, headers: { Location: api(`/plan-requests/${id}`) } },
+    )
+  }),
+
   http.post(api('/plan-requests/interpret'), async ({ request }) => {
     await latency()
     const failure = simulatedFailure()

@@ -11,6 +11,7 @@ import { OperatorTodayPage } from '@/features/execution/OperatorTodayPage'
 import { ModelInfoPage } from '@/features/model-info/ModelInfoPage'
 import { OrdersPage } from '@/features/orders/OrdersPage'
 import { PlanGanttPage } from '@/features/plan-review/PlanGanttPage'
+import { ReschedulePage } from '@/features/plan-review/ReschedulePage'
 import { NewPlanPage } from '@/features/planning/NewPlanPage'
 import { CandidatesPage } from '@/features/plans/CandidatesPage'
 import { PlansListPage } from '@/features/plans/PlansListPage'
@@ -41,6 +42,14 @@ export const router = createBrowserRouter([
       { path: 'piani', element: <PlansListPage /> },
       { path: 'piani/richieste/:requestId', element: <CandidatesPage /> },
       { path: 'piani/:planId', element: <PlanGanttPage /> },
+      {
+        path: 'piani/:planId/ripianifica',
+        element: (
+          <RequireAuth permission="plan">
+            <ReschedulePage />
+          </RequireAuth>
+        ),
+      },
       { path: 'configurazione', element: <Navigate to="/configurazione/risorse" replace /> },
       { path: 'configurazione/:tab', element: <ConfigurationPage /> },
       { path: 'modello', element: <ModelInfoPage /> },
