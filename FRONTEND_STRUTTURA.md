@@ -340,9 +340,9 @@ chi fa il backend.
     sessionStorage; niente rinnovo (`/auth/refresh`) e niente `/auth/me` finché il
     progetto è in fase preliminare. Menu e pagine dipendono dal ruolo
     (`src/frontend/src/features/auth/permissions.ts`); i controlli veri restano al
-    backend (403). Con il backend finto: utenti `gneri` (PLANNER), `mrossi`
-    (OPERATOR), `lbianchi` (ADMIN), password `demo` o vuota; con il nome vuoto
-    si entra come `gneri`.
+    backend (403). Con il backend finto: account `pianificatore` (PLANNER),
+    `operatore` (OPERATOR), `amministratore` (ADMIN), password vuota o `demo`; con il
+    nome vuoto si entra come `pianificatore`.
 
 ## 9. Fasi di lavoro
 

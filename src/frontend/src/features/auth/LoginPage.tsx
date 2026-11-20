@@ -130,9 +130,9 @@ export function LoginPage() {
 
         {MOCKS && (
           <p className={styles.demo}>
-            Per fare prima premi «Accedi» a campi vuoti: entri come pianificatore. Altri utenti:{' '}
-            <strong>mrossi</strong> (operatore), <strong>lbianchi</strong> (amministratore), con la
-            password vuota o <strong>demo</strong>.
+            Account di prova: <strong>pianificatore</strong>, <strong>operatore</strong>,{' '}
+            <strong>amministratore</strong>. La password si può lasciare vuota (oppure{' '}
+            <strong>demo</strong>); a campi vuoti entri come pianificatore.
           </p>
         )}
       </main>

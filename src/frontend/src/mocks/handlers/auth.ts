@@ -4,7 +4,7 @@ import { api, latency, problem } from './utils'
 
 /**
  * Login di prova: utente esistente e password "demo" oppure vuota.
- * Nome utente vuoto = gneri (pianificatore). Il token non viene controllato.
+ * Nome utente vuoto = pianificatore. Il token non viene controllato.
  */
 export const authHandlers = [
   http.post(api('/auth/login'), async ({ request }) => {
@@ -13,7 +13,7 @@ export const authHandlers = [
       username: string
       password: string
     }
-    const name = username.trim().toLowerCase() || 'gneri'
+    const name = username.trim().toLowerCase() || 'pianificatore'
     const user = mockUsers.find((u) => u.username === name)
     if (!user || (password !== '' && password !== MOCK_PASSWORD)) {
       return problem(401, 'Unauthorized', 'Nome utente o password errati.')
