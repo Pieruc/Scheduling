@@ -74,11 +74,41 @@ Base URL: `/api/v1`. Tutte le chiamate (tranne login) richiedono
 | POST | `/auth/login` | pubblico | Credenziali -> access + refresh token |
 | POST | `/auth/refresh` | pubblico | Rinnovo access token |
 | GET | `/auth/me` | tutti | Utente corrente e ruoli |
+| POST | `/auth/register` | pubblico | Registrazione: account **in attesa** di approvazione, nessun token *(aggiunto 20/11/2026)* |
 
 ```json
 // POST /auth/login  -> 200
 { "accessToken": "eyJ...", "refreshToken": "eyJ...", "expiresIn": 900,
   "user": { "id": "U-1", "username": "mrossi", "roles": ["PLANNER"] } }
+```
+
+```json
+// POST /auth/register  -> 201        (un campo "role" nel corpo è ignorato)
+{ "username": "lbianchi", "email": "l.bianchi@example.com", "fullName": "Luca Bianchi", "password": "almeno-8-caratteri" }
+// risposta
+{ "id": "U-7", "username": "lbianchi", "status": "PENDING",
+  "message": "Registration received: an administrator must approve the account before you can log in" }
+
+// POST /auth/login di un account in attesa o disattivato (password corretta) -> 403
+{ "status": 403, "errors": [ { "code": "ACCOUNT_PENDING", ... } ] }        // oppure ACCOUNT_DISABLED
+```
+
+#### Gestione utenti (solo ADMIN) *(aggiunta 20/11/2026)*
+
+| Metodo | Path | Ruoli | Descrizione |
+|--------|------|-------|-------------|
+| GET | `/users?status=` | ADMIN | Elenco utenti; `status` = `PENDING` \| `ACTIVE` \| `DISABLED` |
+| POST | `/users/{id}/approve` | ADMIN | Approva una registrazione scegliendo il ruolo; 409 se non è in attesa |
+| PATCH | `/users/{id}` | ADMIN | Cambia ruolo e/o `active`; 409 `SELF_LOCKOUT` se l'ADMIN tocca sé stesso |
+| DELETE | `/users/{id}` | ADMIN | Rifiuta (cancella) una registrazione in attesa; 409 per gli utenti approvati |
+
+```json
+// User (role è null finché l'account è in attesa)
+{ "id": "U-7", "username": "lbianchi", "email": "l.bianchi@example.com", "fullName": "Luca Bianchi",
+  "role": "PLANNER", "status": "ACTIVE", "createdAt": "2026-11-20T08:56:00Z", "approvedAt": "2026-11-20T09:10:00Z" }
+
+// POST /users/U-7/approve
+{ "role": "PLANNER" }
 ```
 
 ### A.2 Configuration (risorse, calendari, competenze, profili)

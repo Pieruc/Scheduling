@@ -93,11 +93,12 @@ Primo blocco implementato: fondamenta (errori, sicurezza), login JWT e modulo Co
 ## Avvio in locale
 
 ```bash
-docker compose up -d                                   # MySQL 8.4 su localhost:3306 (utente flowsync / flowsync)
-SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run         # migrazioni Flyway + dati demo
+mvn spring-boot:run -Pdev      # avvia anche il MySQL di compose.yaml, applica Flyway e carica i dati demo
 ```
 
-Con il profilo `dev` si ha un segreto JWT di comodo e la password del DB `flowsync`; fuori da `dev` servono le variabili `DB_PASSWORD` e `JWT_SECRET` (almeno 32 caratteri). Utenti demo: `admin` (ADMIN), `gneri` (PLANNER), `mrossi` (OPERATOR), tutti con password `flowsync-dev`.
+Con il profilo `dev` Spring Boot esegue da solo `docker compose up` su `compose.yaml`, aspetta che MySQL sia *healthy* e si collega al container (URL, utente e password li legge dal container, non dal datasource). Serve Docker Desktop acceso. Quando fermi l'app il container resta acceso (`lifecycle-management: start-only`); per spegnerlo `docker compose down`, per ripartire da un DB vuoto `docker compose down -v`. Il seed dei dati demo è la migrazione `V100`: per questo il profilo `dev` ha `spring.flyway.out-of-order: true`, altrimenti ogni nuova migrazione (V7, V8, …) verrebbe rifiutata su un DB di sviluppo che ha già il seed. Le migrazioni nuove si numerano comunque in sequenza (V8, V9, …), mai sopra 100. Dall'IDE: run configuration con profilo attivo `dev` e working directory `src/backend`. Senza `dev` il supporto Docker è spento, e nei test resta spento comunque (usano Testcontainers, un MySQL separato e usa e getta).
+
+Password del DB e segreto JWT stanno in `src/backend/.env` (escluso da git; il modello è `.env.example`: `cp .env.example .env`). Lo leggono sia Spring Boot (`spring.config.import` in `application.yml`) sia `docker compose`; una variabile d'ambiente con lo stesso nome vince sul file. Nel `.env` niente virgolette: Spring lo legge come file `.properties`, quindi le virgolette diventerebbero parte del valore. Il file si cerca nella cartella da cui parte l'app: avviare da `src/backend` (anche nella run configuration dell'IDE). Senza `.env`, il profilo `dev` ha comunque valori di comodo; fuori da `dev` servono `DB_PASSWORD` e `JWT_SECRET` (almeno 32 caratteri). Utenti demo: `admin` (ADMIN), `gneri` (PLANNER), `mrossi` (OPERATOR), tutti con password `flowsync-dev`.
 
 - Swagger UI: <http://localhost:8080/swagger-ui.html> (bottone *Authorize*: incollare l'`accessToken` del login)
 - Salute: <http://localhost:8080/actuator/health>
@@ -120,6 +121,7 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 |---|---|
 | `SchemaAndMigrationsTest` | Il contesto parte: Flyway applica V1–V6 + seed e Hibernate (`ddl-auto: validate`) trova le entità coerenti con lo schema. **È il primo test da guardare.** |
 | `AuthApiTest` | Login, refresh, `/auth/me`, token manomesso o del tipo sbagliato, formato problem+json |
+| `RegistrationApiTest` | Registrazione, account in attesa, approvazione con ruolo, rifiuto, disattivazione, protezione dall'auto-blocco dell'ADMIN |
 | `ResourceApiTest` | Permessi per ruolo, CRUD, disattivazione, 404/409/422, competenze, riepilogo dei turni |
 | `ShiftSummarizerTest` | Logica pura del riepilogo turni (senza Docker) |
 
@@ -129,12 +131,17 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 |---|---|---|---|
 | POST | `/api/v1/auth/login` | pubblico | access (15 min) + refresh (7 giorni) |
 | POST | `/api/v1/auth/refresh` | pubblico | accetta solo refresh token |
+| POST | `/api/v1/auth/register` | pubblico | 201, account **in attesa** (nessun token); il ruolo lo sceglie l'ADMIN |
 | GET | `/api/v1/auth/me` | tutti | |
 | GET | `/api/v1/resources[?active=]` | tutti | |
 | GET | `/api/v1/resources/{id}` | tutti | `id` = codice (es. `LASER`) |
 | POST / PUT | `/api/v1/resources[/{id}]` | ADMIN | 409 codice doppio, 422 competenza o calendario inesistenti |
 | DELETE | `/api/v1/resources/{id}` | ADMIN | disattiva (204), idempotente |
 | GET | `/api/v1/skills`, `/api/v1/calendars` | tutti | alimentano le tendine del frontend |
+| GET | `/api/v1/users[?status=PENDING\|ACTIVE\|DISABLED]` | ADMIN | `?status=PENDING` = registrazioni da approvare |
+| POST | `/api/v1/users/{id}/approve` | ADMIN | corpo `{"role": "PLANNER"}`; 409 se non è in attesa |
+| PATCH | `/api/v1/users/{id}` | ADMIN | `{"role": ..., "active": ...}`; un ADMIN non può disattivare sé stesso né togliersi il ruolo |
+| DELETE | `/api/v1/users/{id}` | ADMIN | rifiuta (cancella) una registrazione in attesa; gli utenti approvati si disattivano |
 
 ## Scelte
 
@@ -143,6 +150,7 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 - **JWT HS256 con il resource server di Spring Security**, nessuna libreria in più. Access e refresh hanno un claim `token_use`: un refresh token non apre le API e un access token non rinnova. Il refresh rilegge l'utente dal DB, quindi un account disattivato o un ruolo cambiato valgono subito al rinnovo.
 - **Limite noto:** i refresh token non si possono revocare prima della scadenza (niente tabella dei token). Per un prototipo è accettabile; se serve il logout "vero" si aggiunge una tabella con i `jti` revocati.
 - **Nessun limite ai tentativi di login** per ora (da aggiungere prima di un uso reale).
+- **Registrazione con approvazione.** `POST /auth/register` crea un account disattivato (stato `PENDING`, migrazione V7: colonne `approved_at` e `approved_by`). Il login di un account in attesa o disattivato risponde 403 con codice `ACCOUNT_PENDING` / `ACCOUNT_DISABLED`, ma solo se la password è giusta: con la password sbagliata il messaggio resta il generico 401, così non si scopre lo stato degli account altrui. Un campo `role` inviato alla registrazione è ignorato. Limiti: la registrazione rivela se uno username o un'email sono già usati (409), e non c'è un limite alle richieste: un bot può riempire la lista delle attese (gli account restano inutilizzabili finché nessuno li approva).
 - **Le competenze di una risorsa** si inviano come elenco di codici; le nuove partono dal livello 1, quelle già presenti conservano il loro livello.
 
 ## Difformità da chiarire con il frontend

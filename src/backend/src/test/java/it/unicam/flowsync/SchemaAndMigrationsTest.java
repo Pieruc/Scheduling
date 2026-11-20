@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * Il primo test da guardare: se il contesto parte, le migrazioni Flyway (V1–V6 + seed V100) sono state applicate
+ * Il primo test da guardare: se il contesto parte, le migrazioni Flyway (V1–V7 + seed V100) sono state applicate
  * e Hibernate (ddl-auto: validate) ha trovato tutte le entità coerenti con lo schema.
  */
 class SchemaAndMigrationsTest extends AbstractApiTest {
@@ -18,12 +18,12 @@ class SchemaAndMigrationsTest extends AbstractApiTest {
     @Test
     void migrationsAreApplied() {
         Integer applied = jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1", Integer.class);
-        assertThat(applied).isGreaterThanOrEqualTo(7);
+        assertThat(applied).isGreaterThanOrEqualTo(8);   // V1–V7 + seed V100
     }
 
     @Test
     void demoUsersHaveBcryptHashes() {
-        Integer users = jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE password_hash LIKE '$2%'", Integer.class);
+        Integer users = jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE username IN ('admin', 'gneri', 'mrossi') AND password_hash LIKE '$2%'", Integer.class);
         assertThat(users).isEqualTo(3);
     }
 }

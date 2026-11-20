@@ -18,3 +18,7 @@ src/ai/data/
 
 #backend (Maven)
 src/backend/target/
+
+#backend: segreti locali fuori da git, il modello sì
+src/backend/.env
+!src/backend/.env.example

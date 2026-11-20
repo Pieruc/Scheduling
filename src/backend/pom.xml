@@ -70,6 +70,13 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+        <!-- Solo sviluppo: con il profilo dev l'app avvia da sola il MySQL di compose.yaml.
+             Il plugin di Spring Boot la esclude dal jar finale, e nei test resta spenta (si usa Testcontainers). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-docker-compose</artifactId>
+            <optional>true</optional>
+        </dependency>
 
         <!-- Test: MySQL 8 vero in Docker (Testcontainers), avviato con @ServiceConnection -->
         <dependency>
@@ -128,4 +135,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- mvn spring-boot:run -Pdev  =  avvio con il profilo Spring "dev" (DB in Docker + dati demo) -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <spring-boot.run.profiles>dev</spring-boot.run.profiles>
+            </properties>
+        </profile>
+    </profiles>
 </project>

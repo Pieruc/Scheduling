@@ -26,6 +26,11 @@ public class ApiException extends RuntimeException {
         return new ApiException(HttpStatus.UNAUTHORIZED, "unauthorized", detail, null);
     }
 
+    /** 403: l'utente è identificato ma non può procedere (es. account in attesa di approvazione). */
+    public static ApiException forbidden(String code, String detail) {
+        return new ApiException(HttpStatus.FORBIDDEN, "forbidden", detail, List.of(new ApiError(code, null, detail)));
+    }
+
     /** 404: la risorsa richiesta non esiste. */
     public static ApiException notFound(String detail) {
         return new ApiException(HttpStatus.NOT_FOUND, "not-found", detail, null);

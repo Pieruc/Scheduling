@@ -2,8 +2,11 @@
 spring:
   application:
     name: flowsync-backend
+  config:
+    # legge KEY=VALUE da .env nella cartella da cui si avvia l'app (src/backend); le variabili d'ambiente vincono
+    import: optional:file:.env[.properties]
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:3306/${DB_NAME:flowsync}?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:flowsync}?useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC
     username: ${DB_USER:flowsync}
     password: ${DB_PASSWORD}
   jpa:
@@ -17,6 +20,9 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
+  docker:
+    compose:
+      enabled: false            # acceso solo nel profilo dev (sotto)
 
 server:
   port: 8080
@@ -57,6 +63,15 @@ spring:
     password: ${DB_PASSWORD:flowsync}
   flyway:
     locations: classpath:db/migration,classpath:db/seed
+    # Il seed è V100: su un DB di sviluppo che l'ha già applicato, una nuova migrazione (V7, V8, ...) ha un numero
+    # più basso e Flyway la rifiuterebbe ("resolved migration not applied"). In dev la si applica dopo, fuori ordine.
+    # Solo dev: in produzione il seed non c'è e l'ordine resta stretto.
+    out-of-order: true
+  docker:
+    compose:
+      enabled: true
+      file: compose.yaml        # relativo alla cartella da cui parte l'app (src/backend)
+      lifecycle-management: start-only   # il DB resta acceso quando fermi l'app: riavvii più veloci, dati conservati
 flowsync:
   security:
     jwt:

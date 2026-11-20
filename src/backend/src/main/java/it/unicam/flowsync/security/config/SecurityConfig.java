@@ -22,7 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * API stateless protetta da JWT Bearer (contratto A). Solo il login e il refresh sono pubblici.
+ * API stateless protetta da JWT Bearer (contratto A). Sono pubblici solo login, refresh e registrazione
+ * (che crea un account disattivato, in attesa di un ADMIN).
  * I permessi per ruolo si dichiarano sui metodi con @PreAuthorize (ruoli: ADMIN, PLANNER, OPERATOR).
  */
 @Configuration
@@ -36,7 +37,8 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)      // niente cookie di sessione: il token sta nell'header Authorization
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.POST, ApiPaths.V1 + "/auth/login", ApiPaths.V1 + "/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, ApiPaths.V1 + "/auth/login", ApiPaths.V1 + "/auth/refresh",
+                                ApiPaths.V1 + "/auth/register").permitAll()
                         .requestMatchers("/actuator/health/**", "/actuator/info").permitAll()
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated())

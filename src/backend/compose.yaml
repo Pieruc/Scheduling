@@ -1,21 +1,26 @@
-# MySQL 8 per lo sviluppo locale:  docker compose up -d
-# Poi:  SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run   (il profilo dev usa utente e password di questo file)
+# MySQL 8 per provare l'app in locale.
+# Non serve avviarlo a mano: con il profilo dev (mvn spring-boot:run -Pdev) lo avvia Spring Boot e aspetta che sia pronto.
+# A mano:  docker compose up -d   /   docker compose down   (down -v cancella anche i dati)
+# Utente, password e porta arrivano da .env (stessa cartella), con default di sviluppo se manca.
 services:
   mysql:
     image: mysql:8.4
     container_name: flowsync-mysql
+    labels:
+      # con il profilo dev Spring Boot costruisce l'URL JDBC dal container: qui gli stessi parametri di application.yml
+      org.springframework.boot.jdbc.parameters: "useUnicode=true&characterEncoding=utf8&connectionTimeZone=UTC"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: flowsync
-      MYSQL_USER: flowsync
-      MYSQL_PASSWORD: flowsync
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-flowsync}
+      MYSQL_USER: ${DB_USER:-flowsync}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-flowsync}
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_0900_ai_ci
     ports:
-      - "3306:3306"
+      - "${DB_PORT:-3306}:3306"     # cambia DB_PORT nel .env se sul Mac c'è già un MySQL sulla 3306
     volumes:
       - flowsync-mysql:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
       interval: 5s
       timeout: 3s
       retries: 20

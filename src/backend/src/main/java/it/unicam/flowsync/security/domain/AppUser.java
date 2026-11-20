@@ -17,6 +17,9 @@ public class AppUser {
 
     public enum Role { ADMIN, PLANNER, OPERATOR }
 
+    /** Stato dell'account, derivato da active e approvedAt (migrazione V7). */
+    public enum Status { PENDING, ACTIVE, DISABLED }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -46,6 +49,21 @@ public class AppUser {
     @Column(nullable = false, columnDefinition = "TINYINT(1)")
     private boolean active = true;
 
+    /** Momento dell'approvazione da parte di un ADMIN; null per una registrazione ancora in attesa. */
+    @Column(name = "approved_at")
+    private Instant approvedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private AppUser approvedBy;
+
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;
+
+    public Status status() {
+        if (active) {
+            return Status.ACTIVE;
+        }
+        return approvedAt == null ? Status.PENDING : Status.DISABLED;
+    }
 }
