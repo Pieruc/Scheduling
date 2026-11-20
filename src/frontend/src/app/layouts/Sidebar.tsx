@@ -1,5 +1,8 @@
 import { NavLink } from 'react-router'
 import { Logo } from '@/components/Logo'
+import { useAuth } from '@/features/auth/authContext'
+import { can, type Permission } from '@/features/auth/permissions'
+import { UserBox } from '@/features/auth/UserBox'
 import { useActiveModels } from '@/features/model-info/hooks'
 import styles from './Sidebar.module.css'
 
@@ -10,16 +13,17 @@ function shortModelName(version: string) {
   return `M${m[1]} ${m[2][0].toUpperCase()}${m[2].slice(1)} v${m[3]}`
 }
 
-type NavItem = { to: string; label: string; end?: boolean }
+/** permission: chi vede la voce (assente = tutti quelli che usano questo layout) */
+type NavItem = { to: string; label: string; end?: boolean; permission?: Permission }
 type NavGroup = { title?: string; items: NavItem[] }
 
-/** Voci del menu. Con il login si aggiungerà un campo "roles" per filtrarle. */
+/** Voci del menu, filtrate per ruolo */
 const NAV: NavGroup[] = [
   {
     items: [
       { to: '/', label: 'Dashboard', end: true },
       { to: '/commesse', label: 'Commesse' },
-      { to: '/pianifica', label: 'Nuova pianificazione' },
+      { to: '/pianifica', label: 'Nuova pianificazione', permission: 'plan' },
       { to: '/piani', label: 'Piani' },
     ],
   },
@@ -28,7 +32,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/configurazione', label: 'Configurazione' },
       { to: '/modello', label: 'Modello AI' },
-      { to: '/audit', label: 'Audit' },
+      { to: '/audit', label: 'Audit', permission: 'admin' },
     ],
   },
 ]
@@ -41,6 +45,7 @@ type SidebarProps = {
 
 export function Sidebar({ id, open }: SidebarProps) {
   const { data: models, isError: modelsError } = useActiveModels()
+  const { user } = useAuth()
   const modelLabel = models
     ? shortModelName(models.policy.version)
     : modelsError
@@ -56,26 +61,28 @@ export function Sidebar({ id, open }: SidebarProps) {
       {NAV.map((group, i) => (
         <div key={group.title ?? i} className={styles.group}>
           {group.title && <div className={styles.groupTitle}>{group.title}</div>}
-          {group.items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                isActive ? `${styles.link} ${styles.active}` : styles.link
-              }
-            >
-              {item.label}
-            </NavLink>
-          ))}
+          {group.items
+            .filter((item) => !item.permission || can(user, item.permission))
+            .map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.end}
+                className={({ isActive }) =>
+                  isActive ? `${styles.link} ${styles.active}` : styles.link
+                }
+              >
+                {item.label}
+              </NavLink>
+            ))}
         </div>
       ))}
 
       <div className={styles.footer}>
-        {/* Utente fisso finché non arriva il login */}
-        Giulia Neri · Pianificatore
-        <br />
-        Modello attivo <span>{modelLabel}</span>
+        <UserBox />
+        <span>
+          Modello attivo <span>{modelLabel}</span>
+        </span>
       </div>
     </nav>
   )

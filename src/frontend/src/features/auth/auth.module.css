@@ -1,0 +1,132 @@
+/* Login: un riquadro al centro su sfondo scuro, come la barra laterale */
+.page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px 16px;
+  background: var(--fs-nav);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(420px, 100%);
+  padding: 28px;
+  border-radius: 16px;
+  background: var(--fs-surface);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+}
+
+/* Il logo è pensato per lo sfondo scuro */
+.card > :first-child {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--fs-nav);
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: var(--fs-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form :global(.p-inputtext) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.password {
+  display: block;
+  width: 100%;
+}
+
+.passwordInput {
+  width: 100%;
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--fs-danger-soft);
+  color: #7a1a12;
+}
+
+.submit {
+  justify-content: center;
+  min-height: 48px;
+}
+
+.footnote {
+  margin: 0;
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.demo {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px dashed var(--fs-border-strong);
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+/* Rotte protette */
+.denied {
+  margin: 0;
+}
+
+/* Utente in fondo alla barra laterale e nella barra dell'operatore */
+.userBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.userName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userRole {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid currentColor;
+  border-radius: var(--fs-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.logout:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
