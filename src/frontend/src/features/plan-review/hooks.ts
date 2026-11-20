@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { getPlanGantt, postDecision } from '@/api/plans'
+import { getPlanGantt, postDecision, reschedulePlan } from '@/api/plans'
 import { queryKeys } from '@/api/queryKeys'
-import type { DecisionRequest } from '@/api/types/plans'
+import type { DecisionRequest, RescheduleRequest } from '@/api/types/plans'
 
 export function usePlanGantt(planId: string | undefined) {
   return useQuery({
@@ -23,5 +23,19 @@ export function useDecision(planId: string) {
         queryClient.invalidateQueries({ queryKey: queryKeys.planRequests.all }),
         queryClient.invalidateQueries({ queryKey: queryKeys.audit.all }),
       ]),
+  })
+}
+
+/** Avvia la ripianificazione; aggiorna elenco richieste, avvisi (quello gestito sparisce) e audit */
+export function useReschedule(planId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (body: RescheduleRequest) => reschedulePlan(planId, body),
+    onSuccess: () =>
+      Promise.all(
+        [queryKeys.planRequests.all, queryKeys.alerts.all, queryKeys.audit.all].map((queryKey) =>
+          queryClient.invalidateQueries({ queryKey }),
+        ),
+      ),
   })
 }

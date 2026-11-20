@@ -1,5 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { Button } from 'primereact/button'
 import { Calendar } from 'primereact/calendar'
 import { Dropdown } from 'primereact/dropdown'
@@ -10,8 +9,6 @@ import { Controller, useForm, useWatch, type FieldPath } from 'react-hook-form'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
 import { z } from 'zod'
 import { ApiError, errorMessage } from '@/api/errors'
-import { reschedulePlan } from '@/api/plans'
-import { queryKeys } from '@/api/queryKeys'
 import type { GanttView, RescheduleEvent } from '@/api/types/plans'
 import { useToast } from '@/app/toast/toastContext'
 import { Card } from '@/components/Card'
@@ -21,7 +18,9 @@ import { PageHeader } from '@/components/PageHeader'
 import { formatTime } from '@/lib/format'
 import { VARIANT_LABEL } from '@/lib/labels'
 import { useNow } from '@/lib/useNow'
-import { usePlanGantt } from './hooks'
+import { useAlerts } from '@/features/dashboard/hooks'
+import { IncidentReschedule } from './components/IncidentReschedule'
+import { usePlanGantt, useReschedule } from './hooks'
 import styles from './components/reschedule.module.css'
 
 const TYPES = [
@@ -63,20 +62,16 @@ const schema = z
 
 type Values = z.infer<typeof schema>
 
-/** Valori iniziali presi dall'indirizzo (arrivando da un avviso) */
-function fromParams(p: URLSearchParams): Values {
-  const type = TYPES.some((t) => t.value === p.get('evento'))
-    ? (p.get('evento') as Values['type'])
-    : 'RESOURCE_DOWN'
-  const date = (key: string) => (p.get(key) ? new Date(p.get(key)!) : null)
+/** Valori iniziali del form manuale: macchina ferma da adesso */
+function initialValues(): Values {
   return {
-    type,
-    resourceId: p.get('risorsa'),
-    from: date('da') ?? new Date(),
-    to: date('a'),
-    orderId: p.get('commessa'),
+    type: 'RESOURCE_DOWN',
+    resourceId: null,
+    from: new Date(),
+    to: null,
+    orderId: null,
     dueDate: null,
-    delayHours: p.get('ritardo') ? Number(p.get('ritardo')) / 60 : null,
+    delayHours: null,
     note: '',
   }
 }
@@ -96,10 +91,18 @@ function toEvent(v: Values): RescheduleEvent {
   return { type: 'DELAY', orderId: v.orderId!, delayMin: Math.round(v.delayHours! * 60) }
 }
 
-/** /piani/:planId/ripianifica: ricalcola il piano in esecuzione dopo un imprevisto */
+/**
+ * /piani/:planId/ripianifica: ricalcola il piano in esecuzione dopo un imprevisto.
+ * Con ?avviso=… il problema è già noto: riepilogo e ricalcolo, nessuna domanda.
+ * Senza avviso (dal Gantt) si dice prima cosa è successo.
+ */
 export function ReschedulePage() {
   const { planId } = useParams()
+  const [params] = useSearchParams()
+  const alertId = params.get('avviso')
   const { data: view, isPending, isError, error, refetch } = usePlanGantt(planId)
+  const alerts = useAlerts()
+  const alert = alerts.data?.find((a) => a.id === alertId)
 
   const crumb = (
     <nav aria-label="Percorso" className={styles.crumb}>
@@ -107,16 +110,49 @@ export function ReschedulePage() {
     </nav>
   )
 
-  if (isPending || isError) {
+  if (isPending || isError || (alertId && alerts.isPending)) {
     return (
       <>
         {crumb}
         <PageHeader title="Ripianifica" />
-        {isPending ? (
-          <Skeleton height="420px" />
-        ) : (
+        {isError ? (
           <ErrorState error={error} onRetry={() => refetch()} />
+        ) : (
+          <Skeleton height="420px" />
         )}
+      </>
+    )
+  }
+
+  const planName = `${view.variant ? `piano ${VARIANT_LABEL[view.variant].toLowerCase()}` : 'piano'} ${view.planId}`
+
+  if (view.status !== 'APPROVED') {
+    return (
+      <>
+        {crumb}
+        <PageHeader title={`Ripianifica il ${planName}`} />
+        <Card>
+          <p className={styles.muted}>
+            Si ripianifica solo il piano approvato, quello in esecuzione. {view.planId} non lo è:{' '}
+            <Link to={`/piani/${view.planId}`}>aprilo nel Gantt</Link> per valutarlo.
+          </p>
+        </Card>
+      </>
+    )
+  }
+
+  if (alertId && !alert?.event) {
+    return (
+      <>
+        {crumb}
+        <PageHeader title={`Ripianifica il ${planName}`} />
+        <Card>
+          <p className={styles.muted}>
+            Questa segnalazione è già stata gestita (o non esiste più). Trovi le ripianificazioni in{' '}
+            <Link to="/piani">Piani</Link>; per un problema nuovo usa{' '}
+            <Link to={`/piani/${view.planId}/ripianifica`}>Ripianifica senza segnalazione</Link>.
+          </p>
+        </Card>
       </>
     )
   }
@@ -125,51 +161,34 @@ export function ReschedulePage() {
     <>
       {crumb}
       <PageHeader
-        title={`Ripianifica il ${view.variant ? `piano ${VARIANT_LABEL[view.variant].toLowerCase()}` : 'piano'} ${view.planId}`}
-        subtitle="Dici cosa è successo: il sistema ricalcola da adesso e propone di nuovo 3 piani, confrontati con ATC ed EDD."
+        title={`Ripianifica il ${planName}`}
+        subtitle={
+          alert
+            ? 'Il problema è già segnalato: guarda cosa tocca nel piano e ricalcola con l’AI.'
+            : 'Dici cosa è successo: il sistema ricalcola da adesso e propone di nuovo 3 piani, confrontati con ATC ed EDD.'
+        }
       />
-      {view.status === 'APPROVED' ? (
-        <RescheduleForm view={view} />
+      {alert?.event ? (
+        <IncidentReschedule view={view} alert={{ ...alert, event: alert.event }} />
       ) : (
-        <Card>
-          <p className={styles.muted}>
-            Si ripianifica solo il piano approvato, quello in esecuzione. {view.planId} non lo è:{' '}
-            <Link to={`/piani/${view.planId}`}>aprilo nel Gantt</Link> per valutarlo.
-          </p>
-        </Card>
+        <RescheduleForm view={view} />
       )}
     </>
   )
 }
 
 function RescheduleForm({ view }: { view: GanttView }) {
-  const [params] = useSearchParams()
   const navigate = useNavigate()
   const toast = useToast()
-  const queryClient = useQueryClient()
   const now = useNow(60_000)
-  const reschedule = useMutation({
-    mutationFn: (v: Values) =>
-      reschedulePlan(view.planId, {
-        event: toEvent(v),
-        freezeBefore: new Date().toISOString(),
-        note: v.note.trim() || undefined,
-      }),
-    // Nuova richiesta in elenco, avviso gestito, record di audit
-    onSuccess: () =>
-      Promise.all(
-        [queryKeys.planRequests.all, queryKeys.alerts.all, queryKeys.audit.all].map((queryKey) =>
-          queryClient.invalidateQueries({ queryKey }),
-        ),
-      ),
-  })
+  const reschedule = useReschedule(view.planId)
   const {
     control,
     register,
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: fromParams(params) })
+  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: initialValues() })
   const [type, resourceId, orderId] = useWatch({ control, name: ['type', 'resourceId', 'orderId'] })
 
   const orderIds = [...new Set(view.bars.map((b) => b.orderId))].sort()
@@ -181,23 +200,30 @@ function RescheduleForm({ view }: { view: GanttView }) {
       : view.bars.filter((b) => b.orderId === orderId)
 
   const onSubmit = (v: Values) =>
-    reschedule.mutate(v, {
-      onSuccess: (res) => {
-        toast.success('Ripianificazione avviata', 'Tra pochi secondi i 3 nuovi piani.')
-        navigate(`/piani/richieste/${res.id}`)
+    reschedule.mutate(
+      {
+        event: toEvent(v),
+        freezeBefore: new Date().toISOString(),
+        note: v.note.trim() || undefined,
       },
-      onError: (e) => {
-        if (e instanceof ApiError && e.status === 422 && e.errors.length) {
-          for (const err of e.errors) {
-            setError(err.path.replace(/^event\./, '') as FieldPath<Values>, {
-              message: err.message,
-            })
+      {
+        onSuccess: (res) => {
+          toast.success('Ripianificazione avviata', 'Tra pochi secondi i 3 nuovi piani.')
+          navigate(`/piani/richieste/${res.id}`)
+        },
+        onError: (e) => {
+          if (e instanceof ApiError && e.status === 422 && e.errors.length) {
+            for (const err of e.errors) {
+              setError(err.path.replace(/^event\./, '') as FieldPath<Values>, {
+                message: err.message,
+              })
+            }
+          } else {
+            toast.error('Ripianificazione non avviata', errorMessage(e))
           }
-        } else {
-          toast.error('Ripianificazione non avviata', errorMessage(e))
-        }
+        },
       },
-    })
+    )
 
   return (
     <form className={styles.layout} onSubmit={handleSubmit(onSubmit)} noValidate>

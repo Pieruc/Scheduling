@@ -112,6 +112,170 @@
   padding-left: 18px;
 }
 
+/* Ripianificazione da segnalazione: problema in alto, impatto e parametri affiancati */
+.problem {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  border: 1px solid #f1b0aa;
+  border-radius: var(--fs-radius-card);
+  background: var(--fs-danger-soft);
+  color: #7a1a12;
+}
+
+.problem > i {
+  margin-top: 4px;
+  font-size: 22px;
+}
+
+.problemTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.problemDetail {
+  margin: 4px 0 0;
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 16px;
+  align-items: start;
+}
+
+.numbers {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.numbers > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--fs-bg);
+}
+
+.number {
+  font-size: 26px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.numberLabel {
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.listTitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+.activities {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.activity:last-child {
+  border-bottom: 0;
+}
+
+.when {
+  color: var(--fs-muted);
+  font-size: 13px;
+  text-align: right;
+}
+
+.orders {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--fs-border);
+  font-size: 14px;
+}
+
+.param {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.paramLabel {
+  padding: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.weight {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.slider {
+  margin: 10px 4px;
+}
+
+.weightValue {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.scope {
+  display: flex;
+}
+
+.scope :global(.p-button) {
+  flex: 1;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.overview :global(.p-calendar) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fs-border);
+}
+
+@media (max-width: 1199px) {
+  .overview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 999px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

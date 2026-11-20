@@ -117,12 +117,18 @@ function chain(prefix: string, durations: number[]): ProcessGraph {
   const steps: [string, string, string[]][] = [
     ['Taglio', 'TAGLIO', ['R-LAS-01']],
     ['Fresatura', 'FRESATURA', ['R-CNC-01']],
-    ['Saldatura', 'SALDATURA', ['R-SAL-01']],
+    // Saldatura su S1 oppure S2: due alternative
+    ['Saldatura', 'SALDATURA', ['R-SAL-01', 'R-SAL-02']],
     ['Verniciatura', 'VERNICIATURA', ['R-VER-01']],
     ['Collaudo', 'COLLAUDO', ['R-COL-01']],
   ]
   const activities = steps.map(([name, skill, res], i) =>
-    act(`${prefix}-A${i + 1}`, name, skill, [{ resourceIds: res, durationMin: h(durations[i]) }]),
+    act(
+      `${prefix}-A${i + 1}`,
+      name,
+      skill,
+      res.map((r) => ({ resourceIds: [r], durationMin: h(durations[i]) })),
+    ),
   )
   const precedences = activities.slice(1).map((a, i) => fs(activities[i].id, a.id))
   return { activities, precedences }

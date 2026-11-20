@@ -26,8 +26,14 @@ function workingDays(): string[] {
 
 const dateOf = (iso: string) => iso.slice(0, 10)
 
-/** Piano disposto in modo semplice ma ammissibile: precedenze, risorse libere, macchine ferme. */
-function schedule(): Omit<
+/**
+ * Piano disposto in modo semplice ma ammissibile: precedenze, risorse libere, macchine ferme.
+ * `ignoreBreakdowns`: per un piano approvato prima del guasto, che quindi non ne tiene conto
+ * (le barre finiscono sopra la fascia bloccata: è il problema da ripianificare).
+ */
+function schedule(
+  ignoreBreakdowns = false,
+): Omit<
   GanttView,
   | 'planId'
   | 'requestId'
@@ -69,7 +75,9 @@ function schedule(): Omit<
   const precedences: { from: string; to: string }[] = []
   const blocksOf = (resourceId: string) => [
     ...bars.filter((b) => b.resourceId === resourceId),
-    ...(rows.find((r) => r.id === resourceId)?.unavailable ?? []),
+    ...(rows.find((r) => r.id === resourceId)?.unavailable ?? []).filter(
+      (u) => !(ignoreBreakdowns && u.reason === 'Guasto'),
+    ),
   ]
   const earliest = (resourceId: string, ready: number, duration: number) => {
     let t = ready
@@ -152,7 +160,7 @@ export function ganttFor(planId: string): GanttView | null {
   const { request, plan } = found
   if (cached) return { ...cached, status: plan.status }
 
-  const base = schedule()
+  const base = schedule(plan.status === 'APPROVED')
   const view: GanttView = {
     ...base,
     planId,

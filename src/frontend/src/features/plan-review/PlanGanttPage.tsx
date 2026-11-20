@@ -14,6 +14,7 @@ import { FormField } from '@/components/FormField'
 import { KpiCard } from '@/components/KpiCard'
 import { PageHeader } from '@/components/PageHeader'
 import { useCan } from '@/features/auth/authContext'
+import { useAlerts } from '@/features/dashboard/hooks'
 import { rescheduleHref } from './rescheduleLink'
 import { StatusTag } from '@/components/StatusTag'
 import { formatEuro, formatHours, formatPercent, formatWorkDuration } from '@/lib/format'
@@ -54,6 +55,11 @@ export function PlanGanttPage() {
 
 function Review({ view }: { view: GanttView }) {
   const canPlan = useCan('plan')
+  // Se c'è una segnalazione aperta su questo piano, "Ripianifica" parte da quella
+  const { data: alerts } = useAlerts()
+  const openIncident = alerts?.find(
+    (a) => a.type === 'INCIDENT' && a.event && a.link?.planId === view.planId,
+  )
   const navigate = useNavigate()
   const toast = useToast()
   const decision = useDecision(view.planId)
@@ -205,7 +211,7 @@ function Review({ view }: { view: GanttView }) {
             {/* Il piano in esecuzione si ripianifica dopo un imprevisto */}
             {view.status === 'APPROVED' && canPlan && (
               <Link
-                to={rescheduleHref(view.planId)}
+                to={rescheduleHref(view.planId, openIncident?.id)}
                 className={`p-button p-button-outlined ${styles.rescheduleLink}`}
               >
                 <i className="pi pi-refresh" aria-hidden="true" />

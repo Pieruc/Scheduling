@@ -165,7 +165,7 @@ export const planningHandlers = [
       orderIds: found.request.orderIds,
       horizonStart: body.freezeBefore,
       horizonEnd: toIsoWithOffset(new Date(end)),
-      weights: found.request.weights,
+      weights: body.weights ?? found.request.weights,
       plans: [],
       rescheduleOf: found.plan.id,
       event: e,
@@ -184,7 +184,8 @@ export const planningHandlers = [
     })
     // Gli avvisi di guasto su questo piano sono stati gestiti
     for (let i = alerts.length - 1; i >= 0; i--) {
-      if (alerts[i].type === 'INCIDENT' && alerts[i].link?.planId === found.plan.id) {
+      const a = alerts[i]
+      if (a.id === body.alertId || (a.type === 'INCIDENT' && a.link?.planId === found.plan.id)) {
         alerts.splice(i, 1)
       }
     }

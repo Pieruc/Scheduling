@@ -19,7 +19,7 @@ function alertHref(alert: Alert) {
   const link = alert.link
   if (!link) return null
   if (link.planRequestId) return `/piani/richieste/${link.planRequestId}`
-  if (link.planId && alert.type === 'INCIDENT') return rescheduleHref(link.planId, alert.event)
+  if (link.planId && alert.type === 'INCIDENT') return rescheduleHref(link.planId, alert.id)
   if (link.planId) return `/piani/${link.planId}`
   return null
 }

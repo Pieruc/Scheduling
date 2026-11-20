@@ -83,6 +83,15 @@ export type RescheduleRequest = {
   /** Le attività iniziate prima di questo istante restano dove sono */
   freezeBefore: IsoDateTime
   note?: string
+  /** PROPOSTA §8: l'avviso da cui nasce; il backend lo chiude a ripianificazione avviata */
+  alertId?: string
+  /** PROPOSTA §8: pesi degli obiettivi; assenti = quelli della richiesta di partenza */
+  weights?: ObjectiveWeights
+  /**
+   * PROPOSTA §8: MINIMAL = cambia il meno possibile (sposta solo ciò che il problema tocca e
+   * quello che ne dipende); FULL = riottimizza tutto il periodo restante.
+   */
+  scope?: 'MINIMAL' | 'FULL'
 }
 
 /** PROPOSTA §8: una richiesta di pianificazione con i suoi (fino a) tre piani */

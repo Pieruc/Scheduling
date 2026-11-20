@@ -352,7 +352,12 @@ chi fa il backend.
     e il confronto con ATC ed EDD; la richiesta porta `rescheduleOf` ed `event`. 409 se il
     piano non è `APPROVED`. Approvando uno dei nuovi piani, quello di partenza passa a
     `SUPERSEDED`; gli avvisi `INCIDENT` su quel piano si chiudono. Gli avvisi di guasto
-    portano `event`, così la pagina "Ripianifica" arriva già compilata.
+    portano `event`: arrivando da un avviso (`?avviso=AL-31`) la pagina non chiede cosa è
+    successo, mostra problema e impatto (attività bloccate, a catena, commesse) e lascia
+    cambiare solo durata del fermo, pesi e ampiezza. Per questo la richiesta ha in più
+    `alertId` (l'avviso da chiudere), `weights` e `scope` (`MINIMAL` = cambia il meno
+    possibile, `FULL` = riottimizza tutto). Il Gantt del piano approvato prima del guasto
+    deve mostrare le attività ancora sulla macchina ferma: è da lì che si vede l'impatto.
 
 ## 9. Fasi di lavoro
 
