@@ -1,0 +1,216 @@
+/* Stili comuni a Calendari, Competenze e Profili (layout e form vengono da resources.module.css) */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--fs-border-soft);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  border-bottom-color: var(--fs-border);
+  color: var(--fs-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.table .num {
+  text-align: right;
+}
+
+.table tbody tr {
+  transition: background 0.15s;
+}
+
+.table tbody tr:has(.rowButton) {
+  cursor: pointer;
+}
+
+.table tbody tr:has(.rowButton):hover {
+  background: var(--fs-bg);
+}
+
+.selected,
+.selected:hover {
+  background: var(--fs-primary-soft) !important;
+}
+
+.rowButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rowTitle {
+  font-weight: 600;
+}
+
+.rowCode {
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.chip {
+  display: inline-block;
+  margin: 1px 4px 1px 0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--fs-track);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.error {
+  color: var(--fs-danger);
+  font-size: 13px;
+}
+
+/* Giorni lavorativi: sette interruttori */
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid var(--fs-border-strong);
+  border-radius: var(--fs-radius);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+}
+
+.day input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.day:has(input:checked) {
+  border-color: var(--fs-primary);
+  background: var(--fs-primary);
+  color: #fff;
+}
+
+.day:has(input:focus-visible) {
+  outline: 3px solid var(--fs-primary);
+  outline-offset: 2px;
+}
+
+.shiftRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
+  align-items: start;
+  gap: 8px;
+}
+
+.shiftRow :global(.p-inputtext) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.remove {
+  width: 44px;
+  height: 44px;
+  margin-top: 22px;
+}
+
+.fieldsetFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.total {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pulsanti piccoli ma con l'area da 44px */
+.add {
+  min-height: 44px;
+}
+
+/* Telefono stretto: la data della chiusura su tutta la riga, il nome sotto */
+@media (max-width: 480px) {
+  .holidayRow {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .holidayRow > :nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .holidayRow > :nth-child(3) {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+
+/* Telefono: ogni riga diventa una scheda */
+@media (max-width: 767px) {
+  .table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .table,
+  .table tbody,
+  .table tbody tr {
+    display: block;
+  }
+
+  .table tbody tr {
+    padding: 10px 4px;
+    border-bottom: 1px solid var(--fs-border-soft);
+  }
+
+  .table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .table tbody th,
+  .table tbody td {
+    display: block;
+    padding: 2px 0;
+    border: 0;
+    text-align: left !important;
+  }
+
+  .table td[data-label]::before {
+    content: attr(data-label) ': ';
+    color: var(--fs-muted);
+  }
+}

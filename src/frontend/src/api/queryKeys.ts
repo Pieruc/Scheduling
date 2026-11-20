@@ -43,4 +43,7 @@ export const queryKeys = {
   skills: {
     all: ['skills'] as const,
   },
+  profiles: {
+    all: ['domain-profiles'] as const,
+  },
 }

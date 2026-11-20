@@ -1,0 +1,147 @@
+/* Profili a sinistra, editor a destra; sotto i 1000px uno sopra l'altro */
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--fs-border);
+  border-radius: var(--fs-radius-card);
+  background: var(--fs-surface);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.profile:hover {
+  border-color: var(--fs-border-strong);
+}
+
+.profileActive,
+.profileActive:hover {
+  border: 2px solid var(--fs-primary);
+  padding: 13px;
+  background: var(--fs-primary-soft);
+}
+
+.profileTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.profileName {
+  font-weight: 600;
+}
+
+.profileCode {
+  color: var(--fs-muted);
+  font-size: 12px;
+}
+
+.profileDesc {
+  color: var(--fs-muted);
+  font-size: 13px;
+}
+
+.editorHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.editorHead p {
+  margin-top: 4px;
+}
+
+.weight {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.weightHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.weightLabel {
+  font-weight: 500;
+}
+
+.share {
+  min-width: 48px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Più spazio verticale: il cursore dello slider si prende anche col dito */
+.slider {
+  margin: 10px 8px;
+}
+
+.error {
+  margin: 0;
+  color: var(--fs-danger);
+  font-size: 13px;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 12px;
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.feature input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--fs-primary);
+}
+
+/* Le sezioni dell'editor hanno lo stesso stacco */
+.layout :global(fieldset) + :global(fieldset),
+.layout :global(fieldset) {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 999px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .features {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

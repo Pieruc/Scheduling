@@ -315,6 +315,19 @@ chi fa il backend.
     non è stato prodotto un piano. Il frontend manda `from`; azione, utente e ricerca per
     piano li filtra nel browser (servirebbero i parametri `action` e `user`). L'export CSV
     è generato nel browser dai record filtrati.
+11. **Configurazione: calendari, competenze, profili** (forma in
+    `src/frontend/src/api/types/config.ts`):
+    - `Calendar` con `workDays` (1 = lunedì … 7 = domenica), `shifts` `[{ start, end }]`
+      in "HH:mm" uguali per ogni giorno lavorativo, `holidays` `[{ date, name }]` e
+      `shiftsSummary` calcolato dal backend. Serve anche `PUT /calendars/{id}`: il
+      contratto prevede solo GET e POST. 422 con `path` per turni sovrapposti o nessun giorno.
+    - `POST /skills` con `{ code, name }`, 422 se il codice esiste. Nessuna modifica né
+      cancellazione, come nel contratto.
+    - `DomainProfile` con in più `name` (es. "Fabbrica") e `inUse` (il profilo usato di
+      default). `PUT /domain-profiles/{code}` riceve i pesi già normalizzati a somma 1
+      (422 altrimenti) e l'elenco dei vincoli attivi; il frontend conosce
+      `SEQUENCE_DEPENDENT_SETUP`, `ALTERNATIVE_RESOURCES`, `OVERTIME`, `HARD_DEADLINES`,
+      `PRECEDENCE_LAGS`, `MULTI_RESOURCE` e mostra gli altri con il codice.
 
 ## 9. Fasi di lavoro
 

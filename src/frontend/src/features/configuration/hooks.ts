@@ -1,14 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  createCalendar,
   createResource,
+  createSkill,
   deactivateResource,
   getCalendars,
+  getDomainProfiles,
   getResources,
   getSkills,
+  updateCalendar,
+  updateDomainProfile,
   updateResource,
 } from '@/api/config'
 import { queryKeys } from '@/api/queryKeys'
-import type { ResourceInput } from '@/api/types/config'
+import type { CalendarInput, DomainProfileInput, ResourceInput } from '@/api/types/config'
 
 export function useResources() {
   return useQuery({
@@ -49,5 +54,40 @@ export function useDeactivateResource() {
   return useMutation({
     mutationFn: (id: string) => deactivateResource(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.resources.all }),
+  })
+}
+
+/** Crea o modifica un calendario; poi ricarica calendari e risorse (che ne mostrano il nome) */
+export function useSaveCalendar() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ input, isNew }: { input: CalendarInput; isNew: boolean }) =>
+      isNew ? createCalendar(input) : updateCalendar(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.calendars.all }),
+  })
+}
+
+export function useCreateSkill() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: createSkill,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.skills.all }),
+  })
+}
+
+export function useDomainProfiles() {
+  return useQuery({
+    queryKey: queryKeys.profiles.all,
+    queryFn: ({ signal }) => getDomainProfiles(signal),
+    staleTime: 10 * 60_000,
+  })
+}
+
+export function useSaveProfile() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ code, input }: { code: string; input: DomainProfileInput }) =>
+      updateDomainProfile(code, input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.profiles.all }),
   })
 }

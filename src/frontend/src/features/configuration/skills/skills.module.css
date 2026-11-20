@@ -1,0 +1,45 @@
+/* Elenco a sinistra, form di aggiunta a destra; sotto i 1000px il form va sopra */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 16px;
+  align-items: start;
+}
+
+.listCard {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+}
+
+.formCard {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form :global(.p-inputtext) {
+  width: 100%;
+}
+
+.warning {
+  color: var(--fs-warning-text);
+  font-size: 13px;
+}
+
+@media (max-width: 999px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .listCard,
+  .formCard {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
