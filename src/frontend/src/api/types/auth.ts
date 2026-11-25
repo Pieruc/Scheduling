@@ -1,3 +1,5 @@
+import type { IsoDateTime } from '@/api/types/common'
+
 /** Ruoli dell'API pubblica (contratti, A) */
 export type Role = 'PLANNER' | 'OPERATOR' | 'ADMIN'
 
@@ -6,10 +8,10 @@ export type User = {
   id: string
   username: string
   roles: Role[]
-  /** PROPOSTA §8: nome da mostrare, es. "Giulia Neri" */
-  displayName?: string
-  /** PROPOSTA §8: reparto, per la vista operatore */
-  department?: string
+  /** v1.1: nome da mostrare, es. "Giulia Neri" (se manca si mostra lo username) */
+  fullName?: string
+  /** v1.1: reparto, per la vista operatore, es. "Reparto saldatura" */
+  department?: string | null
 }
 
 /** Risposta di POST /auth/login (contratti, A.1; il refresh token per ora non si usa) */
@@ -18,3 +20,38 @@ export type LoginResponse = {
   expiresIn: number
   user: User
 }
+
+/** POST /auth/register (contratti, A.1): il ruolo lo sceglie l'amministratore all'approvazione */
+export type RegisterRequest = {
+  username: string
+  email: string
+  fullName: string
+  password: string
+}
+
+/** Risposta della registrazione: nessun token, account in attesa */
+export type RegistrationResponse = {
+  id: string
+  username: string
+  status: 'PENDING'
+  message: string
+}
+
+/** Stato di un account (gestione utenti, contratti A.1) */
+export type AccountStatus = 'PENDING' | 'ACTIVE' | 'DISABLED'
+
+/** Un utente come lo vede l'amministratore (GET /users) */
+export type ManagedUser = {
+  id: string
+  username: string
+  email: string
+  fullName: string
+  /** null finché l'account è in attesa */
+  role: Role | null
+  status: AccountStatus
+  createdAt: IsoDateTime
+  approvedAt: IsoDateTime | null
+}
+
+/** PATCH /users/{id}: campi assenti = invariati */
+export type UpdateUserRequest = { role?: Role; active?: boolean }

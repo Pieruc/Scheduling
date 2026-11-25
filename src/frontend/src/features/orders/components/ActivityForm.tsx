@@ -3,6 +3,7 @@ import { Button } from 'primereact/button'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { Dialog } from 'primereact/dialog'
 import { InputNumber } from 'primereact/inputnumber'
+import { Dropdown } from 'primereact/dropdown'
 import { InputText } from 'primereact/inputtext'
 import { MultiSelect } from 'primereact/multiselect'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
@@ -19,7 +20,7 @@ const schema = z.object({
     .array(
       z
         .object({
-          resourceIds: z.array(z.string()).min(1, 'Scegli almeno una risorsa.'),
+          resourceIds: z.array(z.string()).length(1, 'Scegli la risorsa.'),
           hours: z.number().nullable(),
           unknown: z.boolean(),
         })
@@ -180,8 +181,8 @@ export function ActivityForm(props: ActivityFormProps) {
         <fieldset className={styles.fieldset}>
           <legend className={styles.legend}>Come si può eseguire</legend>
           <p className={styles.hint}>
-            Un modo per ogni alternativa: il sistema sceglie quella migliore. Si propongono solo le
-            risorse attive con le competenze richieste.
+            Una risorsa per ogni alternativa, ognuna con la sua durata: il sistema sceglie la
+            migliore. Si propongono solo le risorse attive con le competenze richieste.
           </p>
           {modes.fields.map((f, i) => (
             <ModeRow
@@ -254,7 +255,7 @@ function ModeRow({ index, control, register, options, errors, canRemove, onRemov
     <div className={styles.mode}>
       <FormField
         id={`act-mode-${index}-res`}
-        label={`Risorse (alternativa ${index + 1})`}
+        label={`Risorsa (alternativa ${index + 1})`}
         error={errors?.resourceIds?.message}
       >
         {(aria) => (
@@ -262,14 +263,15 @@ function ModeRow({ index, control, register, options, errors, canRemove, onRemov
             control={control}
             name={`modes.${index}.resourceIds`}
             render={({ field }) => (
-              <MultiSelect
+              // Una sola risorsa per alternativa (contratto A.3): per più risorse si aggiungono alternative
+              <Dropdown
                 inputId={aria.id}
-                value={field.value}
+                focusInputRef={field.ref}
+                value={field.value[0] ?? null}
                 options={options}
                 optionLabel="name"
                 optionValue="id"
-                onChange={(e) => field.onChange(e.value)}
-                display="chip"
+                onChange={(e) => field.onChange(e.value ? [e.value] : [])}
                 placeholder="Scegli"
                 emptyMessage="Nessuna risorsa ha queste competenze"
                 invalid={aria['aria-invalid']}

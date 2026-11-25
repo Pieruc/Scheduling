@@ -163,10 +163,12 @@ keeps the token and the user in the session storage of the browser, so that a re
 log the user out, while closing the tab does. The token is sent with every call, and an
 expired token brings the user back to the login page. The permissions of each role are declared
 in one module and used by the menu and by a guard on the routes, which sends the user to the
-login page or to the home page of the role; the real check remains in the backend. This first
-version deliberately leaves out the automatic renewal of the token; registration and the
-management of users by the administrator, already available in the backend, are the next step.
-The test users are the same in the mock and in the development database.
+login page or to the home page of the role; the real check remains in the backend. The
+registration page and the users page of the administrator (Section~\ref{sec:ui-users}) follow
+the same contract as the backend, including its error codes: a duplicate username or e-mail is
+shown under its field, and the login of a pending or disabled account explains the reason. This
+first version deliberately leaves out the automatic renewal of the token. The test users are the
+same in the mock and in the development database.
 
 \paragraph{Quality.} TypeScript is used in strict mode, and every change is checked by the
 compiler, by a linter (oxlint) and by a formatter (Prettier). Each page was then verified in the

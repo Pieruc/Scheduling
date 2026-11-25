@@ -4,6 +4,7 @@ import { OperatorLayout } from '@/app/layouts/OperatorLayout'
 import { RouteError } from '@/app/RouteError'
 import { AuditPage } from '@/features/audit/AuditPage'
 import { LoginPage } from '@/features/auth/LoginPage'
+import { RegisterPage } from '@/features/auth/RegisterPage'
 import { RequireAuth } from '@/features/auth/RequireAuth'
 import { ConfigurationPage } from '@/features/configuration/ConfigurationPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
@@ -12,6 +13,7 @@ import { ModelInfoPage } from '@/features/model-info/ModelInfoPage'
 import { OrdersPage } from '@/features/orders/OrdersPage'
 import { PlanGanttPage } from '@/features/plan-review/PlanGanttPage'
 import { ReschedulePage } from '@/features/plan-review/ReschedulePage'
+import { UsersPage } from '@/features/users/UsersPage'
 import { NewPlanPage } from '@/features/planning/NewPlanPage'
 import { CandidatesPage } from '@/features/plans/CandidatesPage'
 import { PlansListPage } from '@/features/plans/PlansListPage'
@@ -19,6 +21,7 @@ import { PlansListPage } from '@/features/plans/PlansListPage'
 /** Tutte le rotte dell'app (vedi FRONTEND_STRUTTURA.md §4). */
 export const router = createBrowserRouter([
   { path: 'login', element: <LoginPage />, errorElement: <RouteError /> },
+  { path: 'registrazione', element: <RegisterPage />, errorElement: <RouteError /> },
   {
     // pianificatore e amministratore
     element: (
@@ -53,6 +56,14 @@ export const router = createBrowserRouter([
       { path: 'configurazione', element: <Navigate to="/configurazione/risorse" replace /> },
       { path: 'configurazione/:tab', element: <ConfigurationPage /> },
       { path: 'modello', element: <ModelInfoPage /> },
+      {
+        path: 'utenti',
+        element: (
+          <RequireAuth permission="admin">
+            <UsersPage />
+          </RequireAuth>
+        ),
+      },
       {
         path: 'audit',
         element: (

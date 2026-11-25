@@ -87,6 +87,21 @@
   font-size: 13px;
 }
 
+/* Registrazione inviata */
+.sent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sent p {
+  margin: 0;
+}
+
+.sent .submit {
+  text-decoration: none;
+}
+
 /* Rotte protette */
 .denied {
   margin: 0;

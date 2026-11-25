@@ -26,6 +26,9 @@ export const queryKeys = {
     all: ['audit'] as const,
     list: (period: string) => ['audit', { period }] as const,
   },
+  users: {
+    all: ['users'] as const,
+  },
   models: {
     active: ['models', 'active'] as const,
     versions: ['models', 'versions'] as const,

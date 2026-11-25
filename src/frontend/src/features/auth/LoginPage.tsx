@@ -4,7 +4,7 @@ import { InputText } from 'primereact/inputtext'
 import { Password } from 'primereact/password'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Navigate, useLocation, useNavigate, type Location } from 'react-router'
+import { Link, Navigate, useLocation, useNavigate, type Location } from 'react-router'
 import { z } from 'zod'
 import { ApiError, errorMessage } from '@/api/errors'
 import { FormField } from '@/components/FormField'
@@ -22,6 +22,21 @@ type Values = z.infer<typeof schema>
 
 /** Con il backend finto mostriamo gli utenti di prova (mocks/data/users.ts) */
 const MOCKS = import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS === 'true'
+
+/** Il motivo per cui il login non è riuscito, in parole (codici del backend, contratto A.1) */
+function loginFailure(error: unknown) {
+  if (error instanceof ApiError) {
+    const code = error.errors[0]?.code
+    if (code === 'ACCOUNT_PENDING') {
+      return 'Il tuo account aspetta ancora l’approvazione di un amministratore.'
+    }
+    if (code === 'ACCOUNT_DISABLED') {
+      return 'Il tuo account è stato disattivato. Chiedi a un amministratore di riattivarlo.'
+    }
+    if (error.status === 401) return 'Nome utente o password errati.'
+  }
+  return errorMessage(error)
+}
 
 /** Mockup v2, schermata 0: /login. Login di prova, senza rinnovo del token */
 export function LoginPage() {
@@ -57,11 +72,7 @@ export function LoginPage() {
         (back.pathname.startsWith('/operatore') ? can(logged, 'operator') : can(logged, 'office'))
       navigate(allowed ? back : homeOf(logged), { replace: true })
     } catch (error) {
-      setFailure(
-        error instanceof ApiError && error.status === 401
-          ? 'Nome utente o password errati.'
-          : errorMessage(error),
-      )
+      setFailure(loginFailure(error))
       setValue('password', '')
       setFocus('password')
     }
@@ -125,7 +136,8 @@ export function LoginPage() {
         </form>
 
         <p className={styles.footnote}>
-          Il pianificatore va alla dashboard, l’operatore alle sue attività di oggi.
+          Non hai un account? <Link to="/registrazione">Registrati</Link>: un amministratore
+          approverà la richiesta e ti assegnerà il ruolo.
         </p>
 
         {MOCKS && (

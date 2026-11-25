@@ -12,7 +12,7 @@ export function UserBox({ className }: { className?: string }) {
   return (
     <div className={`${styles.userBox} ${className ?? ''}`}>
       <span className={styles.userName}>
-        <span>{user.displayName ?? user.username}</span>
+        <span>{user.fullName ?? user.username}</span>
         <span className={styles.userRole}>
           {[user.department, roleText(user)].filter(Boolean).join(' · ')}
         </span>

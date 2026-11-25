@@ -79,6 +79,7 @@ URL o un campo, si tocca solo `api/`.
 | Rotta | Pagina | Mockup v2 | Ruoli | Endpoint principali |
 |---|---|---|---|---|
 | `/login` | Accesso | 0 | pubblico | `POST /auth/login` |
+| `/registrazione` | Richiesta di un account | – | pubblico | `POST /auth/register` |
 | `/` | Dashboard | 1 | PLANNER, ADMIN | `GET /kpis`, `GET /alerts`, `GET /plan-requests?limit=4` |
 | `/commesse` · `/commesse/:id` | Commesse + grafo | 2 | PLANNER, ADMIN | `/orders`, `/orders/{id}/process-graph` |
 | `/pianifica` | Nuova pianificazione | 3 | PLANNER | `POST /plan-requests/interpret`, `POST /plan-requests` |
@@ -89,10 +90,8 @@ URL o un campo, si tocca solo `api/`.
 | `/operatore` | Attività di oggi | 6 | OPERATOR | `GET /operator/today`, `POST /executions`, `POST /incidents` |
 | `/configurazione/:tab` | Configurazione | 8 | PLANNER, ADMIN | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
 | `/modello` | Modello AI | 9 | PLANNER, ADMIN | `GET /models/active`, `GET /models`, `GET /models/status` |
+| `/utenti` | Utenti: richieste in attesa e account | – | ADMIN | `GET /users`, `POST /users/{id}/approve`, `PATCH`/`DELETE /users/{id}` |
 | `/audit` | Audit | 10 | ADMIN | `GET /audit` |
-
-Da fare: **registrazione** (`/registrazione`, `POST /auth/register`) e **gestione utenti** per
-l'amministratore (`/users`, approvazione con ruolo), già presenti nel backend.
 
 ## 5. Come si gestiscono i dati
 
@@ -123,6 +122,10 @@ ferma. La pagina mostra la fase in corso (validazione, stima M1, costruzione M2,
   mostra solo le voci del proprio ruolo. Il controllo vero resta al backend (403).
 - Utenti di prova (uguali nel backend, profilo `dev`): `pianificatore`, `operatore`,
   `amministratore`, password `demo`. Con i mock si entra anche a campi vuoti.
+- **Registrazione**: chiunque chiede un account da `/registrazione`; resta *in attesa* finché un
+  amministratore, da `/utenti`, non lo approva scegliendo il ruolo (o lo rifiuta). Il login di un
+  account in attesa o disattivato mostra il motivo (`ACCOUNT_PENDING`, `ACCOUNT_DISABLED`).
+  La barra laterale dell'amministratore mostra quante richieste aspettano.
 
 ## 6. Il Gantt delle risorse
 
@@ -176,11 +179,8 @@ che serve al progetto. Il riferimento per ogni campo sono i tipi in `src/api/typ
 in `src/mocks/`.
 
 Punti ancora aperti, lato frontend:
-- **Nome dell'utente**: il backend usa `fullName`; il frontend oggi legge `displayName`.
-  Si allinea a `fullName` insieme alle pagine di registrazione e gestione utenti.
-- **Una risorsa per alternativa**: il backend accetta un solo `resourceId` per modo
-  (`MODE_RESOURCE_COUNT`); il form attività del frontend oggi permette di sceglierne più d'una.
-  Da correggere nel form (un menu a scelta singola per alternativa).
+- **Nome dell'utente nel login**: il frontend legge `user.fullName`; il backend oggi non lo manda
+  ancora nella risposta del login (si vede lo username finché non c'è).
 - **Codici delle risorse**: il backend usa codici brevi (`LASER`, `CNC2`), i mock del frontend
   `R-LAS-01`, `R-CNC-02`: sono opachi per il frontend, cambiano solo i dati di prova.
 
@@ -194,7 +194,7 @@ Punti ancora aperti, lato frontend:
 | 4. Gantt e revisione | Gantt, validazione degli spostamenti, approva/modifica/rifiuta, ripianificazione da segnalazione | fatto |
 | 5. Resto | Vista operatore, dashboard, Modello AI, audit | fatto |
 | 6. Login e ruoli | Login di prova, menu e rotte per ruolo | fatto (versione semplice) |
-| 7. Utenti | Registrazione, approvazione e gestione utenti | da fare |
+| 7. Utenti | Registrazione, approvazione e gestione utenti | fatto |
 | 8. Integrazione | Spegnere i mock un'area alla volta man mano che il backend implementa gli endpoint | da fare |
 
 Ogni passo è verificato nel browser (flussi completi, errori, accessibilità: contrasto,

@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/authContext'
 import { can, type Permission } from '@/features/auth/permissions'
 import { UserBox } from '@/features/auth/UserBox'
 import { useActiveModels } from '@/features/model-info/hooks'
+import { useUsers } from '@/features/users/hooks'
 import styles from './Sidebar.module.css'
 
 /** "m2-policy-1.3.0" -> "M2 Policy v1.3" */
@@ -32,6 +33,7 @@ const NAV: NavGroup[] = [
     items: [
       { to: '/configurazione', label: 'Configurazione' },
       { to: '/modello', label: 'Modello AI' },
+      { to: '/utenti', label: 'Utenti', permission: 'admin' },
       { to: '/audit', label: 'Audit', permission: 'admin' },
     ],
   },
@@ -46,6 +48,9 @@ type SidebarProps = {
 export function Sidebar({ id, open }: SidebarProps) {
   const { data: models, isError: modelsError } = useActiveModels()
   const { user } = useAuth()
+  // L'amministratore vede quante registrazioni aspettano la sua approvazione
+  const { data: users } = useUsers(can(user, 'admin'))
+  const pending = users?.filter((u) => u.status === 'PENDING').length ?? 0
   const modelLabel = models
     ? shortModelName(models.policy.version)
     : modelsError
@@ -73,6 +78,14 @@ export function Sidebar({ id, open }: SidebarProps) {
                 }
               >
                 {item.label}
+                {item.to === '/utenti' && pending > 0 && (
+                  <span
+                    className={styles.badge}
+                    aria-label={`${pending} ${pending === 1 ? 'richiesta' : 'richieste'} in attesa`}
+                  >
+                    {pending}
+                  </span>
+                )}
               </NavLink>
             ))}
         </div>

@@ -47,7 +47,8 @@ activities of the day. Table~\ref{tab:pages} lists the pages.
     \toprule
     \textbf{Page} & \textbf{Roles} & \textbf{Purpose} \\
     \midrule
-    Login & all & Access with username and password \\
+    Login, registration & all & Access with username and password; request of a new
+      account \\
     Dashboard & planner, admin & Indicators of the last weeks, open alerts, utilisation per
       resource, recent requests \\
     Orders & planner, admin & Orders, process graph of the activities, alternative resources
@@ -63,6 +64,8 @@ activities of the day. Table~\ref{tab:pages} lists the pages.
     Today's activities & operator & Start, pause, finish; problem reports \\
     Configuration & planner (read), admin & Resources, calendars, skills, domain profiles \\
     AI model & planner, admin & Active models, metrics, fallback chain, version history \\
+    Users & admin & Pending registrations to approve with a role, accounts to enable or
+      disable \\
     Audit & admin & Who did what, when and with which model; CSV export \\
     \bottomrule
   \end{tabular}
@@ -202,6 +205,17 @@ Three pages make the behaviour of the system visible.
         reschedulings, fallbacks. Each record shows the model version and the hashes of input and
         output, with which the plan can be reproduced, and can be exported as CSV.
 \end{itemize}
+
+\section{Users}
+\label{sec:ui-users}
+
+Anyone can ask for an account from the registration page, giving name, username, e-mail and
+password; the account is created \emph{pending}, without a role. The administrator finds the
+pending requests at the top of the users page, with their number also shown next to the menu
+entry, and approves each of them by choosing a role, or rejects it. Below, the list of the
+accounts lets the administrator change a role or disable and re-enable an account; the
+administrator cannot disable or demote their own account, so the system always keeps an
+administrator. A user who tries to log in while pending or disabled is told why.
 
 \section{Configuration}
 \label{sec:ui-configuration}

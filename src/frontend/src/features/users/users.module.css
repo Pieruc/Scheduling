@@ -1,0 +1,129 @@
+.muted {
+  margin: 0;
+  color: var(--fs-muted);
+}
+
+.meta {
+  color: var(--fs-muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.you {
+  color: var(--fs-muted);
+  font-weight: 400;
+}
+
+/* Richieste in attesa */
+.pendingList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pending {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--fs-border-soft);
+}
+
+.pending:first-child {
+  padding-top: 0;
+}
+
+.pending:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.pendingActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pendingActions :global(.p-button) {
+  min-height: 44px;
+}
+
+.roleSelect {
+  width: 190px;
+  min-height: 44px;
+}
+
+/* Account */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.search {
+  flex: 1 1 260px;
+  max-width: 380px;
+}
+
+.search :global(.p-inputtext) {
+  width: 100%;
+  min-height: 44px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  border-bottom: 1px solid var(--fs-border-soft);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table thead th {
+  border-bottom-color: var(--fs-border);
+  color: var(--fs-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.table tbody th {
+  font-weight: 400;
+}
+
+.table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.disabled .name,
+.disabled td {
+  color: var(--fs-muted);
+}
+
+.actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.actions :global(.p-button) {
+  min-height: 44px;
+}
