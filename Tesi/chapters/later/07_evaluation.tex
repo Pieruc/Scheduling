@@ -3,12 +3,166 @@
 
 \section{Methodology}
 \label{sec:methodology}
-% TODO: metrics (gap to best known, wins over ATC/EDD, response time, MAE and interval coverage
-% for M1), validation and test sets.
+
+\paragraph{Data.} Two kinds of instances are used. The \emph{benchmarks} are 579 public job shop
+and flexible job shop instances converted into the unified schema
+(Table~\ref{tab:benchmarks}); they have no due dates, so their only objective is the makespan,
+and for 152 JSPLIB instances the best known makespan is available. The \emph{generated
+instances} are 200 FACTORY and 200 PA instances produced by the generator of
+Section~\ref{sec:generator} with seeds 0--199; they have due dates, job weights and random
+objective weights.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lrr@{}}
+    \toprule
+    \textbf{Dataset} & \textbf{Instances} & \textbf{With best known value} \\
+    \midrule
+    Brandimarte~\cite{brandimarte1993}          & 10  & -- \\
+    Hurink (edata, rdata, sdata, vdata)         & 264 & -- \\
+    Barnes                                      & 21  & -- \\
+    Dauzère-Pérès and Paulli                    & 18  & -- \\
+    Fattahi                                     & 20  & -- \\
+    Kacem                                       & 4   & -- \\
+    JSPLIB (incl.\ Taillard~\cite{taillard1993}) & 162 & 152 \\
+    Demirkol                                    & 80  & -- \\
+    \midrule
+    Total                                       & 579 & 152 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Benchmark instances converted into the unified schema}
+  \label{tab:benchmarks}
+\end{table}
+
+\paragraph{Metrics.} On the benchmarks, the quality of a plan is measured by the gap of its
+makespan from the best known value. On the generated instances it is measured by the weighted
+tardiness and by the cost of Section~\ref{sec:objective}, which combines makespan, weighted
+tardiness and setup with the objective weights of the instance. Every plan is verified by the
+feasibility checker before it is counted.
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: metrics of M2: cost and weighted tardiness
+% against ATC/EDD, share of instances where M2 wins, response time; test set of the dataset.
+% TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: metrics of M1: MAE, coverage of the prediction
+% intervals.
 
 \section{Results}
 \label{sec:results}
-% TODO: tables and charts.
+
+\subsection{Due dates of the generator}
+\label{sec:eval-generator}
+
+The first version of the generator set the due date of a job as its release date plus its
+critical path plus a random slack, without considering the load of the shared resources. With
+this rule the due dates were too loose: even with EDD, 61\% of the FACTORY instances and 79\% of
+the PA instances had no tardiness at all, so tardiness could not discriminate between good and
+bad schedules. Adding the estimated makespan to the slack term
+(Section~\ref{sec:generator}) reduced these shares to 12\% and 18\%. Several slack ranges were
+compared; the chosen ones (0--0.6 for FACTORY, 0--0.4 for PA) keep most instances tardy without
+making all jobs hopelessly late.
+
+\subsection{Dispatching rules}
+\label{sec:eval-rules}
+
+All 579 benchmark instances receive a feasible plan from both rules, in 1 to 105~ms per
+instance. On JSPLIB the average gap from the best known makespan is 36.3\% for EDD and 48.7\% for
+ATC ($K=2$), and no makespan falls below the known lower bound. The gap is large, as expected:
+without due dates EDD reduces to ``earliest completion first'' and ATC to weight over duration,
+and neither is designed for the makespan.
+
+On the generated instances (Table~\ref{tab:rules}) ATC clearly beats EDD on weighted tardiness:
+by 20\% on FACTORY and by 40\% on PA with $K=1$. The parameter $K=1$ is better than or equal to
+$K=2$ in almost all configurations.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    \textbf{Profile} & \textbf{EDD} & \textbf{ATC, $K=1$} & \textbf{ATC, $K=2$} \\
+    \midrule
+    FACTORY & 925  & 739  & 747 \\
+    PA      & 4115 & 2465 & 2758 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Average weighted tardiness of the dispatching rules on the generated instances}
+  \label{tab:rules}
+\end{table}
+
+\subsection{CP-SAT teacher}
+\label{sec:eval-teacher}
+
+As a check of the model, the teacher was run on the 22 JSPLIB instances with a proven optimum
+among ft06, ft10, ft20 and la01--la19, with a limit of 5~seconds each: it proved optimality and
+found the optimal makespan in all cases.
+
+Table~\ref{tab:teacher} reports the results on the generated instances, with a limit of 10
+seconds and 8 threads per instance.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lrrrr@{}}
+    \toprule
+    \textbf{Profile} & \textbf{Proven optimal} & \textbf{Median gap} & \textbf{Cost vs best rule}
+      & \textbf{Avg.\ time (s)} \\
+    \midrule
+    FACTORY & 95 / 200  & 4.5\% & $-27.9\%$ & 5.9 \\
+    PA      & 141 / 200 & 0.0\% & $-32.8\%$ & 3.9 \\
+    \bottomrule
+  \end{tabular}
+  \caption{CP-SAT teacher on the generated instances. The gap is between the solution and the
+           lower bound proven by CP-SAT; the best rule is the best of EDD, ATC with $K=1$ and ATC
+           with $K=2$ on each instance.}
+  \label{tab:teacher}
+\end{table}
+
+The teacher improves on the best dispatching rule by about 30\%, so there is room for a learned
+policy to beat ATC. Most FACTORY instances that reach the time limit have sequence-dependent
+setups: for them the lower bound proven by CP-SAT is weak, so a high gap does not necessarily
+mean a poor solution. With several threads CP-SAT is not deterministic, and two runs can return
+different plans when optimality is not proven; this is why the solutions are saved and the
+dataset is built from them.
+
+\subsection{Training dataset}
+\label{sec:eval-dataset}
+
+Table~\ref{tab:dataset} shows the size of the first version of the dataset for M2, built from
+the 400 teacher solutions without any filter on the gap. A step has on average 7.4 candidates in
+FACTORY and 12.8 in PA; only 4.5\% and 2.7\% of the steps have a single candidate, i.e.\ no
+real decision.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lrrr@{}}
+    \toprule
+    \textbf{Split} & \textbf{Instances} & \textbf{Steps (queries)} & \textbf{Candidates} \\
+    \midrule
+    Training   & 287 & 16\,198 & 178\,550 \\
+    Validation & 64  & 3\,472  & 35\,458 \\
+    Test       & 49  & 2\,705  & 24\,170 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Dataset v1 for the policy M2}
+  \label{tab:dataset}
+\end{table}
+
+The plan obtained by replaying the labels in the dispatcher costs on average 3.2\% more than the
+teacher on FACTORY and 5.0\% more on PA. The loss comes from the dispatcher, which appends
+activities to the resources and proposes only active candidates, so some sequences of the
+teacher cannot be reproduced exactly; in 17 FACTORY instances the replay is even better than a
+non-optimal teacher solution. The replay is still 26.0\% (FACTORY) and 30.3\% (PA) cheaper than
+the best rule. This is the upper limit of what a perfect imitator can achieve with this
+dispatcher, and the target for the policy M2.
+
+% TODO [Gantt 10 / Milestone M1, 11 Dec 2026 - Pilot outcome]: results of M2 against EDD, ATC and
+% CP-SAT on the test set; go / no-go decision.
+% TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: results of M1 on the event logs.
+% TODO [Gantt 14, P1, 8-29 Jan 2027 - Generalization experiments]: M2 on instances larger than
+% the training ones, on the other profile, on the benchmarks (Brandimarte, JSPLIB) and with
+% calibrated profiles.
+% TODO [Gantt 29, P1, 18 Jan-3 Feb 2027 - Experimental evaluation and shadow mode]: response time
+% of the AI service, plans computed in shadow mode next to the real ones.
 
 \section{Discussion}
 \label{sec:discussion}

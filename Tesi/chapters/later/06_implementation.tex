@@ -1,27 +1,187 @@
 \chapter{Implementation}
 \label{chap:implementation}
 
-% One section per area, written by the team member who developed it
-% (see Section~\ref{sec:contributions}).
+This chapter describes how the three parts of FlowSync are implemented: the database and the
+backend, the frontend, and the AI module. Each section is written by the team member who developed
+that part (Section~\ref{sec:contributions}).
+% NOTE: Sections \ref{sec:impl-db}, \ref{sec:impl-backend} and \ref{sec:impl-frontend} are first
+% drafts written from the code and the READMEs: to be reviewed and extended by A. Brutti and
+% M. Brizi.
 
 \section{Data model and migrations}
 \label{sec:impl-db}
-% TODO (A. Brutti): main tables, design choices (VARCHAR + CHECK instead of ENUM, UTC DATETIME,
-% JSON for ProblemSpec and KPIs), view providing the training data for M1.
+
+The database is MySQL~8.4, and its schema is created and versioned with Flyway. It has 23 tables
+and one view, grouped by the modules of the backend: security (users and roles), configuration
+(domain profiles, calendars with shifts and holidays, resources, skills, unavailabilities),
+orders (work orders, activities, allowed resources, precedences, setup times), planning
+(requests, candidate plans, assignments), decisions, execution, audit and model versions.
+Hibernate does not generate the schema: it only validates the entities against it
+(\texttt{ddl-auto: validate}), so a mismatch between code and database stops the application at
+startup. An applied migration is never modified; every change is a new migration.
+
+The main design choices are the following.
+\begin{itemize}
+  \item \textbf{Enumerations as \texttt{VARCHAR} with a \texttt{CHECK} constraint} instead of the
+        MySQL \texttt{ENUM} type: adding a value costs a one-line migration.
+  \item \textbf{Timestamps in UTC} (\texttt{DATETIME(6)}, \texttt{Instant} in Java); the time
+        zone is applied by the frontend. Shifts are the exception, since they are local times of
+        a calendar.
+  \item \textbf{JSON columns} for the problem specification, the objective weights, the KPI
+        details and the audit payloads (Section~\ref{sec:persistence}). The KPIs used for sorting and
+        filtering are ordinary columns.
+  \item \textbf{The problem specification is stored as a snapshot} in each planning request, so a
+        plan remains reproducible even if orders or resources change later. Each real request
+        also becomes a potential training example.
+  \item \textbf{Execution events are append-only}. The view \texttt{v\_activity\_actuals}
+        compares the actual duration of each activity with the estimate of M1: in production it
+        is the training set of M1.
+  \item \textbf{Optimistic locking} on orders and plans, so that two planners editing the same
+        plan do not overwrite each other.
+\end{itemize}
+A demo data set, loaded only in the development profile, reproduces the workshop of the mockups
+(nine resources, four orders, a maintenance window). In development, MySQL runs in a Docker
+container defined by a Compose file, which Spring Boot starts automatically.
+% TODO (A. Brutti): domain class diagram; tables of the planning and execution modules.
 
 \section{Backend services}
 \label{sec:impl-backend}
-% TODO (A. Brutti): code example, e.g. validation of an activity move.
+
+The backend is a Spring Boot~3.5 application on Java~21, organised as a modular monolith with one
+package per module.
+
+\paragraph{Errors and API documentation.} Every error is returned in the format defined by
+RFC~7807 (media type \texttt{application/\allowbreak problem+json}), including those raised by
+the security filters, with a trace identifier that also appears in the logs. Input that is syntactically valid
+but inconsistent returns status 422 with the list of errors (code, path, message), so that the
+frontend can show each message next to its field. The API is documented with OpenAPI and Swagger
+UI.
+
+\paragraph{Security.} Authentication uses JSON Web Tokens signed with HS256, validated by the
+resource server of Spring Security without additional libraries. An access token lasts 15
+minutes and a refresh token 7 days; a claim distinguishes the two, so a refresh token cannot be
+used to call the API. The refresh step reads the user again from the database, so a disabled
+account or a changed role takes effect at the next renewal. New users register themselves, but
+their account stays pending until an administrator approves it and assigns a role (ADMIN,
+PLANNER or OPERATOR). The login of a pending account reveals its state only if the password is
+correct, so the endpoint does not disclose information about other accounts.
+
+\paragraph{Configuration.} Resources can be listed, created, updated and deactivated (the last
+three operations are reserved to administrators). Skills and calendars feed the drop-down lists
+of the frontend, with a readable summary of the shifts of each calendar. The public identifier of
+a resource is its code (e.g.\ \texttt{LASER}), never the numeric key of the database.
+
+\paragraph{Tests.} The integration tests run against a real MySQL~8.4 started by Testcontainers.
+They check that the migrations and the entities are consistent, the authentication flows,
+registration and approval, and the permissions and error codes of the API.
+% TODO [Gantt 17, P2, until 4 Dec 2026 - Security and CRUD]: orders, activities and process
+% graph (cycle check), domain profiles.
+% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - Scheduling and AI client]: construction of the
+% ProblemSpec, planning requests (202 + polling), rescheduling; code example.
+% TODO [Gantt 19, P2, 8-22 Jan 2027 - Decisions, execution, KPIs, audit]: approval and changes of a
+% plan with validation of an activity move, execution events, KPIs, audit log.
+% TODO [Gantt 20, P2, 18-29 Jan 2027 - Public API and CloudEvents]: public API for external
+% systems and events in the CloudEvents format.
 
 \section{Frontend}
 \label{sec:impl-frontend}
-% TODO (M. Brizi): structure of the React application, resource Gantt chart, state management.
 
-\section{AI service and training}
+The frontend is a single-page application in React and TypeScript, built with Vite. It uses
+PrimeReact for the components, React Router for navigation, TanStack Query for server data,
+React Hook Form with Zod for the forms and React Flow for the process graph editor. A global state
+store is not needed, because almost all the state is server data cached by TanStack Query.
+
+\paragraph{Mock-first development.} The frontend was developed in parallel with the backend
+against a mock implemented with Mock Service Worker. The mock intercepts the real HTTP calls and
+answers with the formats of the API contracts, so the pages do not change when the real endpoint
+replaces the mock. Planning requests are asynchronous: the page polls the request until it is no
+longer pending.
+
+\paragraph{Screens.} The application implements the ten screens of the mockup:
+\begin{itemize}
+  \item a dashboard with KPIs, alerts and utilisation;
+  \item orders, with a graph editor in which activities are nodes and precedences are edges;
+  \item a new planning request, with an interpretation step for the text written by the
+        planner;
+  \item the comparison of the three candidate plans and the list of all plans;
+  \item the review of a plan on a resource Gantt chart, with approval, rejection and
+        rescheduling after an incident;
+  \item the operator view, to start, pause and finish activities and to report problems;
+  \item configuration (resources, calendars, skills, domain profiles);
+  \item the active AI model, with its metrics, the fallback chain and the version history;
+  \item the audit log, with filters, record details and CSV export.
+\end{itemize}
+After the login, each role sees only its menu entries and routes, and the API client sends the
+access token with every request.
+
+\paragraph{Resource Gantt chart.} The chart is developed in-house, because the free libraries are
+mostly task-oriented (one row per activity), while FlowSync needs one row per resource. Bars can
+be dragged in time, with a snap of a few minutes, and from one resource to another. A move is
+first checked in the browser (precedences, overlaps, unavailability, allowed resources) and the
+bar returns to its place if the move is not valid; the backend repeats the check when the change
+is confirmed.
+% TODO (M. Brizi): screenshots of the main screens; structure of the application.
+% TODO [Gantt 23, P3, until 4 Dec 2026 - React setup, auth, configuration]: real login and
+% configuration screens on the real backend (replacing the mocks).
+% TODO [Gantt 24, P3, 30 Nov-23 Dec 2026 - Orders and graph editor]: orders and process graph on
+% the real backend; errors of the graph (e.g. cycles) shown on the nodes.
+% TODO [Gantt 25, P3, 8-29 Jan 2027 - Gantt view and review]: Gantt chart and plan review on real
+% plans; validation of the moves by the backend.
+% TODO [Gantt 26, P3, 25 Jan-3 Feb 2027 - KPI dashboard]: dashboard on real KPIs.
+
+\section{AI module}
 \label{sec:impl-ai}
-% TODO (L. Pierucci): FastAPI service, simulator, model training.
 
-\section{Integration with the AI service}
+The AI module is a Python~3.12 package that uses Pydantic for the data models and
+OR-Tools~\cite{ortools} for CP-SAT. Its parts follow the training pipeline of
+Chapter~\ref{chap:ai}; each can be used from Python or from the command line, and writes its
+results as JSON or CSV files.
+
+\paragraph{Instance schema and converters.} The unified instance schema
+(Section~\ref{sec:instance-schema}) is a set of Pydantic models; the validator returns a list of
+issues with the same error codes used by the API. Two converters translate the public benchmarks
+into the schema: one for the flexible job shop format (Brandimarte~\cite{brandimarte1993},
+Hurink, Barnes, Dauzère-Pérès and Paulli, Fattahi, Kacem) and one for the classic job shop
+(JSPLIB, which includes the Taillard instances~\cite{taillard1993}, and Demirkol). For JSPLIB the
+converter also stores the best known makespan and lower bound of each instance, which are used to
+measure the gap of a plan. Every converted file is validated before it is written.
+
+\paragraph{Dispatcher and rules.} The dispatcher exposes two operations, \texttt{candidates()}
+and \texttt{apply(candidate)}; a decision maker is any function that receives the dispatcher and
+the candidates and returns one of them. A candidate remembers the step at which it was computed,
+so applying a stale candidate is rejected. Ties are broken by completion time and then by the
+order of the activities in the instance, so every result is deterministic. Each plan is then
+verified by an independent feasibility checker, written without reusing the code of the
+dispatcher, so that an error in the dispatcher cannot hide in the checker too.
+
+\paragraph{Teacher and dataset.} The teacher saves one JSON file per instance with the plan, the
+cost, the lower bound proven by CP-SAT, the cost of the best rule and the parameters of the run,
+including the version of OR-Tools. Instances that already have a solution are skipped, so a long
+run can be interrupted and resumed. Since CP-SAT with several threads is not deterministic, the
+dataset is always built from the saved solutions, not by solving again. The dataset builder
+writes one CSV file per split, with one row per candidate, and the manifest described in
+Section~\ref{sec:dataset-construction}.
+
+\paragraph{Tests.} Every module has unit tests, including the conversion of all the real
+benchmark files, the feasibility of the plans of the rules and of the teacher, the optimality of
+the teacher on small instances with a known solution, and the consistency of the dataset (exactly
+one positive candidate per step, deterministic split).
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: training code of M2 and model files.
+% TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: conversion of the event logs, training of M1.
+% TODO [Gantt 12-13, P1, 14-23 Dec 2026 and 8-15 Jan 2027 - FastAPI AI service]: endpoints
+% POST /optimize, POST /validate and GET /health, loading of the active model, fallback chain,
+% KPIs, response time.
+
+\section{Integration}
 \label{sec:impl-integration}
-% TODO (A. Brutti): client with timeout, retry and circuit breaker; asynchronous handling
-% (202 + polling).
+
+The three parts communicate only through the contracts of Section~\ref{sec:contracts}, and were
+developed in parallel against mocks of each other (Section~\ref{sec:tools}). Integration
+consists in replacing each mock with the real component, one endpoint at a time.
+% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - AI client, mock first]: client of the AI service with
+% timeout, retry and circuit breaker (Resilience4j), first against a mock of the AI service.
+% TODO [Milestone M2, 23 Dec 2026 - Minimal end-to-end system]: first complete flow from the
+% frontend to a plan computed by the AI service.
+% TODO [Gantt 28, P1-P3, 18-29 Jan 2027 - Docker Compose and end-to-end integration]: one
+% container per block, start of the whole system with one command, end-to-end tests.
+% TODO [Gantt 30, P1-P3, 25 Jan-5 Feb 2027 - Testing and fixes]: test results and fixes.

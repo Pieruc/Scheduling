@@ -1,30 +1,120 @@
 \chapter{Methodologies}
 \label{chap:methodologies}
 
-% TODO: short introduction to the chapter.
+This chapter describes how the project was carried out: the development process, the way the
+requirements and the architecture were modelled, the tools used to work together, the
+methodology followed for the AI part, and the measures taken to ensure the quality of the
+result.
 
 \section{Development process}
 \label{sec:process}
-% TODO: iterative, agile-inspired process: short iterations, milestones as checkpoints,
-% regular meetings, how the backlog and the Gantt chart were updated.
+
+The project followed an iterative process inspired by agile methods. Instead of a single
+sequence of phases, the work was split into activities of one to three weeks, with five
+milestones used as checkpoints (Table~\ref{tab:milestones}). At each milestone the team checks
+what has been achieved and, if needed, updates the plan.
+
+The first two weeks were dedicated to the analysis of the domain and of the available data, to
+the architecture and to the contracts between the components. This phase ended with milestone M0
+(6 November 2026), in which the project, the plan and the architecture were presented to the
+supervisor. From 9 November the three development lanes (AI, backend, frontend) run in parallel,
+each owned by one member of the team (Section~\ref{sec:contributions}); they meet at the
+integration milestone M2 and at the feature freeze M3.
+
+The plan itself was treated as a living artefact. The Gantt chart went through six versions:
+the third aligned the activities with the components of the architecture, and the sixth
+reorganised them into short, overlapping activities, so that each part could deliver something
+usable early and be integrated step by step. Milestone M1, the comparison of a first model with
+the ATC rule, was placed early on purpose: it is a go/no-go decision on the most uncertain part
+of the project, taken while there is still time to react.
+% TODO: frequency and format of the team meetings; how tasks were assigned and tracked between
+% milestones; outcome of each milestone (see Section~\ref{sec:milestones}).
 
 \section{Requirements and modelling}
 \label{sec:modelling}
-% TODO: requirements elicitation, architecture decision records (ADRs), UML models in Visual
-% Paradigm (component diagram, class diagram), mockups.
+
+The requirements were derived from the analysis of the three application domains of
+Section~\ref{sec:domain}: for each domain the team listed the resources, the activities, the
+constraints and the objectives, and looked for what they have in common. In parallel, a survey of
+the public data sets identified, for each domain, which data could be used to calibrate the
+instance generator or to validate the models, and under which licence; for the domains without
+reliable public data, only synthetic instances are used.
+% TODO: requirements elicitation and the list of functional and non-functional requirements
+% (draft in chapters/later/03_requirements.tex).
+
+The architecture was modelled in Visual Paradigm with a UML component diagram
+(Figure~\ref{fig:architecture}), later complemented by sequence diagrams of the main
+interactions. Each architectural choice was written down together with its motivation and the
+alternatives that were discarded, in the style of architecture decision records (ADRs); open
+points, such as the use of CP-SAT in the online fallback, were recorded as such instead of being
+decided implicitly in the code. The same practice was followed during development: the AI part,
+for instance, keeps a log of its design decisions, each with its reason.
+
+The user interface was designed with HTML mockups of all the screens, revised once before the
+frontend was developed, and the database with an entity-relationship model
+(Figure~\ref{fig:er}).
+% TODO: sequence diagrams to be included (FlowSync_SequenceDiagrams_VP.xml).
 
 \section{Collaboration and tools}
 \label{sec:tools}
-% TODO: Git and GitHub (branching, pull requests), shared contracts (OpenAPI, ProblemSpec),
-% documentation kept alongside the code, onlinegantt.com for planning.
+
+All the artefacts of the project live in a single Git repository hosted on GitHub: the code of
+the three parts, the architecture model, the mockups, the API contracts, the planning and this
+thesis. Commits are small, and most messages start with the area they touch (e.g.\
+\emph{frontend:}), so the history of each part can be followed separately.
+
+The interfaces between the parts were agreed \emph{before} the code, in a shared contracts
+document (Section~\ref{sec:contracts}). Each part could then be developed against the contract
+instead of waiting for the others: the frontend against a mock of the backend, the backend
+against a mock of the AI service. When a part needs a change to a contract, the change is
+proposed in the document and agreed with the other members.
+
+Documentation is kept next to the code: each part has a README with its structure, the commands
+to run it and the choices made, and differences from the contracts are listed explicitly. The
+plan is maintained with an online Gantt tool (onlinegantt.com), whose files are versioned in the
+repository. Docker is used to run the database and the services locally in the same way on
+every machine, and this thesis is written in LaTeX in the same repository.
+% TODO: branching and pull request policy, if adopted later.
 
 \section{AI methodology}
 \label{sec:ai-methodology}
-% TODO: imitation learning with CP-SAT as offline teacher; synthetic instances from a generator;
-% real event logs for M1; separation between training, validation and test sets; dispatching
-% rules (EDD, ATC) as baselines.
+
+The AI part follows the methodology of imitation learning (Section~\ref{sec:ml-scheduling}):
+an exact solver, CP-SAT, is used only offline as a teacher, and a fast model learns to imitate
+its decisions. The details are in Chapter~\ref{chap:ai}; here we summarise the principles.
+\begin{itemize}
+  \item \textbf{Synthetic training data, real data for calibration and validation.} The models
+        are trained on instances produced by a generator, because for many domains no reliable
+        public data exist. Public benchmarks are used to calibrate the generator and to validate
+        the results, real event logs to train and validate the duration model M1.
+  \item \textbf{Baselines first.} The dispatching rules EDD and ATC were implemented before any
+        model. They are the reference that every model must beat, and a model version can be
+        published only if it is not worse than them.
+  \item \textbf{Separate data sets.} Training, validation and test sets are split by instance,
+        never by step, so that the evaluation measures the behaviour on unseen problems.
+  \item \textbf{Reproducibility.} The generator is deterministic for a given seed, the
+        solutions of the teacher are saved with their parameters, and each dataset version has a
+        manifest with its sources and file hashes. Every result can thus be traced back to the
+        data and the code that produced it.
+  \item \textbf{Experiment log.} Each experiment is recorded with its date, what was measured,
+        the results and the conclusions, including the ones that led to correcting earlier
+        choices.
+\end{itemize}
 
 \section{Quality assurance}
 \label{sec:qa}
-% TODO: testing strategy (unit, integration, end-to-end), feasibility checks on every plan,
-% code review.
+
+The central quality requirement of FlowSync is that every plan returned to the planner is
+feasible. It is enforced twice: by construction, because plans are built by a dispatcher that
+only accepts legal moves, and by an independent feasibility checker, written without reusing the
+code of the dispatcher, which verifies every plan before it is counted or returned.
+
+Each part has automated tests. The AI module has unit tests for each component, including the
+conversion of all the real benchmark files and the optimality of the teacher on instances with a
+known solution. The backend has integration tests that run against a real MySQL database
+started in a container, so that the migrations, the entities and the API are tested together.
+The frontend is checked by the TypeScript compiler and a linter at every build. Inputs that are
+syntactically valid but inconsistent are rejected with explicit error codes at every boundary:
+by the backend API and by the validation of the AI service.
+% TODO [Gantt 30, P1-P3, 25 Jan-5 Feb 2027 - Testing and fixes]: frontend component tests,
+% end-to-end tests of the whole system, code review practice, test results.

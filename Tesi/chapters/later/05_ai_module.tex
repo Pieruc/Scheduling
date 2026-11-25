@@ -1,22 +1,322 @@
 \chapter{The artificial intelligence module}
 \label{chap:ai}
 
+This chapter describes the AI module of FlowSync: how a scheduling problem is represented, how
+the plan is built step by step by a policy inside a simulator, and how the policy is trained by
+imitation of an exact solver.
+
 \section{From request to plan}
 \label{sec:pipeline}
-% TODO: LLM (text -> ProblemSpec) -> validation (missing data) -> graph builder (disjunctive graph)
-% -> M1 (weights the graph) -> M2 + Dispatcher (candidate plans) -> KPIs.
+
+A planning request goes through a chain of stages, shown in Figure~\ref{fig:pipeline}. The first
+two take place in the backend, the others in the AI service. Each stage has a single
+responsibility and communicates with the next one through a structured document, so that each
+can be tested, evaluated and replaced independently.
+
+\begin{figure}[htpb]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      stage/.style={draw, rounded corners, align=center, minimum width=3.1cm,
+                    minimum height=0.95cm, fill=gray!8},
+      side/.style={draw, dashed, rounded corners, align=center, minimum width=2.8cm,
+                   minimum height=0.95cm},
+      arrow/.style={-{Stealth[length=2mm]}, thick},
+      node distance=0.55cm]
+    \node[stage] (req)  {Planning request\\(form or text)};
+    \node[stage, below=of req]  (spec) {ProblemSpec};
+    \node[stage, below=of spec] (val)  {Validation};
+    \node[stage, below=of val]  (m1)   {M1 Context};
+    \node[stage, below=of m1]   (graph){Disjunctive graph};
+    \node[stage, below=of graph](m2)   {M2 Policy\\+ Dispatcher};
+    \node[stage, below=of m2]   (res)  {PlanResult\\(plan + KPIs)};
+    \node[side, right=1.3cm of req]  (llm) {LLM interpretation};
+    \node[side, right=1.3cm of m2]   (fb)  {Fallback\\CP-SAT, ATC, EDD};
+    \node[side, left=1.3cm of res]   (rev) {Review by\\the planner};
+    \draw[arrow] (req) -- (spec);
+    \draw[arrow] (spec) -- (val);
+    \draw[arrow] (val) -- (m1);
+    \draw[arrow] (m1) -- (graph);
+    \draw[arrow] (graph) -- (m2);
+    \draw[arrow] (m2) -- (res);
+    \draw[arrow] (req) -- (llm);
+    \draw[arrow] (llm) |- (spec);
+    \draw[arrow] (m2) -- node[above]{\footnotesize error} (fb);
+    \draw[arrow] (fb) |- (res);
+    \draw[arrow] (res) -- (rev);
+  \end{tikzpicture}
+  \caption{From a planning request to a plan. The request and the ProblemSpec are handled by the
+           backend, the following stages by the AI service. Dashed boxes are the optional
+           interpretation of a text request, the fallback and the human review.}
+  \label{fig:pipeline}
+\end{figure}
+
+\paragraph{Planning request.} The planner selects the orders to schedule, the domain profile,
+the planning horizon and, optionally, the objective weights; when the weights are not given, the
+defaults of the domain profile are used. The request can also be written in natural language: in
+that case a language model fills the fields of the request, and the planner checks and completes
+them before sending it (Section~\ref{sec:llm}). The language model never produces the plan.
+
+\paragraph{Problem specification.} The backend turns the request into a \emph{ProblemSpec}, the
+self-contained document described in Section~\ref{sec:instance-schema}, and sends it to the AI
+service (Sections~\ref{sec:backend} and~\ref{sec:contracts}). From this point on, the AI module
+works only on this document.
+
+\paragraph{Validation.} The AI service first checks the specification, both its structure and
+its consistency: references to unknown jobs, resources or activities, activities that no
+resource can execute, cyclic precedences, invalid availability windows or weights. An invalid
+specification is rejected with an error code for each problem, which the frontend shows next to
+the corresponding field or node of the process graph. Errors are reported to the planner instead
+of being guessed.
+
+\paragraph{M1 Context.} Some data are often missing or unreliable, typically the duration of an
+activity that the planner did not enter, or a setup time. M1 completes them with estimates
+learned from the execution history, each with an uncertainty, and computes a confidence level
+for the request (Section~\ref{sec:m1}). Every value estimated or corrected by M1 is reported in
+the result, so the planner can see which parts of the plan rest on estimates.
+
+\paragraph{Disjunctive graph.} The completed problem is represented as a disjunctive graph
+(Section~\ref{sec:graph}): the precedences are fixed arcs, and each pair of activities that may
+use the same resource is a disjunctive arc whose orientation is still to be decided. Building a
+schedule means orienting these arcs, i.e.\ deciding the order of the activities on each
+resource.
+
+\paragraph{M2 Policy and Dispatcher.} The schedule is built step by step by the dispatcher, an
+event-driven simulator; at each step the policy M2 chooses which activity to schedule next,
+among the moves that the dispatcher proposes as legal (Section~\ref{sec:m2}). Every decision
+orients some disjunctive arcs, and the plan obtained at the end is feasible by construction.
+
+\paragraph{Fallback.} If the policy fails or its confidence is below a threshold, the request is
+solved by a fallback chain: CP-SAT with a short time limit, then the dispatching rules ATC and
+EDD, which are instantaneous and always available. The result says which solver produced the
+plan and why the fallback was used, so the system always returns a plan, and the planner always
+knows where it comes from.
+% TODO [Gantt 12-13, P1, 14-23 Dec 2026 and 8-15 Jan 2027 - FastAPI AI service]: describe the
+% fallback actually implemented; confirm whether CP-SAT is part of the online fallback (it depends
+% on the response time on large instances).
+
+\paragraph{Plan result.} The result contains the assignments (activity, mode, resources, start
+and end), the KPIs (makespan, weighted tardiness, late jobs, total setup, utilisation), the values
+estimated by M1, the warnings and the time spent in each stage. Back in the backend, the plan is
+shown to the planner on the resource Gantt chart and compared with the other candidates; it is
+adopted only after an explicit approval. Once the plan is executed, the actual start and end
+times recorded by the operators become new training data for M1, closing the loop.
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: how the candidate plans shown to the planner
+% are generated (e.g. different objective weights).
+
+\section{Problem representation}
+\label{sec:instance-schema}
+
+Every scheduling problem handled by the AI module, whether it comes from a real request, from a
+public benchmark or from the instance generator, is described by the same \emph{unified
+instance schema}. The schema has the same sections as the problem specification that the backend
+sends to the AI service:
+\begin{itemize}
+  \item \textbf{resources}, with a type (machine, person, room), a capacity, a set of skills and
+        optional availability windows;
+  \item \textbf{jobs} (orders or files), with a release date, an optional due date and a weight;
+  \item \textbf{activities}, each belonging to a job and having one or more alternative
+        \emph{modes}; a mode is a set of resources used together and a duration;
+  \item \textbf{precedences} of type finish-to-start, with a minimum and an optional maximum lag;
+  \item \textbf{sequence-dependent setup times} on a resource between two activities;
+  \item the \textbf{objective weights}, which say how much makespan, weighted tardiness and
+        setup count for this request.
+\end{itemize}
+Times are integers in minutes from the start of the horizon. This model covers the job shop and
+the flexible job shop (one or several eligible machines per operation), the resource-constrained
+project (activities that need several resources) and the public administration case (people
+with skills). Before any computation, a validator checks the consistency of an instance:
+references to unknown jobs, resources or activities, activities without a feasible mode (no
+duration, or required skills not covered by the resources of any mode) and cyclic precedences.
 
 \section{M1 Context: duration estimation}
 \label{sec:m1}
-% TODO: quantile regression, confidence, turning preferences into objective weights; data: real
-% event logs (BPI Challenge~\cite{bpic2015}, Road Traffic Fines~\cite{roadfines}).
+% TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: quantile regression of durations and setups,
+% confidence, turning preferences into objective weights; data: real event logs (BPI
+% Challenge~\cite{bpic2015}, Road Traffic Fines~\cite{roadfines}); features, training and
+% validation split.
 
 \section{M2 Policy and Dispatcher}
 \label{sec:m2}
-% TODO: event-driven simulator, feasibility by construction, ranking of candidate activities,
-% generation of several candidate plans.
+
+M2 does not produce a whole plan in one shot. The plan is built by a \emph{dispatcher}, an
+event-driven simulator, and M2 only chooses which move to make at each step. The dispatcher
+keeps the partial schedule and, at each step, proposes the set of \emph{candidates}: the pairs
+(activity, mode) whose predecessors are already scheduled, each with its earliest start time.
+The decision maker picks one candidate and the dispatcher applies it, updating the resources and
+releasing the successors of the activity. Since the decision maker can only choose among legal
+moves, every plan is \emph{feasible by construction}: precedences, capacities, release dates,
+skills and availability windows are guaranteed by the simulator, not learned by the model.
+
+The earliest start of a candidate takes into account the release date of its job, the end of
+its predecessors plus the minimum lags, the time at which each resource of the mode becomes free
+plus the setup from the previous activity on that resource, and the availability windows, inside
+which the activity must fit without interruption. Resources with a capacity greater than one are
+treated as several parallel units. Activities are appended at the end of the schedule of each
+resource, never inserted into an earlier gap.
+
+Not all legal moves are proposed. As in the algorithm of Giffler and Thompson, the dispatcher
+keeps only the \emph{active} candidates: those that can start before the earliest completion time
+among all candidates. Choosing a candidate that starts later would leave a resource idle for no
+reason, so this filter reduces the decisions to the meaningful ones.
+
+The same dispatcher serves three kinds of decision makers, which makes their results directly
+comparable:
+\begin{itemize}
+  \item the \textbf{dispatching rules} EDD and ATC (Section~\ref{sec:dispatching}), used as
+        baselines and as the last level of the fallback;
+  \item the \textbf{policy M2}, a ranking model that scores the candidates and picks the best;
+  \item the \textbf{teacher replay} used to build the training set
+        (Section~\ref{sec:dataset-construction}).
+\end{itemize}
+
+In the implementation of ATC, the rule chooses the activity and then, for that activity, the
+mode that completes first; the ATC index of each activity is computed on that mode. A first
+version computed the index separately for every mode, and the slowest mode, whose slack was
+zero, obtained the highest urgency and was systematically preferred.
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: architecture of the ranking model of M2 (inputs
+% = features of Section~\ref{sec:dataset-construction}, output = score of each candidate), how it
+% is used inside the dispatcher, confidence of a decision.
 
 \section{Training by imitation}
 \label{sec:imitation}
-% TODO: instance generator, CP-SAT as teacher, dataset construction, random weights, separation
-% between training, validation and test sets.
+
+M2 is trained by imitation learning~\cite{hussein2017imitation}. An exact solver, CP-SAT, is used
+offline as a \emph{teacher}: it solves many instances well, and the model learns to reproduce its
+choices. At inference time the model decides in milliseconds, without calling the solver. The
+training pipeline has three stages: an instance generator, the CP-SAT teacher and the dataset
+builder.
+
+\subsection{Instance generator}
+\label{sec:generator}
+
+For many of the target domains no reliable public data exist, so the training instances are
+synthetic. The generator produces instances from a \emph{domain profile}, which fixes the ranges
+of the number of jobs and resources, the activities per job, the durations, the number of
+alternative modes, the skills, the probability of parallel branches, the release dates, the due
+dates, the job weights and the setups. Two profiles are defined:
+\begin{itemize}
+  \item \textbf{FACTORY}: machines, 5--15 jobs of 3--6 operations, up to three eligible machines
+        per operation, sequence-dependent setups between families of activities in half of the
+        instances;
+  \item \textbf{PA} (public administration): people with 1--3 skills each, 5--20 files of 3--8
+        steps with parallel branches, no setups, and objective weights biased towards tardiness.
+\end{itemize}
+Each instance receives random objective weights drawn from a Dirichlet distribution, so that a
+single model learns to handle different trade-offs between makespan, tardiness and setup. The
+generator is reproducible: the same profile and seed always produce the same instance.
+
+The due date of a job $j$ is
+\[
+  d_j = r_j + \mathrm{CP}_j + \left\lceil s \cdot \hat C_{\max} \right\rceil,
+  \qquad s \sim U(0, s_{\max}),
+\]
+where $r_j$ is the release date, $\mathrm{CP}_j$ the length of the critical path of the job and
+$\hat C_{\max}$ an estimate of the makespan, equal to the maximum between the longest critical
+path and the average load of the resources. Without the load term most jobs would be early even
+with the simplest rule, and tardiness would not be a meaningful objective
+(Section~\ref{sec:eval-generator}). The slack range $s_{\max}$ is 0.6 for FACTORY and 0.4 for PA.
+
+The profiles can be \emph{calibrated} on real data: given a set of converted benchmark instances,
+the ranges of size, flexibility and durations are restricted to their 5th--95th percentiles, while
+due dates, weights and setups keep the values of the base profile.
+
+\subsection{Objective function}
+\label{sec:objective}
+
+The teacher and the evaluation need a single number to compare plans. The objectives are
+combined into a weighted cost
+\[
+  \mathrm{cost} = w_{\mathrm{mk}} \frac{C_{\max}}{\sigma_{\mathrm{mk}}}
+               + w_{\mathrm{wt}} \frac{\sum_j w_j T_j}{\sigma_{\mathrm{wt}}}
+               + w_{\mathrm{st}} \frac{S}{\sigma_{\mathrm{st}}},
+\]
+where $C_{\max}$ is the makespan, $T_j$ the tardiness of job $j$, $S$ the total setup time and
+$w_{\mathrm{mk}}, w_{\mathrm{wt}}, w_{\mathrm{st}}$ the objective weights of the instance
+(benchmarks have no weights and use the makespan only). The scales make the three terms
+comparable and depend only on the instance, so the same plan always has the same cost:
+$\sigma_{\mathrm{mk}}$ is a lower bound of the makespan (the maximum between the critical path
+with release dates and the load of each resource), $\sigma_{\mathrm{wt}}$ is the total weight of
+the jobs with a due date times the average duration, and $\sigma_{\mathrm{st}}$ is the number of
+activities times the average setup time. Normalising on the plan of a heuristic was discarded,
+because the cost would then depend on the heuristic and would be unstable when its tardiness is
+zero.
+
+\subsection{CP-SAT teacher}
+\label{sec:teacher}
+
+The teacher solves each instance with CP-SAT~\cite{perron2023cpsat} from
+OR-Tools~\cite{ortools}. The model mirrors the constraints of the dispatcher:
+\begin{itemize}
+  \item each activity has a start and an end variable and one optional interval for each
+        feasible mode, of which exactly one is present;
+  \item release dates and precedences with minimum and maximum lags are linear constraints;
+  \item resources of capacity one use a no-overlap constraint, larger capacities a cumulative
+        constraint;
+  \item the gaps between availability windows are fixed intervals that occupy the whole
+        resource, so every activity falls entirely inside one window;
+  \item sequence-dependent setups are modelled with a circuit constraint on each machine: a
+        Boolean variable for each ordered pair of activities says that the second follows the
+        first immediately, and in that case the setup separates them.
+\end{itemize}
+The objective is the cost of Section~\ref{sec:objective}, with coefficients scaled to integers.
+The model also enforces the maximum lags, which the dispatcher cannot guarantee.
+
+Two details make the teacher robust. First, the best plan among EDD and ATC is given to CP-SAT
+as a starting solution (hint): the search starts from a feasible plan, and the teacher never
+returns a plan worse than the rules, even when the time limit expires. Second, when the makespan
+is not part of the objective, CP-SAT may leave activities waiting without reason; the plan is
+therefore \emph{left-compacted}, moving each activity as early as possible while keeping modes
+and resource sequences. The cost cannot increase, and the order of the decisions becomes cleaner
+for the dataset builder.
+
+\subsection{Dataset construction}
+\label{sec:dataset-construction}
+
+The plan of the teacher gives start times, but M2 needs examples of decisions. They are obtained
+by \emph{replaying} the plan in the dispatcher. At each step the dispatcher proposes its
+candidates; the candidate of the activity that the teacher starts first, with the mode chosen by
+the teacher, receives label~1, all the others label~0; then the labelled candidate is applied
+and the next step begins. If the teacher's mode is not among the candidates, the
+earliest-completing mode of that activity is used. Each step becomes a \emph{ranking query} with
+one positive candidate, a natural format for listwise or pairwise ranking models. Because the
+labels are always chosen among the candidates of the dispatcher, they belong to the same space
+of moves that the policy will see at inference time.
+
+The plan obtained by the replay is what a perfect imitator would achieve with this dispatcher.
+Its cost is recorded together with the cost of the teacher, and their ratio measures how
+faithfully the labels represent the teacher (Section~\ref{sec:eval-dataset}).
+
+Each candidate is described by 23 features, designed to be independent of the scale of the
+instance: times are divided by the average duration of the remaining activities and measured
+from the decision time (the earliest start among the candidates), and some values are expressed
+as ranks among the candidates. The features describe
+\begin{itemize}
+  \item the \emph{candidate}: duration, waiting time before the start, completion time, setup,
+        whether it is the fastest mode, number of modes, remaining work in the job and share of
+        the job still to schedule, number of successors;
+  \item the \emph{urgency}: presence of a due date, slack, minimum tardiness if chosen now, job
+        weight, ATC index relative to the best candidate, rank of the due date and of the
+        completion time;
+  \item the \emph{load}: remaining work that can only run on the resources of the mode;
+  \item the \emph{state}, equal for all candidates of a step: the three objective weights, the
+        progress of the schedule, the number of candidates and the current time relative to the
+        makespan lower bound.
+\end{itemize}
+The same function computes the features when the dataset is built and when the policy runs, so
+training and inference see exactly the same values.
+
+The data are split into training, validation and test sets by instance, never by step, so that
+steps of the same instance never appear in different sets. The split is deterministic: it
+depends on a hash of the instance name, so adding instances does not move the existing ones.
+Each dataset version is stored with a manifest that lists its sources, filters, split, feature
+definitions, sizes, file hashes and, for each instance, the cost of the teacher, of the rules
+and of the replay.
+
+The dataset contains only the states visited by following the teacher. A policy that makes a
+mistake reaches states never seen during training; the standard remedy, DAgger~\cite{ross2011dagger},
+adds those states to the dataset labelled by the teacher.
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: training of M2 (model, loss, hyperparameters,
+% model selection on the validation set) and, if needed, DAgger iterations.
+% TODO [Gantt 14, P1, 8-29 Jan 2027 - Generalization]: training on more profiles or larger
+% instances if the generalization experiments require it.
