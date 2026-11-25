@@ -1,213 +1,152 @@
 # Frontend FlowSync – Struttura del progetto
 
-Documento di riferimento per lo sviluppo del frontend (React). Le schermate da
-realizzare sono in `FE_Mockups/FlowSync – Mockup UI v2.html`; le API sono in
-`CONTRATTI_API.md` (contratto A).
+Documento di riferimento per lo sviluppo del frontend (React). Le schermate di partenza sono in
+`FE_Mockups/FlowSync – Mockup UI v2.html`; le API sono in `CONTRATTI_API.md` (contratto A,
+versione 1.1). Aggiornato al **25 novembre 2026**.
 
 ## 1. Perimetro
 
 - Il frontend parla **solo** con il backend, tramite l'API pubblica `/api/v1`.
   Non chiama mai l'AI, l'LLM o il DB direttamente.
-- Backend, servizio AI, LLM e training li sviluppano altri membri del gruppo. Quando
-  al frontend serve un dato che il contratto non prevede, si chiede al backend
-  (vedi §8) e nel frattempo lo si simula con i mock.
-- **Login e ruoli si fanno per ultimi**, a sistema funzionante. Fino ad allora l'app
-  gira come utente PLANNER fisso, ma la struttura lascia già il posto per
-  aggiungerli senza riscrivere nulla (vedi §5.4).
+- Backend, servizio AI, LLM e training li sviluppano altri membri del gruppo. Quando al
+  frontend serve un dato, lo si aggiunge al contratto e nel frattempo lo si simula con i mock
+  (MSW), con lo stesso formato JSON.
+- Si lavora **desktop prima**: il layout regge su schermi stretti, ma per ora non si
+  progettano né verificano viste per il telefono.
 
 ## 2. Stack
 
 | Ambito | Scelta | Perché |
 |---|---|---|
-| Build | **Vite** + **React** + **TypeScript** | Standard attuale, avvio rapido |
-| Componenti UI | **PrimeReact 10** | Tabelle, tab, slider, stepper, tag, dialog già pronti, licenza MIT. La 11 non ha temi pronti e ha licenza commerciale. Tema: `npm run theme` |
-| Routing | **React Router 7** | Rotte annidate, layout condivisi |
-| Dati dal server | **TanStack Query** | Cache, caricamento ed errori, polling del piano asincrono |
-| Form | **React Hook Form** + **Zod** | Validazione dichiarativa (commesse, risorse) |
+| Linguaggio e build | **React 19** + **TypeScript** + **Vite** | Scelto al posto di Angular per le competenze del team; avvio rapido |
+| Componenti UI | **PrimeReact 10** + PrimeIcons | Tabelle, dialog, slider, calendario, tag già pronti; licenza MIT. La 11 non ha temi pronti e ha licenza commerciale. Tema ricolorato con `npm run theme` |
+| Routing | **React Router 7** | Rotte annidate, layout condivisi, blocco dell'uscita con modifiche non salvate |
+| Dati dal server | **TanStack Query 5** | Cache, stati di caricamento ed errore, polling delle richieste asincrone |
+| Form | **React Hook Form** + **Zod** | Regole dichiarative, errori sotto il campo, fuoco sul primo errore |
 | Grafo attività | **React Flow** (`@xyflow/react`) | Editor a nodi con trascinamento dei collegamenti |
-| Grafici KPI | **Chart** di PrimeReact (Chart.js) | Già incluso, stesso stile |
-| Gantt risorse | **Componente nostro** (vedi §6) | Il mockup ha esigenze molto specifiche |
-| Date | **date-fns** (locale `it`) | Formati “gio 19, 8:00”, “4 g 6 h” |
-| Mock API | **MSW 3** (Mock Service Worker) | Intercetta le chiamate HTTP vere: basta spegnerlo quando il backend è pronto. Errore simulato: `sessionStorage.setItem('mock:fail', '1')` |
-| Test | **Vitest** + **Testing Library** | Unit e componenti |
-| Qualità | ESLint + Prettier | |
+| Gantt risorse | **Componente nostro** (§6) | Le librerie gratuite sono orientate ai task, non alle risorse |
+| Date e numeri | `Intl` del browser (it-IT) | Nessuna libreria in più: “gio 19, 8:00”, “4 g 6 h”, “9.600 €” |
+| Mock API | **MSW 3** (Mock Service Worker) | Intercetta le chiamate HTTP vere: si spegne quando il backend è pronto |
+| Qualità | `tsc` in modalità strict, **oxlint**, **Prettier** | Controllati prima di ogni commit |
 
 Lo stato globale (Redux/Zustand) **non serve**: quasi tutto è dato del server
-(TanStack Query) e il resto è stato locale della pagina.
+(TanStack Query) e il resto è stato locale della pagina. La sessione (utente e token) è un
+piccolo store in `api/session.ts`.
 
 ## 3. Struttura delle cartelle
 
 ```
 src/frontend/
-├── index.html
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
 ├── .env.development          VITE_API_URL=/api/v1 · VITE_USE_MOCKS=true
-├── public/
-│   └── mockServiceWorker.js  (generato da MSW)
+├── vite.config.ts            alias @, plugin MSW, proxy /api -> localhost:8080
+├── scripts/build-theme.mjs   tema PrimeReact con i colori del mockup
 └── src/
-    ├── main.tsx              avvio: provider, router, MSW se VITE_USE_MOCKS
-    ├── app/
-    │   ├── router.tsx        tutte le rotte (§4)
-    │   ├── providers.tsx     PrimeReact, QueryClient, (poi) AuthProvider
-    │   └── layouts/
-    │       ├── AppLayout.tsx       sidebar + area contenuti (planner/admin)
-    │       ├── Sidebar.tsx
-    │       └── OperatorLayout.tsx  barra in alto, niente sidebar
-    │
-    ├── api/                  ⇦ unico punto che conosce gli URL del backend
-    │   ├── client.ts         fetch + base URL + header + errori RFC 7807 → ApiError
-    │   ├── queryKeys.ts      chiavi della cache centralizzate
-    │   ├── types/            DTO del contratto A, uno per area
-    │   │   ├── common.ts     ProblemDetails, Page, Iso date
-    │   │   ├── orders.ts     Order, ProcessGraph, Activity, Precedence
-    │   │   ├── plans.ts      PlanRequest, Plan, PlanVariant, Kpis, Assignment, Decision
-    │   │   ├── config.ts     Resource, Calendar, Skill, DomainProfile
-    │   │   ├── execution.ts  ExecutionEvent, Incident
-    │   │   ├── models.ts     ModelVersion, ActiveModels
-    │   │   └── audit.ts      AuditRecord
-    │   ├── orders.ts         getOrders(), saveProcessGraph(), …
-    │   ├── plans.ts          createPlanRequest(), getPlanRequest(), decide(), …
-    │   ├── config.ts
-    │   ├── execution.ts
-    │   ├── models.ts
-    │   ├── audit.ts
-    │   └── kpis.ts
-    │
-    ├── mocks/                ⇦ backend finto, stessi formati del contratto
-    │   ├── browser.ts        setupWorker(...handlers)
-    │   ├── data/             commesse C-101…C-104, risorse, piani A/B/C, audit…
-    │   └── handlers/         uno per area, rispondono come il backend (anche 202 + polling)
-    │
-    ├── features/             ⇦ una cartella per pagina/area del sistema
-    │   ├── dashboard/
-    │   │   ├── DashboardPage.tsx
-    │   │   └── components/   KpiRow, AlertsList, UtilizationBars, RecentPlans
-    │   ├── orders/
-    │   │   ├── OrdersPage.tsx
-    │   │   ├── components/   OrderList, OrderHeader, ProcessGraphEditor, ActivityTable, OrderForm
-    │   │   ├── hooks.ts      useOrders, useOrder, useProcessGraph, useSaveProcessGraph
-    │   │   └── graph.ts      controllo cicli lato client (feedback immediato)
-    │   ├── planning/         nuova pianificazione
-    │   │   ├── NewPlanPage.tsx
-    │   │   ├── components/   PipelineSteps, RequestInput, Interpretation, MissingDataForm, ObjectiveWeights
-    │   │   └── hooks.ts      useInterpretRequest, useCreatePlanRequest
-    │   ├── plans/            elenco piani + confronto dei 3 candidati
-    │   │   ├── PlansListPage.tsx
-    │   │   ├── CandidatesPage.tsx
-    │   │   ├── components/   PlansTable, PlanCard, BaselineComparison
-    │   │   └── hooks.ts      usePlanRequests, usePlanRequest (polling finché PENDING)
-    │   ├── plan-review/      Gantt, modifica, approva/rifiuta
-    │   │   ├── PlanGanttPage.tsx
-    │   │   ├── gantt/        GanttChart, GanttLane, GanttBar, TimeAxis, scale.ts (tempo ↔ pixel)
-    │   │   ├── components/   PlanKpis, DecisionBar, ActivityPanel, MoveErrorBanner
-    │   │   ├── validation.ts controllo spostamenti (precedenze, sovrapposizioni, indisponibilità)
-    │   │   └── hooks.ts      usePlan, useGantt, useDecision, useReschedule
-    │   ├── execution/        vista operatore
-    │   │   ├── OperatorTodayPage.tsx
-    │   │   └── components/   CurrentActivity, NextActivities, ReportIssueForm
-    │   ├── configuration/
-    │   │   ├── ConfigurationPage.tsx   (tab)
-    │   │   ├── resources/ calendars/ skills/ profiles/
-    │   ├── model-info/
-    │   │   └── ModelInfoPage.tsx
-    │   ├── audit/
-    │   │   └── AuditPage.tsx
-    │   └── auth/             ⇦ fase finale
-    │       ├── LoginPage.tsx
-    │       ├── AuthProvider.tsx
-    │       └── RequireRole.tsx
-    │
-    ├── components/           componenti condivisi tra feature
-    │   ├── PageHeader.tsx  KpiCard.tsx  StatusTag.tsx  PriorityTag.tsx
-    │   ├── ErrorState.tsx  EmptyState.tsx  LoadingState.tsx
-    │   └── Duration.tsx    Money.tsx
-    ├── lib/
-    │   ├── format.ts         durate (“4 g 6 h”), date it-IT, euro
-    │   ├── labels.ts         stati/priorità/varianti → etichetta + colore
-    │   └── time.ts           conversioni minuti ↔ date per il Gantt
-    └── styles/
-        ├── tokens.css        colori e spaziature presi dal mockup
-        └── primereact.css    personalizzazione del tema PrimeReact
+    ├── main.tsx              avvio: stili, MSW se VITE_USE_MOCKS, router
+    ├── app/                  router.tsx (tutte le rotte), providers.tsx (PrimeReact, Query,
+    │                         sessione, notifiche), layouts/ (barra laterale; barra operatore),
+    │                         toast/, locale.ts (italiano), RouteError.tsx
+    ├── api/                  ⇦ unico punto che conosce URL e formati del backend
+    │   ├── client.ts         fetch, token Bearer, errori RFC 7807 -> ApiError, 401 -> login
+    │   ├── session.ts        utente e token (sessionStorage)
+    │   ├── queryKeys.ts      chiavi della cache
+    │   ├── types/            tipi del contratto A, uno per area
+    │   └── auth.ts orders.ts plans.ts config.ts execution.ts alerts.ts kpis.ts models.ts audit.ts
+    ├── mocks/                ⇦ backend finto: data/ (officina dei mockup), handlers/ (uno per area)
+    ├── features/             ⇦ una cartella per area
+    │   ├── auth/             login, sessione, permessi per ruolo, RequireAuth
+    │   ├── dashboard/        KPI, avvisi, utilizzo risorse, richieste recenti
+    │   ├── orders/           commesse, editor del grafo, tabella attività, form commessa e attività
+    │   ├── planning/         nuova pianificazione: testo -> interpretazione -> domande -> invio
+    │   ├── plans/            elenco piani, confronto dei 3 piani con ATC/EDD
+    │   ├── plan-review/      Gantt, pannello attività, decisioni, ripianificazione
+    │   ├── execution/        vista operatore: attività di oggi, segnalazioni
+    │   ├── configuration/    risorse, calendari, competenze, profili di dominio
+    │   ├── model-info/       modelli attivi, catena di riserva, storico versioni
+    │   └── audit/            registro, dettaglio, export CSV
+    ├── components/           condivisi: Card, PageHeader, KpiCard, StatusTag, FormField, ErrorState…
+    ├── lib/                  format.ts (durate, date, euro), labels.ts (stati -> etichetta e colore),
+    │                         schedule.ts (regole degli spostamenti nel Gantt), graph.ts (cicli),
+    │                         period.ts, useNow.ts
+    └── styles/               tokens.css (colori del mockup), tema PrimeReact generato
 ```
 
-**Regola**: le pagine non chiamano mai `fetch` direttamente. Passano dagli hook
-della propria feature, che usano le funzioni in `api/`. Se il backend cambia un
+**Regola**: le pagine non chiamano mai `fetch` direttamente. Passano dagli hook della propria
+feature (`features/<area>/hooks.ts`), che usano le funzioni in `api/`. Se il backend cambia un
 URL o un campo, si tocca solo `api/`.
 
 ## 4. Pagine e rotte
 
-| Rotta | Pagina | Mockup v2 | Endpoint principali |
-|---|---|---|---|
-| `/` | Dashboard | 1 | `GET /kpis`, `GET /alerts`\*, `GET /plans` |
-| `/commesse` · `/commesse/:id` | Commesse + grafo | 2 | `GET/POST/PUT /orders`, `GET/PUT /orders/{id}/process-graph` |
-| `/pianifica` | Nuova pianificazione | 3 | `POST /plan-requests/interpret`\*, `POST /plan-requests`\* |
-| `/piani` | Elenco piani | 7 | `GET /plan-requests`\* |
-| `/piani/richieste/:id` | Confronto dei 3 piani | 4 | `GET /plan-requests/{id}`\* |
-| `/piani/:planId/ripianifica` | Ripianifica dopo un imprevisto | – | `POST /plans/{id}/reschedule` |
-| `/piani/:planId` | Gantt e revisione | 5 | `GET /plans/{id}/gantt`, `POST /plans/{id}/decisions`, `POST /plans/{id}/reschedule` |
-| `/operatore` | Attività di oggi | 6 | `GET /operator/today`\*, `POST /executions`, `POST /incidents`\* |
-| `/configurazione/:tab` | Configurazione | 8 | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
-| `/modello` | Modello AI | 9 | `GET /models/active`, `GET /models`, `GET /models/status`\* |
-| `/audit` | Audit | 10 | `GET /audit` |
-| `/login` | Login (fase finale) | 0 | `POST /auth/login`, `/auth/refresh`, `/auth/me` |
+| Rotta | Pagina | Mockup v2 | Ruoli | Endpoint principali |
+|---|---|---|---|---|
+| `/login` | Accesso | 0 | pubblico | `POST /auth/login` |
+| `/` | Dashboard | 1 | PLANNER, ADMIN | `GET /kpis`, `GET /alerts`, `GET /plan-requests?limit=4` |
+| `/commesse` · `/commesse/:id` | Commesse + grafo | 2 | PLANNER, ADMIN | `/orders`, `/orders/{id}/process-graph` |
+| `/pianifica` | Nuova pianificazione | 3 | PLANNER | `POST /plan-requests/interpret`, `POST /plan-requests` |
+| `/piani` | Elenco piani | 7 | PLANNER, ADMIN | `GET /plan-requests` |
+| `/piani/richieste/:id` | Confronto dei 3 piani | 4 | PLANNER, ADMIN | `GET /plan-requests/{id}` (polling) |
+| `/piani/:planId` | Gantt e revisione | 5 | PLANNER, ADMIN | `GET /plans/{id}/gantt`, `POST /plans/{id}/decisions` |
+| `/piani/:planId/ripianifica` | Ripianifica | – | PLANNER | `POST /plans/{id}/reschedule`, `GET /alerts` |
+| `/operatore` | Attività di oggi | 6 | OPERATOR | `GET /operator/today`, `POST /executions`, `POST /incidents` |
+| `/configurazione/:tab` | Configurazione | 8 | PLANNER, ADMIN | `/resources`, `/calendars`, `/skills`, `/domain-profiles` |
+| `/modello` | Modello AI | 9 | PLANNER, ADMIN | `GET /models/active`, `GET /models`, `GET /models/status` |
+| `/audit` | Audit | 10 | ADMIN | `GET /audit` |
 
-\* = endpoint non ancora presente in `CONTRATTI_API.md`, da concordare (§8).
+Da fare: **registrazione** (`/registrazione`, `POST /auth/register`) e **gestione utenti** per
+l'amministratore (`/users`, approvazione con ruolo), già presenti nel backend.
 
 ## 5. Come si gestiscono i dati
 
 ### 5.1 Mock prima, backend dopo
-Con `VITE_USE_MOCKS=true` MSW risponde al posto del backend con i dati di
-`mocks/data/`, usando **gli stessi formati JSON** del contratto. Quando un endpoint
-reale è pronto basta togliere il suo handler (o mettere il flag a `false`): il
-codice delle pagine non cambia. In dev `vite.config.ts` fa da proxy da `/api` al
-backend Spring.
+Con `VITE_USE_MOCKS=true` MSW risponde al posto del backend con i dati di `mocks/data/`, usando
+**gli stessi formati JSON** del contratto. Quando un endpoint reale è pronto basta togliere il
+suo handler (o mettere il flag a `false`): il codice delle pagine non cambia. In sviluppo
+`vite.config.ts` fa da proxy da `/api` al backend Spring su `localhost:8080`.
+Errore simulato: `sessionStorage.setItem('mock:fail', '1')` (ogni chiamata risponde 503).
 
-### 5.2 Piani asincroni
-`POST` della richiesta → `202` con id → `usePlanRequest(id)` ripete la `GET` ogni
-~1,5 s finché lo stato è `PENDING` (opzione `refetchInterval` di TanStack Query),
-poi si ferma. Lo stepper della pagina 3 mostra a che punto si trova.
+### 5.2 Richieste asincrone
+`POST /plan-requests` (o `/plans/{id}/reschedule`) → `202` con l'id → `usePlanRequest(id)` ripete
+la `GET` ogni 1,5 s finché lo stato è `PENDING` (`refetchInterval` di TanStack Query), poi si
+ferma. La pagina mostra la fase in corso (validazione, stima M1, costruzione M2, confronto).
 
 ### 5.3 Errori
 `api/client.ts` converte ogni risposta `application/problem+json` in `ApiError`
 (`status`, `title`, `errors[]`). Le pagine li mostrano così:
-- `422` → messaggi vicino ai campi o al grafo (es. `CYCLIC_PRECEDENCE`);
-- `409` → “il piano è cambiato, ricarica”;
-- `503` → banner “servizio AI non disponibile”.
+- `422` → messaggio sotto il campo indicato da `path` (anche negli array, es. `shifts[1].end`);
+- `409` → “è cambiato qualcosa” e si ricarica il dato;
+- `401` → si torna al login; `503` → riquadro “servizio non disponibile” con *Riprova*.
 
-### 5.4 Predisposizione per login e ruoli
-- `client.ts` ha già un punto in cui aggiungere `Authorization: Bearer …`.
-- Le rotte stanno in un solo file: aggiungere `RequireRole` è una riga per rotta.
-- La sidebar legge le voci da un array: basta aggiungere un campo `roles`.
+### 5.4 Login e ruoli (versione di prova)
+- `POST /auth/login`; token e utente in `sessionStorage` (restano ricaricando la pagina,
+  spariscono chiudendo la scheda); `Authorization: Bearer` a ogni chiamata; niente rinnovo
+  automatico per ora: a un 401 si torna al login.
+- Permessi in `features/auth/permissions.ts`; `RequireAuth` protegge le rotte; la barra laterale
+  mostra solo le voci del proprio ruolo. Il controllo vero resta al backend (403).
+- Utenti di prova (uguali nel backend, profilo `dev`): `pianificatore`, `operatore`,
+  `amministratore`, password `demo`. Con i mock si entra anche a campi vuoti.
 
 ## 6. Il Gantt delle risorse
 
-Nella schermata 5 il Gantt:
-- ha una riga per risorsa;
-- ha barre trascinabili nel tempo **e** da una risorsa all'altra;
-- mostra fasce di indisponibilità e di straordinario;
-- dice subito se uno spostamento non è valido e rimette a posto la barra.
+Nella schermata 5 il Gantt ha una riga per risorsa, barre trascinabili nel tempo (aggancio ai
+15 minuti) **e** da una risorsa all'altra, fasce grigie per le indisponibilità, barre
+tratteggiate per le durate stimate da M1, e due zoom ("Dettaglio" e "Tutto il periodo").
 
-**Scelta: lo costruiamo noi** (`features/plan-review/gantt/`), con CSS grid e
-pointer events, come nel mockup. Motivi:
-- Le librerie gratuite per React sono quasi tutte orientate ai *task* (una riga
-  per attività, stile MS Project), non alle *risorse*.
-- Quelle orientate alle risorse sono a pagamento (Bryntum, DHTMLX PRO) oppure poco
-  mantenute.
-- La parte difficile, cioè capire se lo spostamento è valido, va scritta comunque
-  da noi (`validation.ts`).
-- Disegnare le barre è semplice: `left = (inizio − inizioOrizzonte) / durataOrizzonte`.
+**Scelta: lo costruiamo noi** (`features/plan-review/components/GanttChart.tsx`), con CSS grid
+e pointer events. Le librerie gratuite per React sono quasi tutte orientate ai *task* (una riga
+per attività), quelle orientate alle *risorse* sono a pagamento o poco mantenute, e la parte
+difficile, cioè capire se uno spostamento è valido, andava scritta comunque.
 
-Prima di costruirlo conviene un **prototipo di 2–3 giorni**: una riga, una barra
-trascinabile con aggancio ai 15 minuti, il cambio di riga. Se va bene si procede,
-altrimenti si rivaluta una libreria.
+**Scala del tempo:** il Gantt usa i dati del backend così come arrivano (`GET /plans/{id}/gantt`):
+minuti di lavoro dall'inizio del periodo, con `minutesPerDay` e l'elenco dei giorni lavorativi.
+La conversione dai calendari reali la fa il backend.
 
-Lo spostamento viene validato due volte:
-1. **nel browser, subito**: precedenze, sovrapposizione sulla stessa risorsa,
-   indisponibilità e risorse ammesse per l'attività;
-2. **nel backend, alla conferma** (`POST /decisions` con `MODIFY`): se risponde
-   `422`, si mostra l'errore.
+Lo spostamento viene validato due volte, con le stesse regole (`lib/schedule.ts`):
+1. **nel browser, subito**: precedenze, sovrapposizione sulla stessa risorsa, indisponibilità,
+   risorse ammesse, periodo; se non va bene compare il motivo e la barra torna a posto;
+2. **nel backend, alla conferma** (`POST /decisions` con `MODIFY`): se risponde `422`, si mostra
+   l'errore.
+
+Alternativa da tastiera: le barre sono pulsanti; il pannello laterale permette di spostare
+l'attività su un'altra risorsa o di ±15 min / ±1 h.
 
 ## 7. KPI
 
@@ -227,147 +166,34 @@ Definiti una volta in `api/types/plans.ts` e mostrati sempre con lo stesso nome.
 **Storici** (dashboard): puntualità %, commesse in ritardo, utilizzo medio per
 risorsa, aderenza al piano (`planAdherence`).
 
-## 8. Da concordare con il backend
+## 8. Contratto con il backend
 
-Il frontend le simula già nei mock. Le forme JSON sono **proposte**: le decide
-chi fa il backend.
+Tutto quello che il frontend chiedeva in più rispetto alla prima versione del contratto (le
+"proposte §8": 3 piani per richiesta, lettura LLM della richiesta, Gantt e decisioni, avvisi e
+segnalazioni, vista operatore, KPI in più, campi di calendari e profili, ripianificazione,
+dettagli dell'audit, modello AI) è entrato in **`CONTRATTI_API.md` v1.1** (25/11/2026): è quello
+che serve al progetto. Il riferimento per ogni campo sono i tipi in `src/api/types/` e i mock
+in `src/mocks/`.
 
-1. **I 3 piani per richiesta.** Una richiesta produce i piani `ECONOMIC`
-   (più lento, costo minimo), `BALANCED` e `FAST` (più veloce, più costoso), più il
-   confronto con le regole ATC ed EDD sugli stessi dati. Forma esatta: tipi
-   `CreatePlanRequest`, `PlanRequest`, `Baseline` in `src/frontend/src/api/types/plans.ts`.
-   - `POST /plan-requests` con `{ text, horizonStart, horizonEnd, orderIds, weights, answers }`
-     → `202 { id, status: "PENDING" }` + header `Location`;
-   - `GET /plan-requests/{id}` → `{ status, stage, plans: [{ id, variant, kpis, summary, … }×3],
-     recommendedPlanId, baselines: [{ solver: "ATC" | "EDD", kpis }], elapsedSeconds }`.
-     Finché `status = PENDING` il frontend la richiede ogni 1,5 s; `stage` è la fase in corso
-     (`VALIDATION`, `CONTEXT`, `POLICY`, `BASELINES`) e alimenta lo stepper.
-   - `weights` = `{ punctuality, overtime, setup }` da 0 a 10 (gli slider della UI): il
-     backend li normalizza in `objective_weights` della ProblemSpec.
-   - I singoli piani restano su `/plans/{id}` (Gantt, decisioni).
-2. **Interpretazione LLM** della richiesta a parole: `POST /plan-requests/interpret`
-   con `{ text }` → `Interpretation` (stesso file): periodo, commesse, vincoli rigidi e
-   preferenze in parole, pesi con il motivo, e **domande sui dati mancanti**
-   (`DUE_DATE` per una scadenza, `CHOICE` con opzioni). Le risposte tornano in `answers`
-   di `POST /plan-requests`; se ne manca una, 422 con `path: "answers.<id domanda>"`.
-3. **Nuovi KPI**:
-   - nei KPI di un piano: `overtimeMin`, `setupCount`, `estimatedCost` e
-     `totalTardinessMin` (ritardo in minuti, più leggibile di `weightedTardiness`);
-   - nella serie di `GET /kpis`: `onTimeRate` (quota di commesse consegnate in tempo)
-     e `utilizationByResource: [{ resourceId, resourceName, utilization }]`;
-   - nelle risorse: `costPerHour` e `unavailability: [{ from, to, reason }]`
-     (manutenzioni e guasti della singola risorsa, oltre al calendario dei turni).
+Punti ancora aperti, lato frontend:
+- **Modalità shadow**: da decidere se resta (il frontend per ora non la mostra).
+- **Nome dell'utente**: il backend usa `fullName`; il frontend oggi legge `displayName`.
+  Si allinea a `fullName` insieme alle pagine di registrazione e gestione utenti.
+- **Codici delle risorse**: il backend usa codici brevi (`LASER`, `CNC2`), i mock del frontend
+  `R-LAS-01`, `R-CNC-02`: sono opachi per il frontend, cambiano solo i dati di prova.
 
-   **Unità delle durate**: il frontend mostra "4 g 6 h" assumendo una giornata
-   lavorativa di 8 h (`WORKDAY_HOURS` in `src/lib/format.ts`). Da confermare: il
-   makespan è in minuti di lavoro o in minuti di calendario?
-4. **Stime di M1 nel piano**: per ogni attività con durata stimata, il valore e
-   l'intervallo, cioè il `context_adjustments` del contratto B riportato nella
-   risposta di `GET /plans/{id}`. Così non serve un endpoint di stima a parte.
-5. **Vista operatore, segnalazioni e avvisi** (forma esatta in
-   `src/frontend/src/api/types/execution.ts`):
-   - `GET /operator/today` → `OperatorDay`: turni, risorse dell'operatore e le sue
-     attività del piano approvato, ognuna con lo stato ricavato dagli eventi
-     (`TODO`, `IN_PROGRESS`, `PAUSED`, `DONE`), i minuti già lavorati, l'inizio del
-     tratto in corso e l'eventuale attività precedente non ancora finita
-     (`waitingFor`). Dopo il login l'operatore arriverà dal token.
-   - `POST /executions` (contratto A.6) risponde 201 con l'attività aggiornata e 409 se
-     il passaggio non è ammesso: un'attività alla volta in corso, niente inizio prima
-     della fine delle precedenti, niente ripresa o fine di un'attività non iniziata.
-   - `POST /incidents` `{ kind: BREAKDOWN | MISSING_MATERIAL | DELAY | OTHER,
-     resourceId?, planId?, activityId?, note?, timestamp }` → 201 `{ id }`; 422 se manca
-     la nota con `OTHER`. Ogni segnalazione diventa un avviso `INCIDENT` in
-     `GET /alerts`, la lista “Avvisi” della dashboard.
-6. **Elenco richieste**: `GET /plan-requests`, dalla più recente, ogni richiesta con i suoi
-   piani (`PlanSummary`, senza assegnazioni). Per ora il frontend filtra nel browser; con
-   molte richieste servono i parametri `q` (codice richiesta, piano o commessa),
-   `status` (`TO_REVIEW`, `APPROVED`, `REJECTED`, `PENDING`, `FAILED`), `from` (data) e
-   la paginazione. Una nuova versione creata nel Gantt prende il posto del piano originale
-   nell'elenco dei piani della richiesta.
-7. **Commesse**: in `Order` un campo `description` (es. "Telaio carrello") e
-   `activityCount`, così l'elenco si mostra senza caricare ogni grafo. La priorità
-   resta un intero: il frontend la mostra come 1 = Bassa, 2 = Media, 3 = Alta.
-   `POST /orders` e `PUT /orders/{id}` ricevono `OrderInput` (senza `status` e
-   `activityCount`): 422 con `path` per codice duplicato o scadenza prima del rilascio,
-   409 se la commessa non è più `OPEN`. `DELETE /orders/{id}` non cancella ma mette
-   `CANCELLED` (409 se è già in lavorazione). Le attività nuove hanno id scelti dal
-   frontend (`C105-A1`, ...) e si salvano con il grafo in `PUT /orders/{id}/process-graph`.
-8. **Gantt e decisioni** (contratti A.4 e A.5): forma esatta in `GanttView`,
-   `DecisionRequest`, `DecisionResult` (`src/frontend/src/api/types/plans.ts`).
-   - `GET /plans/{id}/gantt` → righe per risorsa (con le fasce non disponibili), barre con
-     le risorse ammesse e la durata su ciascuna, precedenze, scadenze per commessa e, per
-     le durate stimate, la stima di M1 con intervallo e confidenza.
-   - Tempi in **minuti di lavoro** dall'inizio del periodo (giornata = `minutesPerDay`,
-     480 = turni 8–12 e 13–17): da confermare insieme al punto sulle durate qui sopra.
-   - `POST /plans/{id}/decisions`: `APPROVE`, `REJECT` con `reason`, `MODIFY` con `reason`
-     e `changes: [{ activityId, resourceId, start }]`. MODIFY risponde con l'id della nuova
-     versione (`PROPOSED`); il frontend controlla gli spostamenti con le stesse regole
-     (`src/frontend/src/lib/schedule.ts`) che il backend deve applicare (422 se non ammissibili).
-     Approvare un piano mette le altre alternative della richiesta a `SUPERSEDED`.
-9. **Modello AI** (forma esatta in `src/frontend/src/api/types/models.ts`):
-   - `GET /models/active`: oltre alle metriche del contratto, `winRateVsEdd` per la policy;
-     `weeklyEstimates`, `intervalCoverage`, `avgInferenceMs` per M1; `datasetVersion` e
-     `specVersion` per entrambi. Il frontend mostra solo le metriche che riceve.
-   - `GET /models`: storico `[{ version, component: POLICY | CONTEXT, publishedAt,
-     status: ACTIVE | CANDIDATE | RETIRED, metrics }]`, dalla più recente.
-   - `GET /models/status`: `{ aiServiceUp, cpSatAvailable, confidenceThreshold, days,
-     plansBySolver: { POLICY, CP_SAT, ATC, EDD } }`, per la catena di riserva e quante
-     volte è scattata.
-10. **Audit** (forma esatta in `src/frontend/src/api/types/audit.ts`): `GET /audit` del
-    contratto A.8, dal più recente, con in più `details` per leggere il record senza aprire
-    il piano: `decision` (APPROVE, REJECT, MODIFY), `reason`, `newPlanId`, `changes`
-    (spostamenti già in parole), `planIds` (i 3 piani di una richiesta), `confidence` e
-    `trigger` (causa della riserva o della ripianificazione). `outputHash` è `null` se
-    non è stato prodotto un piano. Il frontend manda `from`; azione, utente e ricerca per
-    piano li filtra nel browser (servirebbero i parametri `action` e `user`). L'export CSV
-    è generato nel browser dai record filtrati.
-11. **Configurazione: calendari, competenze, profili** (forma in
-    `src/frontend/src/api/types/config.ts`):
-    - `Calendar` con `workDays` (1 = lunedì … 7 = domenica), `shifts` `[{ start, end }]`
-      in "HH:mm" uguali per ogni giorno lavorativo, `holidays` `[{ date, name }]` e
-      `shiftsSummary` calcolato dal backend. Serve anche `PUT /calendars/{id}`: il
-      contratto prevede solo GET e POST. 422 con `path` per turni sovrapposti o nessun giorno.
-    - `POST /skills` con `{ code, name }`, 422 se il codice esiste. Nessuna modifica né
-      cancellazione, come nel contratto.
-    - `DomainProfile` con in più `name` (es. "Fabbrica") e `inUse` (il profilo usato di
-      default). `PUT /domain-profiles/{code}` riceve i pesi già normalizzati a somma 1
-      (422 altrimenti) e l'elenco dei vincoli attivi; il frontend conosce
-      `SEQUENCE_DEPENDENT_SETUP`, `ALTERNATIVE_RESOURCES`, `OVERTIME`, `HARD_DEADLINES`,
-      `PRECEDENCE_LAGS`, `MULTI_RESOURCE` e mostra gli altri con il codice.
-12. **Login (versione di prova)**: per ora solo `POST /auth/login` →
-    `{ accessToken, expiresIn, user }` con in più `user.displayName` e
-    `user.department`. Il frontend manda `Authorization: Bearer <token>` a ogni
-    chiamata e, a una risposta 401, torna al login. Token e utente stanno in
-    sessionStorage; niente rinnovo (`/auth/refresh`) e niente `/auth/me` finché il
-    progetto è in fase preliminare. Menu e pagine dipendono dal ruolo
-    (`src/frontend/src/features/auth/permissions.ts`); i controlli veri restano al
-    backend (403). Con il backend finto: account `pianificatore` (PLANNER),
-    `operatore` (OPERATOR), `amministratore` (ADMIN), password vuota o `demo`; con il
-    nome vuoto si entra come `pianificatore`.
-13. **Ripianificazione** (contratti A.4, forma in `src/frontend/src/api/types/plans.ts`):
-    `POST /plans/{id}/reschedule` con `{ event, freezeBefore, note? }`. L'evento ha campi
-    per tipo: `RESOURCE_DOWN` `{ resourceId, from, to | null }`, `URGENT_ORDER`
-    `{ orderId, dueDate | null }`, `DELAY` `{ orderId, delayMin }`. Proposta: risponde
-    202 con l'id di una **richiesta** (non di un piano), che come le altre produce 3 piani
-    e il confronto con ATC ed EDD; la richiesta porta `rescheduleOf` ed `event`. 409 se il
-    piano non è `APPROVED`. Approvando uno dei nuovi piani, quello di partenza passa a
-    `SUPERSEDED`; gli avvisi `INCIDENT` su quel piano si chiudono. Gli avvisi di guasto
-    portano `event`: arrivando da un avviso (`?avviso=AL-31`) la pagina non chiede cosa è
-    successo, mostra problema e impatto (attività bloccate, a catena, commesse) e lascia
-    cambiare solo durata del fermo, pesi e ampiezza. Per questo la richiesta ha in più
-    `alertId` (l'avviso da chiudere), `weights` e `scope` (`MINIMAL` = cambia il meno
-    possibile, `FULL` = riottimizza tutto). Il Gantt del piano approvato prima del guasto
-    deve mostrare le attività ancora sulla macchina ferma: è da lì che si vede l'impatto.
+## 9. Fasi di lavoro e stato
 
-## 9. Fasi di lavoro
+| Fase | Contenuto | Stato (25/11) |
+|---|---|---|
+| 1. Fondamenta | Vite, PrimeReact con i colori del mockup, layout, router, `api/client.ts`, MSW | fatto |
+| 2. Configurazione e commesse | Risorse, calendari, competenze, profili; commesse con grafo, form di commessa e attività | fatto |
+| 3. Pianificazione | Nuova pianificazione con interpretazione e polling, confronto dei 3 piani, elenco piani | fatto |
+| 4. Gantt e revisione | Gantt, validazione degli spostamenti, approva/modifica/rifiuta, ripianificazione da segnalazione | fatto |
+| 5. Resto | Vista operatore, dashboard, Modello AI, audit | fatto |
+| 6. Login e ruoli | Login di prova, menu e rotte per ruolo | fatto (versione semplice) |
+| 7. Utenti | Registrazione, approvazione e gestione utenti | da fare |
+| 8. Integrazione | Spegnere i mock un'area alla volta man mano che il backend implementa gli endpoint | da fare |
 
-1. **Fondamenta**: progetto Vite, PrimeReact con i token del mockup, layout e
-   sidebar, router con pagine vuote, `api/client.ts`, MSW con i dati del mockup.
-2. **Configurazione e commesse**: CRUD risorse (le altre tab dopo), elenco
-   commesse, editor del grafo con React Flow. In parallelo, il prototipo del Gantt.
-3. **Pianificazione**: nuova pianificazione con stepper e polling, confronto dei 3
-   piani, elenco piani.
-4. **Gantt e revisione**: Gantt, pannello attività, validazione degli spostamenti,
-   approva/modifica/rifiuta, ripianifica.
-5. **Resto**: vista operatore, dashboard con KPI, Modello AI, audit.
-6. **Integrazione**: si spengono i mock un'area alla volta, poi login e ruoli.
+Ogni passo è verificato nel browser (flussi completi, errori, accessibilità: contrasto,
+fuoco visibile, etichette e messaggi sotto i campi, obiettivi di almeno 44 px).

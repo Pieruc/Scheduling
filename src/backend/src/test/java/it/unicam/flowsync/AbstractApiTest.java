@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Base dei test di integrazione: applicazione completa su un MySQL 8 vero (Docker), con le migrazioni Flyway
- * e il profilo dev (utenti demo, password "flowsync-dev"). Il container è unico per tutta la suite.
+ * e il profilo dev (utenti demo, password "demo"). Il container è unico per tutta la suite.
  * Richiede Docker in esecuzione.
  */
 @SpringBootTest
@@ -33,11 +33,11 @@ public abstract class AbstractApiTest {
     @Autowired
     protected MockMvc mvc;
 
-    /** Esegue il login con un utente demo (admin, gneri, mrossi) e restituisce il JSON della risposta. */
+    /** Esegue il login con un utente demo (amministratore, pianificatore, operatore) e restituisce il JSON della risposta. */
     protected String loginResponse(String username) throws Exception {
         return mvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"" + username + "\",\"password\":\"flowsync-dev\"}"))
+                        .content("{\"username\":\"" + username + "\",\"password\":\"demo\"}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
     }

@@ -18,12 +18,12 @@ class SchemaAndMigrationsTest extends AbstractApiTest {
     @Test
     void migrationsAreApplied() {
         Integer applied = jdbc.queryForObject("SELECT COUNT(*) FROM flyway_schema_history WHERE success = 1", Integer.class);
-        assertThat(applied).isGreaterThanOrEqualTo(10);  // V1–V8 + seed V100, V101
+        assertThat(applied).isGreaterThanOrEqualTo(11);  // V1–V8 + seed V100, V101, V102
     }
 
     @Test
     void demoUsersHaveBcryptHashes() {
-        Integer users = jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE username IN ('admin', 'gneri', 'mrossi') AND password_hash LIKE '$2%'", Integer.class);
+        Integer users = jdbc.queryForObject("SELECT COUNT(*) FROM app_user WHERE username IN ('amministratore', 'pianificatore', 'operatore') AND password_hash LIKE '$2%'", Integer.class);
         assertThat(users).isEqualTo(3);
     }
 }

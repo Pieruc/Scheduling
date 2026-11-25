@@ -40,7 +40,7 @@ class RegistrationApiTest extends AbstractApiTest {
     }
 
     private ResultActions approve(String id, String role) throws Exception {
-        return mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("admin"))
+        return mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("amministratore"))
                 .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"" + role + "\"}"));
     }
 
@@ -77,7 +77,7 @@ class RegistrationApiTest extends AbstractApiTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
-        mvc.perform(get("/api/v1/users").param("status", "PENDING").header(AUTH, bearer("admin")))
+        mvc.perform(get("/api/v1/users").param("status", "PENDING").header(AUTH, bearer("amministratore")))
                 .andExpect(jsonPath("$[?(@.username=='sneaky' && @.role == null)]").isNotEmpty());   // nessun ruolo finché in attesa
         login("sneaky", PASSWORD).andExpect(status().isForbidden());
     }
@@ -111,7 +111,7 @@ class RegistrationApiTest extends AbstractApiTest {
     void adminApprovesWithARoleAndTheUserCanLogIn() throws Exception {
         String id = registered("approved-one");
 
-        mvc.perform(get("/api/v1/users").param("status", "PENDING").header(AUTH, bearer("admin")))
+        mvc.perform(get("/api/v1/users").param("status", "PENDING").header(AUTH, bearer("amministratore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.username=='approved-one')]").isNotEmpty());
 
@@ -133,8 +133,8 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void onlyAdminsManageUsers() throws Exception {
         String id = registered("needs-admin");
-        mvc.perform(get("/api/v1/users").header(AUTH, bearer("gneri"))).andExpect(status().isForbidden());
-        mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("gneri"))
+        mvc.perform(get("/api/v1/users").header(AUTH, bearer("pianificatore"))).andExpect(status().isForbidden());
+        mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("pianificatore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"ADMIN\"}"))
                 .andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/users")).andExpect(status().isUnauthorized());
@@ -143,7 +143,7 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void approvalRequiresARole() throws Exception {
         String id = registered("no-role");
-        mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("admin"))
+        mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("amministratore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].path").value("role"));
@@ -152,9 +152,9 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void adminRejectsAPendingRegistration() throws Exception {
         String id = registered("rejected-one");
-        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("admin"))).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("amministratore"))).andExpect(status().isNoContent());
         login("rejected-one", PASSWORD).andExpect(status().isUnauthorized());     // l'account non esiste più
-        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("admin"))).andExpect(status().isNotFound());
+        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("amministratore"))).andExpect(status().isNotFound());
     }
 
     @Test
@@ -164,10 +164,10 @@ class RegistrationApiTest extends AbstractApiTest {
         String refresh = JsonPath.read(login("to-disable", PASSWORD).andReturn().getResponse().getContentAsString(),
                 "$.refreshToken");
 
-        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("admin")))
+        mvc.perform(delete("/api/v1/users/" + id).header(AUTH, bearer("amministratore")))
                 .andExpect(status().isConflict());
 
-        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("admin"))
+        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("amministratore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"active\":false}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("DISABLED"));
@@ -179,7 +179,7 @@ class RegistrationApiTest extends AbstractApiTest {
                         .content("{\"refreshToken\":\"" + refresh + "\"}"))
                 .andExpect(status().isUnauthorized());                     // il refresh rilegge l'utente
 
-        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("admin"))
+        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("amministratore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"active\":true,\"role\":\"PLANNER\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ACTIVE"))
@@ -189,7 +189,7 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void aPendingUserCannotBeEditedBeforeApproval() throws Exception {
         String id = registered("pending-edit");
-        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("admin"))
+        mvc.perform(patch("/api/v1/users/" + id).header(AUTH, bearer("amministratore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"active\":true}"))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errors[0].code").value("USER_PENDING"));
@@ -198,7 +198,7 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void anAdminCannotLockThemselvesOut() throws Exception {
         for (String body : new String[]{"{\"active\":false}", "{\"role\":\"PLANNER\"}"}) {
-            mvc.perform(patch("/api/v1/users/U-1").header(AUTH, bearer("admin"))
+            mvc.perform(patch("/api/v1/users/U-1").header(AUTH, bearer("amministratore"))
                             .contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isConflict())
                     .andExpect(jsonPath("$.errors[0].code").value("SELF_LOCKOUT"));
@@ -208,7 +208,7 @@ class RegistrationApiTest extends AbstractApiTest {
     @Test
     void unknownUserIdsAre404() throws Exception {
         for (String id : new String[]{"U-999999", "U-abc", "42"}) {
-            mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("admin"))
+            mvc.perform(post("/api/v1/users/" + id + "/approve").header(AUTH, bearer("amministratore"))
                             .contentType(MediaType.APPLICATION_JSON).content("{\"role\":\"OPERATOR\"}"))
                     .andExpect(status().isNotFound());
         }

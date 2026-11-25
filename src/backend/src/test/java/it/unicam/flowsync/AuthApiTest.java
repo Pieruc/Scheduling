@@ -21,19 +21,19 @@ class AuthApiTest extends AbstractApiTest {
 
     @Test
     void loginReturnsTokensAndUser() throws Exception {
-        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginBody("admin", "flowsync-dev")))
+        mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginBody("amministratore", "demo")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
                 .andExpect(jsonPath("$.refreshToken").isNotEmpty())
                 .andExpect(jsonPath("$.expiresIn").value(900))
                 .andExpect(jsonPath("$.user.id").value("U-1"))
-                .andExpect(jsonPath("$.user.username").value("admin"))
+                .andExpect(jsonPath("$.user.username").value("amministratore"))
                 .andExpect(jsonPath("$.user.roles[0]").value("ADMIN"));
     }
 
     @Test
     void wrongPasswordAndUnknownUserGiveTheSameProblem() throws Exception {
-        for (String body : new String[]{loginBody("admin", "wrong"), loginBody("nobody", "flowsync-dev")}) {
+        for (String body : new String[]{loginBody("amministratore", "wrong"), loginBody("nobody", "demo")}) {
             mvc.perform(post("/api/v1/auth/login").contentType(MediaType.APPLICATION_JSON).content(body))
                     .andExpect(status().isUnauthorized())
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -71,39 +71,39 @@ class AuthApiTest extends AbstractApiTest {
 
     @Test
     void meReturnsTheCurrentUser() throws Exception {
-        mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, bearer("gneri")))
+        mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, bearer("pianificatore")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("gneri"))
+                .andExpect(jsonPath("$.username").value("pianificatore"))
                 .andExpect(jsonPath("$.roles[0]").value("PLANNER"));
     }
 
     @Test
     void aTamperedTokenIsRejected() throws Exception {
-        mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, bearer("gneri") + "x"))
+        mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, bearer("pianificatore") + "x"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void aRefreshTokenCannotCallTheApi() throws Exception {
-        String refresh = JsonPath.read(loginResponse("gneri"), "$.refreshToken");
+        String refresh = JsonPath.read(loginResponse("pianificatore"), "$.refreshToken");
         mvc.perform(get("/api/v1/auth/me").header(HttpHeaders.AUTHORIZATION, "Bearer " + refresh))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void refreshIssuesANewPair() throws Exception {
-        String refresh = JsonPath.read(loginResponse("mrossi"), "$.refreshToken");
+        String refresh = JsonPath.read(loginResponse("operatore"), "$.refreshToken");
         mvc.perform(post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refreshToken\":\"" + refresh + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").isNotEmpty())
-                .andExpect(jsonPath("$.user.username").value("mrossi"))
+                .andExpect(jsonPath("$.user.username").value("operatore"))
                 .andExpect(jsonPath("$.user.roles[0]").value("OPERATOR"));
     }
 
     @Test
     void anAccessTokenCannotBeUsedToRefresh() throws Exception {
-        String access = accessToken("gneri");
+        String access = accessToken("pianificatore");
         mvc.perform(post("/api/v1/auth/refresh").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"refreshToken\":\"" + access + "\"}"))
                 .andExpect(status().isUnauthorized())

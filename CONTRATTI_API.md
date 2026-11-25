@@ -1,10 +1,10 @@
 # Contratti API - P06 Scheduling con AI
 
 Documento di riferimento per le interfacce tra i blocchi dell'architettura
-(vedi `Spiegazione_architettura_VPP.txt`). Versione contratti: **v1 (bozza)**.
+(vedi `Spiegazione_architettura_VPP.txt`). Versione contratti: **v1.1 (bozza, 25/11/2026)**: la parte A include le richieste del frontend.
 
 ```
- Frontend (Angular) ──[A: REST pubblica /api/v1, JWT]──> Backend (Spring Boot)
+ Frontend (React)   ──[A: REST pubblica /api/v1, JWT]──> Backend (Spring Boot)
                                                               │
                                     [B: REST interna /optimize, ProblemSpec]
                                                               v
@@ -26,7 +26,7 @@ Documento di riferimento per le interfacce tra i blocchi dell'architettura
 ## 0. Convenzioni comuni
 
 - **Formato**: JSON UTF-8, campi in `snake_case` lato AI, `camelCase` lato API pubblica
-  (convenzioni native di Python e Java/Angular; la traduzione la fa l'AI Client).
+  (convenzioni native di Python e di Java/TypeScript; la traduzione la fa l'AI Client).
 - **Tempo**:
   - API pubblica: date in ISO-8601 con fuso (`2026-11-06T08:00:00+01:00`).
   - ProblemSpec: **interi in minuti** relativi a `horizon.start`. L'AI non gestisce
@@ -64,8 +64,17 @@ Documento di riferimento per le interfacce tra i blocchi dell'architettura
 
 ## A. API pubblica (Frontend -> Backend)
 
-Base URL: `/api/v1`. Tutte le chiamate (tranne login) richiedono
+Base URL: `/api/v1`. Tutte le chiamate (tranne login, refresh e registrazione) richiedono
 `Authorization: Bearer <JWT>`. Ruoli: `PLANNER`, `OPERATOR`, `ADMIN`.
+
+> **v1.1 (25/11/2026).** Le richieste del frontend (prima elencate in §8 di
+> `FRONTEND_STRUTTURA.md`) sono entrate nel contratto: sono quello che serve al progetto.
+> Le parti nuove sono segnate *(v1.1)*. Riferimento di dettaglio per i campi: i tipi
+> TypeScript in `src/frontend/src/api/types/` e i dati finti in `src/frontend/src/mocks/`,
+> che il frontend usa finché l'endpoint vero non c'è.
+
+Stato dell'implementazione nel backend (25/11): fatti A.1, A.2 (risorse; calendari,
+competenze e profili in lettura) e A.3; il resto è da fare.
 
 ### A.1 Auth & Roles (componente Security)
 
@@ -79,8 +88,15 @@ Base URL: `/api/v1`. Tutte le chiamate (tranne login) richiedono
 ```json
 // POST /auth/login  -> 200
 { "accessToken": "eyJ...", "refreshToken": "eyJ...", "expiresIn": 900,
-  "user": { "id": "U-1", "username": "mrossi", "roles": ["PLANNER"] } }
+  "user": { "id": "U-1", "username": "pianificatore", "fullName": "Giulia Neri",
+            "roles": ["PLANNER"], "department": null } }
 ```
+
+*(v1.1)* In `user` servono anche `fullName` (il nome mostrato nella barra laterale e nella vista
+operatore) e `department` (facoltativo, es. "Reparto saldatura" per l'operatore).
+
+Utenti demo (solo profilo `dev`, uguali nel frontend finto): `pianificatore` (PLANNER),
+`operatore` (OPERATOR), `amministratore` (ADMIN), password `demo`.
 
 ```json
 // POST /auth/register  -> 201        (un campo "role" nel corpo è ignorato)
@@ -117,94 +133,173 @@ Base URL: `/api/v1`. Tutte le chiamate (tranne login) richiedono
 |--------|------|-------|-------------|
 | GET / POST | `/resources` | lettura: tutti; scrittura: ADMIN | Elenco / creazione risorse |
 | GET / PUT / DELETE | `/resources/{id}` | idem | Dettaglio / modifica / disattivazione |
-| GET / POST | `/calendars` | idem | Turni, festività, indisponibilità |
-| GET / POST | `/skills` | idem | Competenze |
+| GET / POST | `/calendars` | idem | Turni, festività |
+| PUT | `/calendars/{id}` | ADMIN | Modifica di un calendario *(v1.1)* |
+| GET / POST | `/skills` | idem | Competenze (nessuna modifica né cancellazione) |
 | GET | `/domain-profiles` | tutti | Profili disponibili (`FACTORY`, `PA`, `PROJECT`, ...) |
 | GET / PUT | `/domain-profiles/{code}` | ADMIN | Pesi di default degli obiettivi, vincoli attivi |
 
 ```json
-// Resource
-{ "id": "R-CNC-01", "name": "Tornio CNC 1", "type": "MACHINE",   // MACHINE | PERSON | ROOM
-  "capacity": 1, "skills": ["TORNITURA"], "calendarId": "CAL-2TURNI", "active": true }
+// Resource  (costPerHour e unavailability: v1.1)
+{ "id": "CNC2", "name": "Fresa CNC 2", "type": "MACHINE",   // MACHINE | PERSON | ROOM
+  "capacity": 1, "skills": ["FRESATURA"], "calendarId": "CAL-2TURNI", "active": true,
+  "costPerHour": 72,                                          // euro/ora, null = non indicato; serve al costo dei piani
+  "unavailability": [ { "from": "2026-11-26T08:00:00+01:00", "to": "2026-11-26T17:00:00+01:00",
+                        "reason": "Manutenzione" } ] }
 
-// DomainProfile
-{ "code": "FACTORY", "description": "Job shop flessibile con setup",
-  "defaultObjectiveWeights": { "makespan": 0.3, "weightedTardiness": 0.5, "setup": 0.2 },
-  "features": ["SEQUENCE_DEPENDENT_SETUP", "ALTERNATIVE_RESOURCES"] }
+// Calendar  (v1.1: stessi turni in tutti i giorni lavorativi; 1 = lunedì ... 7 = domenica)
+{ "id": "CAL-2TURNI", "name": "2 turni", "shiftsSummary": "Lun–Ven 8–12 / 13–17",   // il riepilogo lo calcola il backend
+  "workDays": [1, 2, 3, 4, 5],
+  "shifts": [ { "start": "08:00", "end": "12:00" }, { "start": "13:00", "end": "17:00" } ],
+  "holidays": [ { "date": "2026-12-25", "name": "Natale" } ] }
+// POST / PUT: stesso corpo senza shiftsSummary; 422 con path per turni sovrapposti o nessun giorno
+
+// Skill: POST /skills { "code": "TORNITURA", "name": "Tornitura" }  -> 422 se il codice esiste
+
+// DomainProfile  (name e inUse: v1.1)
+{ "code": "FACTORY", "name": "Fabbrica", "description": "Job shop flessibile con setup",
+  "defaultObjectiveWeights": { "makespan": 0.3, "weightedTardiness": 0.5, "setup": 0.2 },  // somma 1, 422 altrimenti
+  "features": ["SEQUENCE_DEPENDENT_SETUP", "ALTERNATIVE_RESOURCES", "OVERTIME"],
+  "inUse": true }                                             // il profilo usato di default dalle nuove pianificazioni
 ```
+
+Vincoli che il frontend sa mostrare: `SEQUENCE_DEPENDENT_SETUP`, `ALTERNATIVE_RESOURCES`,
+`OVERTIME`, `HARD_DEADLINES`, `PRECEDENCE_LAGS`, `MULTI_RESOURCE`; gli altri li mostra con il codice.
 
 ### A.3 Orders & Process Graph
 
 | Metodo | Path | Ruoli | Descrizione |
 |--------|------|-------|-------------|
 | GET / POST | `/orders` | PLANNER, ADMIN | Elenco (filtri `status`, `dueBefore`) / creazione |
-| GET / PUT / DELETE | `/orders/{id}` | PLANNER, ADMIN | |
+| GET / PUT / DELETE | `/orders/{id}` | PLANNER, ADMIN | DELETE = annulla (`CANCELLED`), non cancella |
 | PATCH | `/orders/{id}/priority` | PLANNER | Cambio priorità |
 | GET / PUT | `/orders/{id}/process-graph` | PLANNER | Attività + precedenze dell'ordine (editor a grafo) |
 
 ```json
-// Order
-{ "id": "ORD-0012", "customer": "ACME", "domainProfile": "FACTORY",
-  "releaseDate": "2026-11-06T08:00:00+01:00", "dueDate": "2026-11-10T18:00:00+01:00",
-  "priority": 3, "weight": 2.0, "status": "OPEN" }     // OPEN | PLANNED | IN_PROGRESS | DONE | CANCELLED
+// Order  (description e activityCount: v1.1, già implementati)
+{ "id": "C-101", "customer": "Rinaldi Carrelli", "description": "Telaio carrello",
+  "domainProfile": "FACTORY",
+  "releaseDate": "2026-11-26T08:00:00+01:00", "dueDate": "2026-11-28T18:00:00+01:00",   // dueDate null = non ancora nota
+  "priority": 3, "weight": 3.0, "status": "OPEN",     // priority 1 bassa, 2 media, 3 alta
+  "activityCount": 6 }                                // OPEN | PLANNED | IN_PROGRESS | DONE | CANCELLED
+// POST / PUT: stesso corpo senza status e activityCount.
+// 422 con path per codice duplicato o scadenza prima del rilascio; 409 se la commessa non è più OPEN.
 
 // PUT /orders/{id}/process-graph
 { "activities": [
-    { "id": "A1", "name": "Taglio", "requiredSkills": ["TAGLIO"],
-      "modes": [ { "resourceIds": ["R-SEGA-01"], "durationMin": 45 },
-                 { "resourceIds": ["R-SEGA-02"], "durationMin": 60 } ] },
-    { "id": "A2", "name": "Tornitura", "requiredSkills": ["TORNITURA"],
-      "modes": [ { "resourceIds": ["R-CNC-01"], "durationMin": null } ] }   // null = da stimare (M1)
+    { "id": "C101-A1", "name": "Taglio", "requiredSkills": ["TAGLIO"],
+      "modes": [ { "resourceIds": ["LASER"], "durationMin": 120 } ] },
+    { "id": "C101-A4", "name": "Saldatura", "requiredSkills": ["SALDATURA"],
+      "modes": [ { "resourceIds": ["SAL1"], "durationMin": 180 },       // un modo per alternativa
+                 { "resourceIds": ["SAL2"], "durationMin": null } ] }   // null = da stimare (M1)
   ],
-  "precedences": [ { "from": "A1", "to": "A2", "type": "FS", "minLagMin": 0, "maxLagMin": null } ] }
+  "precedences": [ { "from": "C101-A1", "to": "C101-A4", "type": "FS", "minLagMin": 0, "maxLagMin": null } ] }
 ```
 
-Il backend rifiuta con 422 un grafo con cicli già in fase di salvataggio.
+Il backend rifiuta con 422 un grafo con cicli già in fase di salvataggio. Gli id delle attività
+nuove li sceglie il frontend (`C105-A1`, ...): sono univoci nella commessa.
 
-### A.4 Planning & Gantt
+### A.4 Planning & Gantt *(v1.1: richieste con 3 piani)*
 
-La generazione è **asincrona**: l'inferenza dura pochi secondi, ma con il fallback
-CP-SAT può durare di più e non si vuole tenere aperta la richiesta HTTP.
+**Ogni richiesta produce 3 piani alternativi** con pesi diversi degli obiettivi:
+`ECONOMIC` (più lento, costo minimo, niente straordinari), `BALANCED` (compromesso, scelto con
+i pesi del pianificatore) e `FAST` (finisce prima, costa di più). Ogni richiesta è anche
+**confrontata con le regole ATC ed EDD** calcolate sugli stessi dati.
+
+La generazione è **asincrona**: la richiesta risponde subito 202 e il frontend interroga
+`GET /plan-requests/{id}` (polling ogni 1,5 s) finché non è più `PENDING`.
 
 | Metodo | Path | Ruoli | Descrizione |
 |--------|------|-------|-------------|
-| POST | `/plans` | PLANNER | Richiede un nuovo piano -> `202 Accepted` + `Location` |
-| GET | `/plans` | tutti | Elenco piani (filtri `status`, `from`, `to`) |
-| GET | `/plans/{id}` | tutti | Stato e risultato (polling) |
+| POST | `/plan-requests/interpret` | PLANNER | L'LLM legge la richiesta scritta a parole e propone i parametri |
+| POST | `/plan-requests` | PLANNER | Nuova richiesta -> `202 Accepted` + `Location` |
+| GET | `/plan-requests?limit=&q=&status=&from=` | tutti | Elenco richieste, dalla più recente, con i loro piani |
+| GET | `/plan-requests/{id}` | tutti | Stato, fase, 3 piani, confronto con ATC/EDD (polling) |
 | GET | `/plans/{id}/gantt` | tutti | Vista pronta per il Gantt (righe per risorsa) |
-| GET | `/plans/{id}/compare?baselineId=` | tutti | Confronto KPI con il piano di riferimento |
-| POST | `/plans/{id}/reschedule` | PLANNER | Rischedulazione da un evento (guasto, urgenza) |
+| POST | `/plans/{id}/reschedule` | PLANNER | Ripianificazione del piano in esecuzione dopo un evento |
 
 ```json
-// POST /plans
-{ "orderIds": ["ORD-0012", "ORD-0013"],          // vuoto = tutti gli ordini OPEN
-  "domainProfile": "FACTORY",
-  "horizonStart": "2026-11-06T08:00:00+01:00",
-  "horizonEnd":   "2026-11-13T18:00:00+01:00",
-  "objectiveWeights": { "makespan": 0.2, "weightedTardiness": 0.6, "setup": 0.2 },  // opzionale: default del profilo
-  "baselinePlanId": "PLAN-0040",                 // opzionale
-  "mode": "NORMAL" }                             // NORMAL | SHADOW
+// POST /plan-requests/interpret
+{ "text": "Pianifica C-101…C-104 per la prossima settimana, evita gli straordinari" }
+// -> 200
+{ "horizonStart": "2026-11-26T08:00:00+01:00", "horizonEnd": "2026-12-02T17:00:00+01:00",
+  "orderIds": ["C-101", "C-102", "C-103", "C-104"],
+  "hardConstraints": ["C-101 entro ven 28 nov", "Fresa CNC 2: manutenzione gio 27, 8:00 – 17:00"],
+  "preferences": ["Evitare gli straordinari"],
+  "weights": { "punctuality": 8, "overtime": 7, "setup": 4 },        // 0–10, come gli slider
+  "weightNotes": ["“Evitare straordinari” è salito a 7 perché lo hai scritto nella richiesta."],
+  "missingData": [
+    { "id": "due-C-104", "kind": "DUE_DATE", "orderId": "C-104", "question": "C-104 non ha una scadenza. Quando va consegnata?" },
+    { "id": "welding-C-103", "kind": "CHOICE", "question": "Per la saldatura di C-103 quale postazione?",
+      "options": [ { "value": "SAL1,SAL2", "label": "S1 o S2" }, { "value": "SAL1", "label": "Solo S1" } ] } ] }
 
-// 202 Accepted   Location: /api/v1/plans/PLAN-0041
-{ "id": "PLAN-0041", "status": "PENDING" }
+// POST /plan-requests
+{ "text": "...", "horizonStart": "...", "horizonEnd": "...", "orderIds": ["C-101", "C-102"],
+  "weights": { "punctuality": 8, "overtime": 7, "setup": 4 },
+  "answers": { "due-C-104": "2026-12-01T18:00:00+01:00" } }   // risposte alle domande, per id
+// -> 202 { "id": "REQ-0013", "status": "PENDING" }   Location: /api/v1/plan-requests/REQ-0013
+// 422 con path "answers.<id>" se manca una risposta; le scadenze date in risposta si salvano sulle commesse.
 
-// GET /plans/PLAN-0041  -> 200
-{ "id": "PLAN-0041", "status": "PROPOSED",       // PENDING | PROPOSED | APPROVED | REJECTED | SUPERSEDED | FAILED
-  "createdAt": "2026-11-06T08:00:03+01:00", "createdBy": "mrossi",
-  "solver": "POLICY", "modelVersion": "m2-policy-1.3.0", "confidence": 0.87,
-  "kpis": { "makespanMin": 2310, "weightedTardiness": 120.5, "lateOrders": 1,
-            "totalSetupMin": 95, "avgUtilization": 0.78 },
-  "warnings": ["Durata di A2 stimata dal modello (nessun dato inserito)"],
-  "assignments": [
-    { "activityId": "A1", "orderId": "ORD-0012", "resourceIds": ["R-SEGA-01"],
-      "start": "2026-11-06T08:00:00+01:00", "end": "2026-11-06T08:45:00+01:00" } ] }
+// GET /plan-requests/REQ-0012 -> 200
+{ "id": "REQ-0012", "status": "COMPLETED",          // PENDING | COMPLETED | FAILED
+  "stage": null,                                    // con PENDING: VALIDATION | CONTEXT | POLICY | BASELINES
+  "createdAt": "...", "createdBy": "pianificatore", "label": "Commesse C-101 – C-104",
+  "orderIds": ["C-101", "C-102", "C-103", "C-104"], "horizonStart": "...", "horizonEnd": "...",
+  "weights": { "punctuality": 8, "overtime": 7, "setup": 4 },
+  "recommendedPlanId": "PLAN-0042", "elapsedSeconds": 1.8,
+  "plans": [
+    { "id": "PLAN-0042", "variant": "BALANCED", "status": "PROPOSED",
+      // PENDING | PROPOSED | APPROVED | REJECTED | SUPERSEDED | FAILED
+      "solver": "POLICY", "modelVersion": "m2-policy-1.3.0", "confidence": 0.87, "createdAt": "...",
+      "summary": "Nessun ritardo, 2 ore di straordinario martedì in saldatura.",
+      "kpis": { "makespanMin": 2280, "totalTardinessMin": 0, "lateOrders": 0, "totalSetupMin": 95,
+                "setupCount": 7, "overtimeMin": 120, "avgUtilization": 0.81, "estimatedCost": 9600 } } ],
+  "baselines": [ { "solver": "ATC", "kpis": { ... } }, { "solver": "EDD", "kpis": { ... } } ],
+  "rescheduleOf": null, "event": null,              // valorizzati se è una ripianificazione
+  "error": null }                                   // motivo, se FAILED
+```
 
-// POST /plans/{id}/reschedule
-{ "event": { "type": "RESOURCE_DOWN",           // RESOURCE_DOWN | URGENT_ORDER | DELAY
-             "resourceId": "R-CNC-01",
-             "from": "2026-11-07T10:00:00+01:00", "to": "2026-11-07T16:00:00+01:00" },
-  "freezeBefore": "2026-11-07T10:00:00+01:00" }  // attività già iniziate/precedenti restano fisse
-// -> 202 con un nuovo piano PENDING che punta a quello di origine
+I KPI sono in **minuti di lavoro** (`makespanMin`, `totalTardinessMin`, `overtimeMin`) e
+`estimatedCost` in euro (richiede `costPerHour` delle risorse). Approvando un piano, gli altri
+della stessa richiesta passano a `SUPERSEDED`.
+
+**Gantt.** `GET /plans/{id}/gantt` restituisce il piano **già convertito dal backend** nella
+scala del Gantt: minuti di lavoro dall'inizio del periodo, con `minutesPerDay` per giornata
+(480 = turni 8–12 e 13–17) e l'elenco dei giorni lavorativi. Il frontend non conosce i calendari:
+disegna i dati del backend così come arrivano.
+
+```json
+{ "planId": "PLAN-0042", "requestId": "REQ-0012", "status": "PROPOSED", "variant": "BALANCED",
+  "solver": "POLICY", "modelVersion": "m2-policy-1.3.0", "confidence": 0.87, "kpis": { ... },
+  "days": ["2026-11-26", "2026-11-27", "2026-11-28", "2026-12-01", "2026-12-02"], "minutesPerDay": 480,
+  "resources": [ { "id": "CNC2", "name": "Fresa CNC 2",
+                   "unavailable": [ { "start": 480, "end": 960, "reason": "Manutenzione" } ] } ],
+  "bars": [ { "activityId": "C101-A2", "activityName": "Fresatura", "orderId": "C-101", "resourceId": "CNC1",
+              "start": 120, "end": 300,
+              "durations": { "CNC1": 180, "CNC2": 210 },          // risorse ammesse e durata su ciascuna
+              "declaredMin": 180,                                 // null = durata stimata da M1
+              "estimate": { "value": 198, "low": 180, "high": 243, "confidence": 0.86 } } ],
+  "precedences": [ { "from": "C101-A1", "to": "C101-A2" } ],
+  "dueByOrder": { "C-101": 1440, "C-104": null },               // scadenza in minuti di lavoro
+  "manualChanges": 0 }
+```
+
+**Ripianificazione.** Riparte dal piano in esecuzione (`APPROVED`) dopo un evento. Risponde come
+una nuova richiesta: 3 piani e confronto con ATC/EDD; la richiesta porta `rescheduleOf` ed
+`event`. Approvando uno dei nuovi piani, quello di partenza passa a `SUPERSEDED`.
+
+```json
+// POST /plans/PLAN-0037/reschedule
+{ "event": { "type": "RESOURCE_DOWN", "resourceId": "SAL2",
+             "from": "2026-11-25T10:42:00+01:00", "to": null },        // to null = fino a nuovo avviso
+  // oppure { "type": "URGENT_ORDER", "orderId": "C-102", "dueDate": "..." | null }
+  // oppure { "type": "DELAY", "orderId": "C-102", "delayMin": 120 }
+  "freezeBefore": "2026-11-25T10:45:00+01:00",   // le attività iniziate prima restano dove sono
+  "alertId": "AL-31",                            // l'avviso da cui nasce: il backend lo chiude
+  "weights": { "punctuality": 8, "overtime": 4, "setup": 4 },   // assenti = quelli della richiesta di partenza
+  "scope": "MINIMAL",                            // MINIMAL = cambia il meno possibile, FULL = riottimizza tutto
+  "note": "Tecnico domani mattina" }
+// -> 202 { "id": "REQ-0015", "status": "PENDING" }; 409 se il piano non è APPROVED; 422 se to <= from
 ```
 
 ### A.5 Plan Review (componente Decisions)
@@ -215,38 +310,69 @@ CP-SAT può durare di più e non si vuole tenere aperta la richiesta HTTP.
 | GET | `/plans/{id}/decisions` | tutti | Storico decisioni |
 
 ```json
-// POST /plans/PLAN-0041/decisions
+// POST /plans/PLAN-0042/decisions
 { "decision": "MODIFY",                          // APPROVE | MODIFY | REJECT
-  "reason": "Spostata A2 per manutenzione programmata",
-  "changes": [ { "activityId": "A2", "resourceIds": ["R-CNC-02"],
-                 "start": "2026-11-06T10:00:00+01:00" } ] }
-// -> 201. MODIFY genera una nuova versione del piano, verificata dal backend
-//    (precedenze e capacità); se non è ammissibile -> 422.
+  "reason": "Spostata la saldatura per la manutenzione della S2",   // obbligatorio con MODIFY e REJECT
+  "changes": [ { "activityId": "C101-A4", "resourceId": "SAL1", "start": 600 } ] }   // start nella scala del Gantt
+// -> 201 { "planId": "PLAN-0042.1", "status": "PROPOSED" }   (con MODIFY: nuova versione)
+// MODIFY è verificata dal backend con le stesse regole del frontend (precedenze, risorsa ammessa,
+// sovrapposizioni, indisponibilità, periodo): se non è ammissibile -> 422 con path "changes[i]".
 // Decisione su piano non PROPOSED -> 409.
 ```
 
-### A.6 Execution & KPI
+### A.6 Execution, segnalazioni, avvisi e KPI
 
 | Metodo | Path | Ruoli | Descrizione |
 |--------|------|-------|-------------|
-| POST | `/executions` | OPERATOR | Registra inizio/fine reale di un'attività |
+| GET | `/operator/today` | OPERATOR | Le attività di oggi dell'operatore collegato *(v1.1)* |
+| POST | `/executions` | OPERATOR | Registra inizio, pausa, ripresa, fine di un'attività |
 | GET | `/executions?planId=` | tutti | Esecuzione reale di un piano |
+| POST | `/incidents` | OPERATOR | Segnalazione di un problema *(v1.1)* |
+| GET | `/alerts` | PLANNER, ADMIN | Avvisi aperti per la dashboard *(v1.1)* |
 | GET | `/kpis?from=&to=&profile=` | tutti | Serie storiche KPI (dashboard) |
-| GET | `/kpis/shadow?from=&to=` | PLANNER, ADMIN | Confronto piano AI (shadow) vs piano reale |
 
 ```json
+// GET /operator/today -> 200
+{ "date": "2026-11-25", "operatorName": "Marco Rossi", "department": "Reparto saldatura",
+  "shifts": [ { "start": "08:00", "end": "12:00" }, { "start": "13:00", "end": "17:00" } ],
+  "resources": [ { "id": "SAL1", "name": "Saldatrice S1" }, { "id": "SAL2", "name": "Saldatrice S2" } ],
+  "activities": [
+    { "planId": "PLAN-0037", "activityId": "C101-A4", "activityName": "Saldatura telaio",
+      "orderId": "C-101", "customer": "Rinaldi Carrelli", "resourceId": "SAL1", "resourceName": "Saldatrice S1",
+      "plannedStart": "...", "plannedEnd": "...",
+      "state": "IN_PROGRESS",                    // TODO | IN_PROGRESS | PAUSED | DONE, ricavato dagli eventi
+      "workedMin": 0, "runningSince": "...", "actualStart": "...", "actualEnd": null,
+      "waitingFor": null } ] }                   // { activityName, plannedEnd } se una precedente non è finita
+
 // POST /executions
-{ "planId": "PLAN-0041", "activityId": "A1", "resourceIds": ["R-SEGA-01"],
-  "event": "END",                                // START | END | PAUSE | RESUME
-  "timestamp": "2026-11-06T08:52:00+01:00", "note": "Lama sostituita" }
+{ "planId": "PLAN-0037", "activityId": "C101-A4", "resourceIds": ["SAL1"],
+  "event": "END",                                // START | PAUSE | RESUME | END
+  "timestamp": "2026-11-25T11:52:00+01:00", "note": "..." }
+// -> 201 con l'attività aggiornata (stesso formato di operator/today).
+// 409 se il passaggio non è ammesso: un'attività alla volta in corso, niente inizio prima della
+// fine delle precedenti, niente ripresa o fine di un'attività non iniziata.
+
+// POST /incidents  -> 201 { "id": "AL-32" }; 422 se manca la nota con OTHER
+{ "kind": "BREAKDOWN",                           // BREAKDOWN | MISSING_MATERIAL | DELAY | OTHER
+  "resourceId": "SAL2", "planId": "PLAN-0037", "activityId": "C101-A4",
+  "note": "Non si accende", "timestamp": "..." }
+
+// GET /alerts -> 200   (ogni segnalazione diventa un avviso INCIDENT)
+[ { "id": "AL-31", "type": "INCIDENT",           // INCIDENT | PLANS_TO_REVIEW | MAINTENANCE
+    "title": "Guasto segnalato da M. Rossi", "detail": "Saldatrice S2 non si accende", "createdAt": "...",
+    "link": { "label": "Ripianifica", "planId": "PLAN-0037" },     // oppure planRequestId
+    "event": { "type": "RESOURCE_DOWN", "resourceId": "SAL2", "from": "...", "to": null } } ]
+// "event" serve alla pagina Ripianifica: il problema è già noto e non si richiede.
 
 // GET /kpis -> 200
-{ "points": [ { "date": "2026-11-06", "makespanMin": 2310, "lateOrders": 1,
-                "avgUtilization": 0.78, "planAdherence": 0.91 } ] }
+{ "points": [ { "date": "2026-11-23", "makespanMin": 2310, "lateOrders": 1, "avgUtilization": 0.78,
+                "planAdherence": 0.91, "onTimeRate": 0.94 } ],    // una riga per settimana
+  "utilizationByResource": [ { "resourceId": "CNC1", "resourceName": "Fresa CNC 1", "utilization": 0.92 } ] }
 ```
 
-> Punto aperto: l'integrazione dei KPI è ancora da decidere; questi endpoint sono
-> il perimetro minimo se la si conferma.
+> **Modalità shadow** (piano AI calcolato accanto a quello reale senza applicarlo, per
+> confrontarli): decisione aperta, vedi "Punti aperti". Se resta, servono `mode: SHADOW` nella
+> richiesta e `GET /kpis/shadow?from=&to=` (PLANNER, ADMIN).
 
 ### A.7 Model Info (sola lettura)
 
@@ -254,13 +380,26 @@ CP-SAT può durare di più e non si vuole tenere aperta la richiesta HTTP.
 |--------|------|-------|-------------|
 | GET | `/models/active` | tutti | Versione attiva di M1 e M2 + metriche |
 | GET | `/models` | ADMIN | Storico versioni |
+| GET | `/models/status` | tutti | Servizi attivi e uso del metodo di riserva *(v1.1)* |
 
 ```json
-// GET /models/active
+// GET /models/active  (datasetVersion, specVersion e le metriche segnate: v1.1)
 { "policy":  { "version": "m2-policy-1.3.0", "publishedAt": "2026-10-28T12:00:00Z",
-               "metrics": { "gapVsCpSat": 0.04, "winRateVsAtc": 0.81, "avgInferenceMs": 420 } },
+               "datasetVersion": "ds-2026-10-25", "specVersion": "1.0",
+               "metrics": { "gapVsCpSat": 0.04, "winRateVsAtc": 0.81, "winRateVsEdd": 0.93, "avgInferenceMs": 420 } },
   "context": { "version": "m1-context-1.1.0", "publishedAt": "2026-10-20T09:00:00Z",
-               "metrics": { "durationMape": 0.12 } } }
+               "datasetVersion": "ds-2026-10-18", "specVersion": "1.0",
+               "metrics": { "durationMape": 0.12, "weeklyEstimates": 38, "intervalCoverage": 0.8, "avgInferenceMs": 35 } } }
+// Il frontend mostra solo le metriche che riceve.
+
+// GET /models -> 200
+[ { "version": "m2-policy-1.4.0-rc1", "component": "POLICY",   // POLICY | CONTEXT
+    "publishedAt": "...", "status": "CANDIDATE",                 // ACTIVE | CANDIDATE | RETIRED
+    "metrics": { "gapVsCpSat": 0.036 } } ]
+
+// GET /models/status -> 200
+{ "aiServiceUp": true, "cpSatAvailable": true, "confidenceThreshold": 0.6, "days": 30,
+  "plansBySolver": { "POLICY": 39, "CP_SAT": 2, "ATC": 1, "EDD": 0 } }
 ```
 
 Nessun endpoint di scrittura: un modello si pubblica solo dalla pipeline (contratto C).
@@ -269,17 +408,22 @@ Nessun endpoint di scrittura: un modello si pubblica solo dalla pipeline (contra
 
 | Metodo | Path | Ruoli | Descrizione |
 |--------|------|-------|-------------|
-| GET | `/audit?planId=&from=&to=` | ADMIN | Record di tracciabilità |
+| GET | `/audit?planId=&from=&to=&action=&user=` | ADMIN | Record di tracciabilità, dal più recente |
 
 ```json
-{ "id": "AUD-901", "timestamp": "2026-11-06T08:00:03+01:00", "planId": "PLAN-0041",
-  "user": "mrossi", "action": "PLAN_GENERATED",  // PLAN_GENERATED | DECISION | RESCHEDULE | FALLBACK_USED
+{ "id": "AUD-0912", "timestamp": "2026-11-25T09:15:00+01:00", "planId": "PLAN-0041",
+  "user": "pianificatore",                       // "system" per gli eventi automatici
+  "action": "PLAN_GENERATED",                    // PLAN_GENERATED | DECISION | RESCHEDULE | FALLBACK_USED
   "modelVersion": "m2-policy-1.3.0", "solver": "POLICY",
-  "inputHash": "sha256:9f2c...", "outputHash": "sha256:41ab..." }
+  "inputHash": "sha256:9f2c...", "outputHash": "sha256:41ab...",   // outputHash null se non c'è un piano
+  "details": {                                   // v1.1: per leggere il record senza aprire il piano
+    "decision": null, "reason": null, "newPlanId": null, "changes": null,
+    "planIds": ["PLAN-0041", "PLAN-0042", "PLAN-0043"],   // con PLAN_GENERATED
+    "confidence": null, "trigger": null } }      // con FALLBACK_USED / RESCHEDULE: la causa
 ```
 
 L'hash della ProblemSpec permette di riprodurre esattamente il piano (stesso input +
-stessa versione del modello).
+stessa versione del modello). L'export CSV lo fa il frontend dai record filtrati.
 
 ---
 
@@ -460,6 +604,10 @@ vede in produzione esattamente la stessa struttura su cui è stato addestrato.
 
 1. CP-SAT come fallback online: dipende dai tempi su istanze grandi (`fallback_chain`).
 2. Integrazione KPI: gli endpoint A.6 sono il minimo se confermata.
-3. Polling vs WebSocket/SSE per lo stato del piano (per ora polling su `GET /plans/{id}`).
+3. Polling vs WebSocket/SSE per lo stato della richiesta (per ora polling su `GET /plan-requests/{id}`).
 4. Schema OpenAPI: generare `openapi.yaml` da Spring (springdoc) e da FastAPI
    (automatico) e confrontarlo con questo documento.
+5. Modalità shadow: tenerla (richiesta `mode: SHADOW` + `GET /kpis/shadow`) o toglierla da
+   architettura e tesi. Il frontend per ora non la mostra.
+6. Come l'AI produce i 3 piani: tre chiamate a `/optimize` con pesi diversi, oppure una
+   chiamata che restituisce più piani (estensione di B.2). Il contratto A non cambia.

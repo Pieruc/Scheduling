@@ -65,8 +65,9 @@ erDiagram
 | `V5__decisions_execution.sql` | Decisioni, eventi di esecuzione, segnalazioni, vista per M1 |
 | `V6__audit_models.sql` | Audit e versioni dei modelli |
 | `db/seed/V100__demo_data.sql` | Solo profilo `dev`: l'officina dei mockup (utenti demo, 9 risorse, C-101…C-104, manutenzione CNC 2) |
+| `db/seed/V102__frontend_demo_users.sql` | Solo profilo `dev`: utenti demo rinominati come nel frontend, password `demo` |
 
-Gli utenti demo (`admin`, `gneri`, `mrossi`) hanno password `flowsync-dev`, da usare solo in sviluppo.
+Gli utenti demo (`amministratore`, `pianificatore`, `operatore`, allineati al frontend) hanno password `demo`, da usare solo in sviluppo. I nomi e la password sono impostati da `db/seed/V102__frontend_demo_users.sql`.
 
 ## Entità JPA incluse
 
@@ -98,18 +99,18 @@ mvn spring-boot:run -Pdev      # avvia anche il MySQL di compose.yaml, applica F
 
 Con il profilo `dev` Spring Boot esegue da solo `docker compose up` su `compose.yaml`, aspetta che MySQL sia *healthy* e si collega al container (URL, utente e password li legge dal container, non dal datasource). Serve Docker Desktop acceso. Quando fermi l'app il container resta acceso (`lifecycle-management: start-only`); per spegnerlo `docker compose down`, per ripartire da un DB vuoto `docker compose down -v`. Il seed dei dati demo è la migrazione `V100`: per questo il profilo `dev` ha `spring.flyway.out-of-order: true`, altrimenti ogni nuova migrazione (V7, V8, …) verrebbe rifiutata su un DB di sviluppo che ha già il seed. Le migrazioni nuove si numerano comunque in sequenza (V8, V9, …), mai sopra 100. Dall'IDE: run configuration con profilo attivo `dev` e working directory `src/backend`. Senza `dev` il supporto Docker è spento, e nei test resta spento comunque (usano Testcontainers, un MySQL separato e usa e getta).
 
-Password del DB e segreto JWT stanno in `src/backend/.env` (escluso da git; il modello è `.env.example`: `cp .env.example .env`). Lo leggono sia Spring Boot (`spring.config.import` in `application.yml`) sia `docker compose`; una variabile d'ambiente con lo stesso nome vince sul file. Nel `.env` niente virgolette: Spring lo legge come file `.properties`, quindi le virgolette diventerebbero parte del valore. Il file si cerca nella cartella da cui parte l'app: avviare da `src/backend` (anche nella run configuration dell'IDE). Senza `.env`, il profilo `dev` ha comunque valori di comodo; fuori da `dev` servono `DB_PASSWORD` e `JWT_SECRET` (almeno 32 caratteri). Utenti demo: `admin` (ADMIN), `gneri` (PLANNER), `mrossi` (OPERATOR), tutti con password `flowsync-dev`.
+Password del DB e segreto JWT stanno in `src/backend/.env` (escluso da git; il modello è `.env.example`: `cp .env.example .env`). Lo leggono sia Spring Boot (`spring.config.import` in `application.yml`) sia `docker compose`; una variabile d'ambiente con lo stesso nome vince sul file. Nel `.env` niente virgolette: Spring lo legge come file `.properties`, quindi le virgolette diventerebbero parte del valore. Il file si cerca nella cartella da cui parte l'app: avviare da `src/backend` (anche nella run configuration dell'IDE). Senza `.env`, il profilo `dev` ha comunque valori di comodo; fuori da `dev` servono `DB_PASSWORD` e `JWT_SECRET` (almeno 32 caratteri). Utenti demo: `amministratore` (ADMIN), `pianificatore` (PLANNER), `operatore` (OPERATOR), tutti con password `demo` (gli stessi del frontend).
 
 - Swagger UI: <http://localhost:8080/swagger-ui.html> (bottone *Authorize*: incollare l'`accessToken` del login)
 - Salute: <http://localhost:8080/actuator/health>
 
 ```bash
 curl -s localhost:8080/api/v1/auth/login -H 'Content-Type: application/json' \
-     -d '{"username":"admin","password":"flowsync-dev"}'
+     -d '{"username":"amministratore","password":"demo"}'
 curl -s localhost:8080/api/v1/resources -H "Authorization: Bearer <accessToken>"
 ```
 
-Con il frontend: in `src/frontend/.env.development` mettere `VITE_USE_MOCKS=false` e fare il proxy di `/api` verso `localhost:8080` nella configurazione di Vite. Il frontend non manda ancora l'header `Authorization` (c'è un commento in `api/client.ts`): finché non c'è la pagina di login, le chiamate dal browser avranno 401.
+Con il frontend: in `src/frontend/.env.development` mettere `VITE_USE_MOCKS=false` e fare il proxy di `/api` verso `localhost:8080` nella configurazione di Vite. Il frontend ha già la pagina di login e manda `Authorization: Bearer <accessToken>` a ogni chiamata; il proxy verso `localhost:8080` è già in `vite.config.ts`.
 
 ## Test
 

@@ -23,7 +23,7 @@ class ResourceApiTest extends AbstractApiTest {
     private static final String AUTH = HttpHeaders.AUTHORIZATION;
 
     private String calendarId() throws Exception {
-        String body = mvc.perform(get("/api/v1/calendars").header(AUTH, bearer("admin")))
+        String body = mvc.perform(get("/api/v1/calendars").header(AUTH, bearer("amministratore")))
                 .andReturn().getResponse().getContentAsString();
         return JsonPath.read(body, "$[0].id");
     }
@@ -35,7 +35,7 @@ class ResourceApiTest extends AbstractApiTest {
     }
 
     private void create(String id, String... skills) throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json(id, "Macchina " + id, 1, calendarId(), skills)))
                 .andExpect(status().isCreated());
     }
@@ -49,7 +49,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void anyRoleCanReadTheSeededResources() throws Exception {
-        for (String user : new String[]{"admin", "gneri", "mrossi"}) {
+        for (String user : new String[]{"amministratore", "pianificatore", "operatore"}) {
             mvc.perform(get("/api/v1/resources").header(AUTH, bearer(user)))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$[?(@.id=='LASER')]").isNotEmpty())
@@ -59,7 +59,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void detailShowsSkillsAndCalendar() throws Exception {
-        mvc.perform(get("/api/v1/resources/ROSSI").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources/ROSSI").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("ROSSI"))
                 .andExpect(jsonPath("$.name").value("Marco Rossi"))
@@ -72,7 +72,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void unknownResourceIs404() throws Exception {
-        mvc.perform(get("/api/v1/resources/NOPE").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources/NOPE").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(404));
@@ -80,7 +80,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void skillsAreListedByCode() throws Exception {
-        mvc.perform(get("/api/v1/skills").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/skills").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].code").value("CNC"))
                 .andExpect(jsonPath("$[0].name").value("Fresatura CNC"));
@@ -88,7 +88,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void calendarsCarryAReadableShiftSummary() throws Exception {
-        mvc.perform(get("/api/v1/calendars").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/calendars").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].name").value("Turno standard"))
                 .andExpect(jsonPath("$[0].shiftsSummary").value("Lun–Ven 8–12 / 13–17"));
@@ -98,7 +98,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void adminCreatesAResource() throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-NEW", "Tornio nuovo", 2, calendarId(), "WELD", "CNC")))
                 .andExpect(status().isCreated())
                 .andExpect(header().string(HttpHeaders.LOCATION, "/api/v1/resources/T-NEW"))
@@ -108,14 +108,14 @@ class ResourceApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("$.skills[1]").value("WELD"))
                 .andExpect(jsonPath("$.active").value(true));
 
-        mvc.perform(get("/api/v1/resources/T-NEW").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources/T-NEW").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.skills.length()").value(2));
     }
 
     @Test
     void plannerCannotCreate() throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-FORBIDDEN", "No", 1, calendarId())))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
@@ -125,7 +125,7 @@ class ResourceApiTest extends AbstractApiTest {
     @Test
     void duplicateCodeIs409() throws Exception {
         create("T-DUP");
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-DUP", "Altra", 1, calendarId())))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errors[0].code").value("DUPLICATE_RESOURCE"));
@@ -133,19 +133,19 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void unknownSkillIs422() throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-BADSKILL", "X", 1, calendarId(), "CNC", "NOPE")))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("UNKNOWN_SKILL"))
                 .andExpect(jsonPath("$.errors[0].path").value("skills[1]"));
 
-        mvc.perform(get("/api/v1/resources/T-BADSKILL").header(AUTH, bearer("admin")))
+        mvc.perform(get("/api/v1/resources/T-BADSKILL").header(AUTH, bearer("amministratore")))
                 .andExpect(status().isNotFound());       // nulla è stato salvato
     }
 
     @Test
     void unknownCalendarIs422() throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-BADCAL", "X", 1, "999999")))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("UNKNOWN_CALENDAR"))
@@ -154,7 +154,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void invalidFieldsAreReportedOneByOne() throws Exception {
-        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/resources").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-BADCAP", "X", 0, calendarId())))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("MIN"))
@@ -166,7 +166,7 @@ class ResourceApiTest extends AbstractApiTest {
     @Test
     void adminUpdatesAResourceAndReplacesItsSkills() throws Exception {
         create("T-UPD", "CNC");
-        mvc.perform(put("/api/v1/resources/T-UPD").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/resources/T-UPD").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-UPD", "Nome nuovo", 3, calendarId(), "WELD")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Nome nuovo"))
@@ -174,14 +174,14 @@ class ResourceApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("$.skills.length()").value(1))
                 .andExpect(jsonPath("$.skills[0]").value("WELD"));
 
-        mvc.perform(get("/api/v1/resources/T-UPD").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources/T-UPD").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$.skills[0]").value("WELD"));
     }
 
     @Test
     void bodyIdMustMatchThePath() throws Exception {
         create("T-MISMATCH");
-        mvc.perform(put("/api/v1/resources/T-MISMATCH").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/resources/T-MISMATCH").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-OTHER", "X", 1, calendarId())))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("ID_MISMATCH"));
@@ -189,7 +189,7 @@ class ResourceApiTest extends AbstractApiTest {
 
     @Test
     void updatingAnUnknownResourceIs404() throws Exception {
-        mvc.perform(put("/api/v1/resources/T-GHOST").header(AUTH, bearer("admin")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/resources/T-GHOST").header(AUTH, bearer("amministratore")).contentType(MediaType.APPLICATION_JSON)
                         .content(json("T-GHOST", "X", 1, calendarId())))
                 .andExpect(status().isNotFound());
     }
@@ -197,18 +197,18 @@ class ResourceApiTest extends AbstractApiTest {
     @Test
     void deleteDeactivatesInsteadOfRemoving() throws Exception {
         create("T-DEL");
-        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("gneri"))).andExpect(status().isForbidden());
+        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("pianificatore"))).andExpect(status().isForbidden());
 
-        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("admin"))).andExpect(status().isNoContent());
-        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("admin"))).andExpect(status().isNoContent());   // idempotente
+        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("amministratore"))).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/resources/T-DEL").header(AUTH, bearer("amministratore"))).andExpect(status().isNoContent());   // idempotente
 
-        mvc.perform(get("/api/v1/resources/T-DEL").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources/T-DEL").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.active").value(false));
 
-        mvc.perform(get("/api/v1/resources").param("active", "true").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources").param("active", "true").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$[?(@.id=='T-DEL')]").isEmpty());
-        mvc.perform(get("/api/v1/resources").param("active", "false").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/resources").param("active", "false").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$[?(@.id=='T-DEL')]").isNotEmpty());
     }
 }

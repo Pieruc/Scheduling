@@ -32,12 +32,12 @@ class OrderApiTest extends AbstractApiTest {
     }
 
     private ResultActions create(String id) throws Exception {
-        return mvc.perform(post("/api/v1/orders").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        return mvc.perform(post("/api/v1/orders").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                 .content(order(id, "FACTORY", "2027-01-10T08:00:00+01:00", "2027-01-20T18:00:00+01:00", 2)));
     }
 
     private ResultActions putGraph(String id, String json) throws Exception {
-        return mvc.perform(put("/api/v1/orders/" + id + "/process-graph").header(AUTH, bearer("gneri"))
+        return mvc.perform(put("/api/v1/orders/" + id + "/process-graph").header(AUTH, bearer("pianificatore"))
                 .contentType(MediaType.APPLICATION_JSON).content(json));
     }
 
@@ -54,27 +54,27 @@ class OrderApiTest extends AbstractApiTest {
 
     @Test
     void domainProfilesUseTheContractWeights() throws Exception {
-        mvc.perform(get("/api/v1/domain-profiles").header(AUTH, bearer("mrossi")))
+        mvc.perform(get("/api/v1/domain-profiles").header(AUTH, bearer("operatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.code=='FACTORY')].defaultObjectiveWeights.makespan").value(0.3))
                 .andExpect(jsonPath("$[?(@.code=='FACTORY')].features[0]").value("SEQUENCE_DEPENDENT_SETUP"))
                 .andExpect(jsonPath("$[?(@.code=='PROJECT')]").isNotEmpty());
-        mvc.perform(get("/api/v1/domain-profiles/PA").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/domain-profiles/PA").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.defaultObjectiveWeights.weightedTardiness").value(0.8));
-        mvc.perform(get("/api/v1/domain-profiles/NOPE").header(AUTH, bearer("gneri"))).andExpect(status().isNotFound());
+        mvc.perform(get("/api/v1/domain-profiles/NOPE").header(AUTH, bearer("pianificatore"))).andExpect(status().isNotFound());
     }
 
     // ---------------- lettura delle commesse del seed ----------------
 
     @Test
     void operatorsCannotSeeOrders() throws Exception {
-        mvc.perform(get("/api/v1/orders").header(AUTH, bearer("mrossi"))).andExpect(status().isForbidden());
+        mvc.perform(get("/api/v1/orders").header(AUTH, bearer("operatore"))).andExpect(status().isForbidden());
     }
 
     @Test
     void seededOrdersAreMappedToTheContract() throws Exception {
-        mvc.perform(get("/api/v1/orders/C-101").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders/C-101").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("C-101"))
                 .andExpect(jsonPath("$.customer").value("Rinaldi Carrelli"))
@@ -85,26 +85,26 @@ class OrderApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("$.weight").value(3.0))
                 .andExpect(jsonPath("$.status").value("OPEN"))
                 .andExpect(jsonPath("$.activityCount").value(6));
-        mvc.perform(get("/api/v1/orders/C-104").header(AUTH, bearer("admin")))
+        mvc.perform(get("/api/v1/orders/C-104").header(AUTH, bearer("amministratore")))
                 .andExpect(jsonPath("$.dueDate").value(nullValue()));       // il "dato mancante" del mockup
     }
 
     @Test
     void ordersCanBeFilteredByDueDateAndStatus() throws Exception {
-        mvc.perform(get("/api/v1/orders").param("dueBefore", "2026-11-21T00:00:00Z").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders").param("dueBefore", "2026-11-21T00:00:00Z").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id=='C-101')]").isNotEmpty())
                 .andExpect(jsonPath("$[?(@.id=='C-102')]").isEmpty())
                 .andExpect(jsonPath("$[?(@.id=='C-104')]").isEmpty());
-        mvc.perform(get("/api/v1/orders").param("status", "OPEN").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders").param("status", "OPEN").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$[?(@.id=='C-101')]").isNotEmpty());
-        mvc.perform(get("/api/v1/orders").param("status", "DONE").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders").param("status", "DONE").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$[?(@.id=='C-101')]").isEmpty());
     }
 
     @Test
     void theSeededGraphIsReadable() throws Exception {
-        mvc.perform(get("/api/v1/orders/C-101/process-graph").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders/C-101/process-graph").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.activities.length()").value(6))
                 .andExpect(jsonPath("$.activities[0].id").value("T"))
@@ -137,15 +137,15 @@ class OrderApiTest extends AbstractApiTest {
         create("T-ORD-DUP").andExpect(status().isCreated());
         create("T-ORD-DUP").andExpect(status().isConflict()).andExpect(jsonPath("$.errors[0].code").value("DUPLICATE_ORDER"));
 
-        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-P", "NOPE", null, null, 2)))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("UNKNOWN_PROFILE"));
-        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-D", null, "2027-02-01T08:00:00Z", "2027-01-01T08:00:00Z", 2)))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("DUE_BEFORE_RELEASE"));
-        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(post("/api/v1/orders").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-PR", null, null, null, 4)))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].path").value("priority"));
@@ -154,17 +154,17 @@ class OrderApiTest extends AbstractApiTest {
     @Test
     void anOrderCanBeUpdatedAndItsPriorityChanged() throws Exception {
         create("T-ORD-UPD");
-        mvc.perform(put("/api/v1/orders/T-ORD-UPD").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/orders/T-ORD-UPD").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-UPD", "PA", null, null, 1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.domainProfile").value("PA"))
                 .andExpect(jsonPath("$.dueDate").value(nullValue()))
                 .andExpect(jsonPath("$.priority").value(1));
-        mvc.perform(patch("/api/v1/orders/T-ORD-UPD/priority").header(AUTH, bearer("gneri"))
+        mvc.perform(patch("/api/v1/orders/T-ORD-UPD/priority").header(AUTH, bearer("pianificatore"))
                         .contentType(MediaType.APPLICATION_JSON).content("{\"priority\":3}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.priority").value(3));
-        mvc.perform(put("/api/v1/orders/T-ORD-UPD").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/orders/T-ORD-UPD").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-OTHER", null, null, null, 1)))
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("ID_MISMATCH"));
@@ -173,11 +173,11 @@ class OrderApiTest extends AbstractApiTest {
     @Test
     void deleteCancelsTheOrder() throws Exception {
         create("T-ORD-DEL");
-        mvc.perform(delete("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("gneri"))).andExpect(status().isNoContent());
-        mvc.perform(delete("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("gneri"))).andExpect(status().isNoContent());
-        mvc.perform(get("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("gneri")))
+        mvc.perform(delete("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("pianificatore"))).andExpect(status().isNoContent());
+        mvc.perform(delete("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("pianificatore"))).andExpect(status().isNoContent());
+        mvc.perform(get("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$.status").value("CANCELLED"));
-        mvc.perform(put("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("gneri")).contentType(MediaType.APPLICATION_JSON)
+        mvc.perform(put("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-DEL", null, null, null, 2)))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errors[0].code").value("ORDER_CLOSED"));
@@ -201,11 +201,11 @@ class OrderApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("$.precedences[1].minLagMin").value(15))
                 .andExpect(jsonPath("$.precedences[1].maxLagMin").value(120));
 
-        mvc.perform(get("/api/v1/orders/T-ORD-G1/process-graph").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders/T-ORD-G1/process-graph").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$.activities[1].setupFamily").value("ACCIAIO"))
                 .andExpect(jsonPath("$.activities[1].modes[0].durationMin").value(60))
                 .andExpect(jsonPath("$.precedences.length()").value(2));
-        mvc.perform(get("/api/v1/orders/T-ORD-G1").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders/T-ORD-G1").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$.activityCount").value(3));
     }
 
@@ -243,7 +243,7 @@ class OrderApiTest extends AbstractApiTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errors[0].code").value("CYCLIC_PRECEDENCE"))
                 .andExpect(jsonPath("$.errors[0].message").value("Cycle A -> B -> C -> A"));
-        mvc.perform(get("/api/v1/orders/T-ORD-CYC/process-graph").header(AUTH, bearer("gneri")))
+        mvc.perform(get("/api/v1/orders/T-ORD-CYC/process-graph").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$.activities.length()").value(0));      // nulla è stato salvato
     }
 

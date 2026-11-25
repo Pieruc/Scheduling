@@ -9,7 +9,7 @@ Diagramma: "P06 Architecture" (UML Component Diagram, Visual Paradigm)
 Il sistema è diviso in quattro blocchi, ognuno con una tecnologia e una
 responsabilità precisa:
 
-  - Frontend (Angular)        -> interfaccia per planner, operatori, amministratori
+  - Frontend (React)          -> interfaccia per planner, operatori, amministratori
   - Backend (Spring Boot)     -> logica di business, sicurezza, API pubbliche
   - DB (MySQL)                -> persistenza dei dati operativi
   - AI (Python)               -> ottimizzazione, diviso a sua volta in:
@@ -20,7 +20,7 @@ responsabilità precisa:
 Perché questa divisione:
   - Separazione delle responsabilità: l'AI è scritta in Python (ecosistema ML,
     OR-Tools per CP-SAT), il backend in Java/Spring (robustezza, sicurezza,
-    JPA), il frontend in Angular. Ogni parte può essere sviluppata e testata
+    JPA), il frontend in React (TypeScript). Ogni parte può essere sviluppata e testata
     da una persona diversa.
   - Il frontend non parla mai direttamente con l'AI: passa sempre dal backend.
     Così autenticazione, permessi, audit e gestione degli errori stanno in un
@@ -30,22 +30,31 @@ Perché questa divisione:
     deve rispondere in pochi secondi con un modello già pronto.
 
 
-2. FRONTEND (ANGULAR)
----------------------
+2. FRONTEND (REACT)
+-------------------
+Nota (25/11/2026): il diagramma era stato disegnato con Angular; il frontend è
+realizzato in React + TypeScript (Vite), scelto per le competenze del team.
+Il dettaglio è in FRONTEND_STRUTTURA.md.
+
 Una pagina/modulo per ogni attività dell'utente:
 
   - Auth & Roles            Login e ruoli: planner, operatore, amministratore.
                             Usa il token JWT rilasciato dal backend (Security).
   - Orders & Process Graph  Inserimento ordini ed editor del grafo di processo
                             (le precedenze tra attività).
-  - Planning & Gantt        Generazione del piano, vista Gantt, confronto con
-                            il piano di riferimento. Comunica col backend
-                            (Planning) via REST/JSON.
+  - Planning & Gantt        Richiesta di pianificazione (anche scritta a
+                            parole), confronto dei 3 piani proposti
+                            (economico, bilanciato, veloce) con le regole
+                            ATC ed EDD, vista Gantt per risorsa. Comunica col
+                            backend (Planning) via REST/JSON.
   - Plan Review             Approvare, modificare o rifiutare un piano.
-  - Execution               Registrazione dell'esecuzione reale.
+  - Execution               Registrazione dell'esecuzione reale e segnalazione
+                            dei problemi; da una segnalazione si ripianifica.
   - KPI Dashboard           Indicatori nel tempo.
   - Model Info              Versione del modello attivo e sue metriche, in sola
                             lettura.
+  Aggiunte nell'implementazione: Configuration (risorse, calendari, competenze,
+  profili di dominio, per l'amministratore) e Audit (storico tracciabile).
 
 Scelte rilevanti:
   - "Plan Review" esprime il principio "human in the loop": l'AI propone, ma
