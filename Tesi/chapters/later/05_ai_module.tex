@@ -101,8 +101,17 @@ estimated by M1, the warnings and the time spent in each stage. Back in the back
 shown to the planner on the resource Gantt chart and compared with the other candidates; it is
 adopted only after an explicit approval. Once the plan is executed, the actual start and end
 times recorded by the operators become new training data for M1, closing the loop.
-% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: how the candidate plans shown to the planner
-% are generated (e.g. different objective weights).
+
+\paragraph{Three candidate plans.} For every request the planner receives three plans, which
+differ only in the weights of the objectives: an \emph{economic} plan, which penalises overtime
+and accepts a longer schedule; a \emph{balanced} plan, with the weights chosen by the planner;
+and a \emph{fast} plan, which favours the makespan at a higher cost. Since the policy takes the
+weights as part of its input, the same model produces the three alternatives. The ATC and EDD
+rules are run on the same specification, and their results are returned next to the plans as a
+baseline.
+% TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: whether the three plans come from three calls of
+% /optimize or from one call that returns several plans (open point of the contracts), and the
+% exact weight vectors of the economic and fast variants.
 
 \section{Problem representation}
 \label{sec:instance-schema}

@@ -179,6 +179,9 @@ Punti ancora aperti, lato frontend:
 - **Modalità shadow**: da decidere se resta (il frontend per ora non la mostra).
 - **Nome dell'utente**: il backend usa `fullName`; il frontend oggi legge `displayName`.
   Si allinea a `fullName` insieme alle pagine di registrazione e gestione utenti.
+- **Una risorsa per alternativa**: il backend accetta un solo `resourceId` per modo
+  (`MODE_RESOURCE_COUNT`); il form attività del frontend oggi permette di sceglierne più d'una.
+  Da correggere nel form (un menu a scelta singola per alternativa).
 - **Codici delle risorse**: il backend usa codici brevi (`LASER`, `CNC2`), i mock del frontend
   `R-LAS-01`, `R-CNC-02`: sono opachi per il frontend, cambiano solo i dati di prova.
 

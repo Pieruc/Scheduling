@@ -1,37 +1,175 @@
-\chapter{Application domain and requirements}
+\chapter{Requirements}
 \label{chap:requirements}
 
-\section{Application domain}
-\label{sec:domain}
-% TODO: Factory, Public Administration and Project profiles: what resources, activities,
-% constraints and objectives are in each. What is out of scope (e.g. leave management: it only
-% enters as unavailability).
+This chapter lists what FlowSync must do and the qualities it must have. The requirements were
+derived from the analysis of the application domains (Section~\ref{sec:domain}) and refined
+while designing the user interface: the HTML mockups of all the screens were written first,
+reviewed once by the team, and used as the reference for the functional requirements. The
+chapter also records, for each requirement, how far the three parts of the system have come at
+the time of writing (25 November 2026).
+
+\section{Elicitation and main decisions}
+\label{sec:elicitation}
+
+The requirements come from three sources: the common model of
+Section~\ref{sec:common-model}, which fixes the entities and the constraints; the mockups of
+the user interface, in which every screen corresponds to a task of a user; and a few decisions
+taken by the team while reviewing the mockups. The most important of these decisions shape the
+rest of the system.
+\begin{itemize}
+  \item \textbf{Three plans for every request.} A request does not produce a single plan but
+        three alternatives that span the trade-off between time and cost: an \emph{economic}
+        plan (slower, no overtime), a \emph{balanced} plan (chosen with the weights of the
+        planner) and a \emph{fast} plan (it finishes earlier and costs more). The planner
+        chooses among concrete alternatives instead of tuning weights in the abstract.
+  \item \textbf{Comparison with the classical rules.} Every request is also solved with the ATC
+        and EDD dispatching rules, and their indicators are shown next to the plans of the AI.
+        The planner can see at a glance whether the AI is doing better than a simple rule.
+  \item \textbf{The planner decides.} No plan is executed without an explicit approval; a plan
+        can also be modified by hand on the Gantt chart, and the modified version is checked
+        again against the constraints.
+  \item \textbf{Known problems are not asked again.} When an operator reports a problem (for
+        example a machine breakdown), the rescheduling starts from the report: the planner sees
+        the problem and its impact on the running plan, and only adjusts a few parameters.
+  \item \textbf{Italian user interface.} The users are planners and operators of Italian
+        organisations, so the interface is in Italian; code, contracts and this document are in
+        English or Italian according to the audience.
+\end{itemize}
 
 \section{Actors}
 \label{sec:actors}
-% TODO: administrator, planner, operator; use case diagram.
+
+FlowSync has three human actors, which correspond to the roles of the system, and two system
+actors.
+\begin{itemize}
+  \item The \textbf{planner} (role \texttt{PLANNER}) enters the orders and their process graph,
+        requests the plans, compares them, modifies them, approves or rejects them, and
+        reschedules when something goes wrong.
+  \item The \textbf{operator} (role \texttt{OPERATOR}) works on the shop floor or in an office:
+        sees the activities of the day, records when each one starts, pauses and ends, and
+        reports problems.
+  \item The \textbf{administrator} (role \texttt{ADMIN}) manages the master data (resources,
+        calendars, skills, domain profiles), approves the registrations of new users and
+        consults the audit log.
+  \item The \textbf{AI service} receives the problem specifications from the backend and returns
+        the plans; it is never visible to the users.
+  \item The \textbf{training pipeline} trains and evaluates the models offline and publishes a
+        new version only if it is not worse than the dispatching rules.
+\end{itemize}
+A person may have more than one role. Everyone who is not authenticated can only log in or
+register; a new account stays pending until an administrator approves it and assigns a role.
+% TODO: use case diagram (Visual Paradigm), exported as an image in Immagini/.
 
 \section{Functional requirements}
 \label{sec:fr}
 
-\begin{table}[htpb]
-  \centering
-  \small
-  \begin{tabular}{@{}llp{8.3cm}l@{}}
-    \toprule
-    \textbf{ID} & \textbf{Actor} & \textbf{Requirement} & \textbf{Priority} \\
-    \midrule
-    FR-01 & All      & Authentication and role-based access & Must \\
-    FR-14 & Planner  & Display the plan as a resource Gantt chart & Must \\
-    FR-15 & Planner  & Move an activity with constraint validation & Must \\
-    FR-21 & Operator & Record the start and end of activities & Must \\
-    \bottomrule
-  \end{tabular}
-  \caption{Excerpt of the functional requirements (TODO: full list)}
-  \label{tab:fr}
-\end{table}
+Table~\ref{tab:fr} lists the functional requirements, grouped by area. The priority follows the
+MoSCoW scheme (\emph{Must}, \emph{Should}, \emph{Could}). The last three columns show the state
+of each part of the system: \textbf{D} = done, \textbf{M} = done in the frontend against the
+mock of the backend (Section~\ref{sec:impl-frontend}), \textbf{P} = partly done, \textbf{--} =
+not started, and an empty cell when the part is not involved.
+
+{\small
+\begin{longtable}{@{}lp{1.5cm}p{6.8cm}cccc@{}}
+  \caption{Functional requirements and their state on 25 November 2026}
+  \label{tab:fr}\\
+  \toprule
+  \textbf{ID} & \textbf{Actor} & \textbf{Requirement} & \textbf{Prio.} & \textbf{FE} &
+  \textbf{BE} & \textbf{AI} \\
+  \midrule
+  \endfirsthead
+  \toprule
+  \textbf{ID} & \textbf{Actor} & \textbf{Requirement} & \textbf{Prio.} & \textbf{FE} &
+  \textbf{BE} & \textbf{AI} \\
+  \midrule
+  \endhead
+  \multicolumn{7}{@{}l}{\emph{Access}} \\
+  FR-01 & All & Log in with username and password; each role sees only its pages & Must & P & D & \\
+  FR-02 & Visitor & Register; the account stays pending until it is approved & Should & -- & D & \\
+  FR-03 & Admin & Approve or reject registrations, assign or change roles, disable users & Should & -- & D & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Configuration}} \\
+  FR-04 & Admin & Manage resources: type, skills, calendar, hourly cost, planned unavailability & Must & M & P & \\
+  FR-05 & Admin & Manage calendars: working days, shifts, holidays and closures & Must & M & P & \\
+  FR-06 & Admin & Manage skills, and see which resources have each skill & Should & M & P & \\
+  FR-07 & Admin & Edit the domain profiles: default objective weights and active constraints & Should & M & P & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Orders}} \\
+  FR-08 & Planner & Create, edit and cancel orders: customer, release and due date, priority, weight of the delay, profile & Must & M & D & \\
+  FR-09 & Planner & Define the activities of an order: required skills, alternative resources, durations; an unknown duration is estimated by the AI & Must & M & D & \\
+  FR-10 & Planner & Edit the precedences on a graph; a cycle is rejected immediately & Must & M & D & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Planning}} \\
+  FR-11 & Planner & Write a request in natural language; the system turns it into parameters that the planner checks & Should & M & -- & -- \\
+  FR-12 & Planner & Be asked for the missing data (e.g.\ a due date) before the plans are computed & Must & M & -- & \\
+  FR-13 & Planner & Set the weights of the objectives (punctuality, overtime, setups) & Must & M & -- & \\
+  FR-14 & System & Produce three alternative plans (economic, balanced, fast) for each request, asynchronously, showing the progress & Must & M & -- & -- \\
+  FR-15 & System & Solve each request also with ATC and EDD and show the comparison & Must & M & -- & P \\
+  FR-16 & Planner & Compare the plans on makespan, tardiness, overtime, setups, utilisation and estimated cost & Must & M & -- & \\
+  FR-17 & Planner & List and search all the requests and plans by order, state and period & Should & M & -- & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Review}} \\
+  FR-18 & Planner & See a plan on a resource Gantt chart, with unavailability and estimated durations & Must & M & -- & \\
+  FR-19 & Planner & Move an activity in time or to another resource, with immediate validation of the constraints & Must & M & -- & \\
+  FR-20 & Planner & Approve a plan, reject it with a reason, or save a modified version with a reason & Must & M & -- & \\
+  FR-21 & Planner & Reschedule the running plan after an event (machine down, urgent order, delay); when the event comes from a report, see its impact and only adjust the parameters & Must & M & -- & -- \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Execution}} \\
+  FR-22 & Operator & See the activities of the day; start, pause, resume and finish them, one at a time and respecting the precedences & Must & M & -- & \\
+  FR-23 & Operator & Report a problem (breakdown, missing material, delay, other), which reaches the planner as an alert & Must & M & -- & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Monitoring and transparency}} \\
+  FR-24 & Planner, Admin & Dashboard with indicators over time, alerts, utilisation per resource and recent requests & Should & M & -- & \\
+  FR-25 & All & See which models produce the plans, their metrics and how often the fallback is used & Should & M & -- & \\
+  FR-26 & Admin & See the history of the model versions & Could & M & -- & \\
+  FR-27 & Admin & Consult the audit log with filters and details, and export it as CSV & Must & M & -- & \\
+  \midrule
+  \multicolumn{7}{@{}l}{\emph{Optimisation}} \\
+  FR-28 & System & Estimate missing durations and setups, with their uncertainty (M1) & Must & & -- & -- \\
+  FR-29 & System & Build plans with the learned policy (M2), feasible by construction & Must & & -- & P \\
+  FR-30 & System & Fall back to CP-SAT, ATC or EDD on error or low confidence, and say which solver produced the plan & Must & M & -- & P \\
+  FR-31 & System & Shadow mode: compute the plan of the AI next to the real one without applying it, to compare them & Could & -- & -- & -- \\
+  \bottomrule
+\end{longtable}
+}
+% NOTE: FR-31 (shadow mode) is still under discussion in the team (CONTRATTI_API.md, open points).
 
 \section{Non-functional requirements}
 \label{sec:nfr}
-% TODO: response time, guaranteed plan feasibility, security (JWT, roles), traceability (audit),
-% reproducibility (Docker Compose), data privacy.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lp{3cm}p{9cm}@{}}
+    \toprule
+    \textbf{ID} & \textbf{Quality} & \textbf{Requirement} \\
+    \midrule
+    NFR-01 & Correctness & Every plan returned to the planner is feasible: precedences,
+             capacities, availability and fixed activities are respected. It is enforced by
+             construction and checked by an independent verifier. \\
+    NFR-02 & Responsiveness & A request is accepted immediately and computed in the
+             background; the plans are ready in a few seconds, so that the planner can
+             replan several times a day. \\
+    NFR-03 & Human control & No plan is executed without the approval of a planner; a
+             modified plan is validated again by the backend. \\
+    NFR-04 & Traceability & Every plan records its input, the model version and the
+             decision taken; the input is stored as a snapshot and identified by a hash, so
+             each plan can be reproduced. \\
+    NFR-05 & Security & Authentication with JSON Web Tokens and authorisation by role on every
+             call; the AI service is reachable only from the internal network. \\
+    NFR-06 & Robustness & A slow or unavailable AI service does not block the backend (time
+             limit, circuit breaker); a fallback always returns a plan when one exists. \\
+    NFR-07 & Usability & Interface in Italian, errors shown next to the field that caused
+             them, keyboard alternatives to drag and drop, contrast and target sizes in line
+             with WCAG~2.1 AA. The interface is designed for desktop screens. \\
+    NFR-08 & Generality & The same system serves factory, public administration and project
+             scheduling, by changing the domain profile and not the code. \\
+    NFR-09 & Maintainability & The parts communicate only through versioned contracts, and
+             each can be developed and tested alone against a mock of the others. \\
+    NFR-10 & Portability & The whole system starts with Docker Compose in the same way on
+             every machine. \\
+    \bottomrule
+  \end{tabular}
+  \caption{Non-functional requirements}
+  \label{tab:nfr}
+\end{table}

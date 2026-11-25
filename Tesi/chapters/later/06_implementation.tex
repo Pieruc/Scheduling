@@ -4,9 +4,8 @@
 This chapter describes how the three parts of FlowSync are implemented: the database and the
 backend, the frontend, and the AI module. Each section is written by the team member who developed
 that part (Section~\ref{sec:contributions}).
-% NOTE: Sections \ref{sec:impl-db}, \ref{sec:impl-backend} and \ref{sec:impl-frontend} are first
-% drafts written from the code and the READMEs: to be reviewed and extended by A. Brutti and
-% M. Brizi.
+% NOTE: Sections \ref{sec:impl-db} and \ref{sec:impl-backend} are drafts written from the code and
+% the README: to be reviewed and extended by A. Brutti.
 
 \section{Data model and migrations}
 \label{sec:impl-db}
@@ -40,7 +39,9 @@ The main design choices are the following.
         plan do not overwrite each other.
 \end{itemize}
 A demo data set, loaded only in the development profile, reproduces the workshop of the mockups
-(nine resources, four orders, a maintenance window). In development, MySQL runs in a Docker
+(nine resources, four orders, a maintenance window) and creates one test user per role, with the
+same names used by the mock of the frontend (\texttt{pianificatore}, \texttt{operatore},
+\texttt{amministratore}). In development, MySQL runs in a Docker
 container defined by a Compose file, which Spring Boot starts automatically.
 % TODO (A. Brutti): domain class diagram; tables of the planning and execution modules.
 
@@ -71,11 +72,22 @@ three operations are reserved to administrators). Skills and calendars feed the 
 of the frontend, with a readable summary of the shifts of each calendar. The public identifier of
 a resource is its code (e.g.\ \texttt{LASER}), never the numeric key of the database.
 
+\paragraph{Orders and process graph.} Orders can be listed (with filters on state and due date),
+created, updated, cancelled and reprioritised; deleting an order only marks it as cancelled, so
+the plans and the audit records that mention it remain readable. The process graph of an order
+is read and replaced as a whole: the service checks that every activity has at least one mode,
+each with exactly one resource, that the precedences refer to existing activities and that they
+contain no cycle, and
+returns each problem with its path, so the frontend can show it on the right node. The public
+fields of an order include a short description and the number of its activities, which the
+frontend needs to show the list without loading every graph. The domain profiles are exposed
+with their default weights, in the format of the contract.
+
 \paragraph{Tests.} The integration tests run against a real MySQL~8.4 started by Testcontainers.
 They check that the migrations and the entities are consistent, the authentication flows,
 registration and approval, and the permissions and error codes of the API.
-% TODO [Gantt 17, P2, until 4 Dec 2026 - Security and CRUD]: orders, activities and process
-% graph (cycle check), domain profiles.
+% TODO [Gantt 17, P2, until 4 Dec 2026 - Security and CRUD]: write operations on calendars, skills
+% and domain profiles; hourly cost and unavailability of the resources (contract A.2 v1.1).
 % TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - Scheduling and AI client]: construction of the
 % ProblemSpec, planning requests (202 + polling), rescheduling; code example.
 % TODO [Gantt 19, P2, 8-22 Jan 2027 - Decisions, execution, KPIs, audit]: approval and changes of a
@@ -86,48 +98,90 @@ registration and approval, and the permissions and error codes of the API.
 \section{Frontend}
 \label{sec:impl-frontend}
 
-The frontend is a single-page application in React and TypeScript, built with Vite. It uses
-PrimeReact for the components, React Router for navigation, TanStack Query for server data,
-React Hook Form with Zod for the forms and React Flow for the process graph editor. A global state
-store is not needed, because almost all the state is server data cached by TanStack Query.
+The frontend is a single-page application written in React~19 and TypeScript, built with Vite.
+The architecture was first drawn with Angular; the team switched to React because it is the
+framework its members know best, which mattered for a part developed by one person in a few
+weeks. The interface is in Italian and follows the HTML mockups of all the screens, written and
+reviewed before the code (Section~\ref{sec:modelling}).
+
+\paragraph{Libraries.} PrimeReact provides the components (tables, dialogs, sliders, date
+pickers), with its theme recoloured from the design tokens of the mockups; React Router handles
+navigation, TanStack Query the data coming from the server, React Hook Form with Zod the forms,
+and React Flow the process graph editor. A global state store is not needed: almost all the state
+is server data cached by TanStack Query, and the rest is local to a page. Dates, durations and
+amounts are formatted with the standard \texttt{Intl} API of the browser.
+
+\paragraph{Structure.} The code is organised by feature, with one folder for each area of the
+application (orders, planning, plans, plan review, execution, configuration, model information,
+audit, authentication) and a single \texttt{api} folder that knows the URLs and the formats of
+the backend. Pages never call the network directly: they use the hooks of their feature, which
+use the functions of the \texttt{api} folder, so a change of the API is confined to one place.
+The types of the public API (contract A) are written once in TypeScript and shared by the pages
+and by the mock.
 
 \paragraph{Mock-first development.} The frontend was developed in parallel with the backend
-against a mock implemented with Mock Service Worker. The mock intercepts the real HTTP calls and
-answers with the formats of the API contracts, so the pages do not change when the real endpoint
-replaces the mock. Planning requests are asynchronous: the page polls the request until it is no
-longer pending.
+against a mock implemented with Mock Service Worker, which intercepts the real HTTP calls in the
+browser and answers with the formats of the contracts. The mock is a small backend in its own
+right: it keeps its data in memory, validates the requests and returns the same errors as the
+real API (422 with the path of the wrong field, 409 for state conflicts), simulates the
+asynchronous computation of the plans in stages, and records the decisions in the audit log. In
+this way every page was built and tested on realistic behaviour, including errors, before the
+corresponding endpoint existed. When an endpoint of the backend is ready, its mock handler is
+removed and the page does not change. The requirements of the frontend that were not in the
+first version of the contracts (three plans per request, interpretation of a text request,
+Gantt view, alerts, operator view and others) were added to the contracts in their version 1.1.
 
-\paragraph{Screens.} The application implements the ten screens of the mockup:
-\begin{itemize}
-  \item a dashboard with KPIs, alerts and utilisation;
-  \item orders, with a graph editor in which activities are nodes and precedences are edges;
-  \item a new planning request, with an interpretation step for the text written by the
-        planner;
-  \item the comparison of the three candidate plans and the list of all plans;
-  \item the review of a plan on a resource Gantt chart, with approval, rejection and
-        rescheduling after an incident;
-  \item the operator view, to start, pause and finish activities and to report problems;
-  \item configuration (resources, calendars, skills, domain profiles);
-  \item the active AI model, with its metrics, the fallback chain and the version history;
-  \item the audit log, with filters, record details and CSV export.
-\end{itemize}
-After the login, each role sees only its menu entries and routes, and the API client sends the
-access token with every request.
+\paragraph{Server data and errors.} Every call goes through one client, which adds the access
+token and turns the error responses of the API (RFC~7807) into a typed error. The pages show a
+validation error under the field indicated by its path, even inside lists (for example the
+second shift of a calendar), a conflict by reloading the data, and an unavailable service with a
+message and a retry button. Requests that are computed in the background are polled every
+1.5~seconds until they are no longer pending, and polling stops by itself. After a decision,
+the lists, the Gantt charts and the audit log in the cache are refreshed.
 
 \paragraph{Resource Gantt chart.} The chart is developed in-house, because the free libraries are
-mostly task-oriented (one row per activity), while FlowSync needs one row per resource. Bars can
-be dragged in time, with a snap of a few minutes, and from one resource to another. A move is
-first checked in the browser (precedences, overlaps, unavailability, allowed resources) and the
-bar returns to its place if the move is not valid; the backend repeats the check when the change
-is confirmed.
-% TODO (M. Brizi): screenshots of the main screens; structure of the application.
-% TODO [Gantt 23, P3, until 4 Dec 2026 - React setup, auth, configuration]: real login and
-% configuration screens on the real backend (replacing the mocks).
-% TODO [Gantt 24, P3, 30 Nov-23 Dec 2026 - Orders and graph editor]: orders and process graph on
-% the real backend; errors of the graph (e.g. cycles) shown on the nodes.
-% TODO [Gantt 25, P3, 8-29 Jan 2027 - Gantt view and review]: Gantt chart and plan review on real
-% plans; validation of the moves by the backend.
-% TODO [Gantt 26, P3, 25 Jan-3 Feb 2027 - KPI dashboard]: dashboard on real KPIs.
+mostly task-oriented (one row per activity), while FlowSync needs one row per resource, and the
+hard part, the validation of a move, had to be written anyway. It is a CSS grid with one lane
+per resource; bars are positioned in proportion to their start and duration, can be dragged in
+time with a snap of fifteen minutes and from one resource to another, and are buttons, so that
+they can be selected from the keyboard. The time scale comes from the backend: positions are
+minutes of working time from the start of the horizon, and the conversion from the real
+calendars is done on the server. The rules that decide whether a move is valid (precedences,
+overlaps on the resource, unavailability, allowed resources, horizon) are written once in a
+module of their own and used both by the drag and by the keyboard controls; the backend repeats
+the check when a modified plan is saved.
+
+\paragraph{Rescheduling from a report.} The rescheduling page computes the impact of a problem
+on the running plan directly from the Gantt data: the activities on the stopped resource that
+overlap its unavailability, the activities that depend on them through the precedences (a
+breadth-first visit of the precedence graph), and the orders involved with their due dates. When
+the page is opened from an alert, the event is taken from the alert and only the optional
+parameters are shown (Section~\ref{sec:ui-reschedule}).
+
+\paragraph{Authentication.} The login page calls the authentication endpoint of the backend and
+keeps the token and the user in the session storage of the browser, so that a reload does not
+log the user out, while closing the tab does. The token is sent with every call, and an
+expired token brings the user back to the login page. The permissions of each role are declared
+in one module and used by the menu and by a guard on the routes, which sends the user to the
+login page or to the home page of the role; the real check remains in the backend. This first
+version deliberately leaves out the automatic renewal of the token; registration and the
+management of users by the administrator, already available in the backend, are the next step.
+The test users are the same in the mock and in the development database.
+
+\paragraph{Quality.} TypeScript is used in strict mode, and every change is checked by the
+compiler, by a linter (oxlint) and by a formatter (Prettier). Each page was then verified in the
+browser on its complete flows, including the error cases (simulated by the mock), and on the
+accessibility rules of Section~\ref{sec:ui-principles}: contrast, focus, labels and errors next
+to the fields, size of the targets.
+% TODO [Gantt 30, P3, 25 Jan-3 Feb 2027 - Testing and fixes]: automated component tests.
+
+\paragraph{State.} At the time of writing all the screens of the mockups are implemented on the
+mock, together with the forms to create and edit orders and activities, the configuration of
+calendars, skills and domain profiles, and the rescheduling from a report. The integration with
+the real backend starts with the parts that the backend already provides: login, resources,
+catalogues, orders and process graph.
+% TODO [Gantt 23-26, P3]: integration with the real backend, one area at a time; registration
+% and user management pages; screenshots of the main screens.
 
 \section{AI module}
 \label{sec:impl-ai}

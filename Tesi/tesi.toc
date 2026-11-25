@@ -1,97 +1,125 @@
 \babel@toc {english}{}\relax 
 \contentsline {chapter}{Abstract}{3}{Doc-Start}%
-\contentsline {chapter}{\numberline {1}Introduction}{6}{chapter.1}%
-\contentsline {section}{\numberline {1.1}Application domain}{6}{section.1.1}%
-\contentsline {subsection}{\numberline {1.1.1}A common model}{6}{subsection.1.1.1}%
-\contentsline {subsection}{\numberline {1.1.2}Manufacturing}{7}{subsection.1.1.2}%
-\contentsline {subsection}{\numberline {1.1.3}Public administration}{7}{subsection.1.1.3}%
-\contentsline {subsection}{\numberline {1.1.4}Projects}{7}{subsection.1.1.4}%
-\contentsline {subsection}{\numberline {1.1.5}Scope}{7}{subsection.1.1.5}%
-\contentsline {section}{\numberline {1.2}Motivations}{8}{section.1.2}%
-\contentsline {section}{\numberline {1.3}Goals}{8}{section.1.3}%
-\contentsline {section}{\numberline {1.4}Team organisation and contributions}{9}{section.1.4}%
-\contentsline {section}{\numberline {1.5}Thesis structure}{9}{section.1.5}%
-\contentsline {chapter}{\numberline {2}Background and related work}{10}{chapter.2}%
-\contentsline {section}{\numberline {2.1}Scheduling problems}{10}{section.2.1}%
-\contentsline {subsection}{\numberline {2.1.1}Formal model}{10}{subsection.2.1.1}%
-\contentsline {subsection}{\numberline {2.1.2}Objectives}{11}{subsection.2.1.2}%
-\contentsline {subsection}{\numberline {2.1.3}Complexity and benchmarks}{11}{subsection.2.1.3}%
-\contentsline {section}{\numberline {2.2}Disjunctive graph representation}{11}{section.2.2}%
-\contentsline {section}{\numberline {2.3}Exact methods: constraint programming}{12}{section.2.3}%
-\contentsline {section}{\numberline {2.4}Dispatching rules}{13}{section.2.4}%
-\contentsline {section}{\numberline {2.5}Machine learning for scheduling}{13}{section.2.5}%
-\contentsline {subsection}{\numberline {2.5.1}Learned dispatching policies}{14}{subsection.2.5.1}%
-\contentsline {subsection}{\numberline {2.5.2}Imitation learning}{14}{subsection.2.5.2}%
-\contentsline {subsection}{\numberline {2.5.3}Estimation of durations and setups}{14}{subsection.2.5.3}%
-\contentsline {section}{\numberline {2.6}Language models for data entry}{14}{section.2.6}%
-\contentsline {section}{\numberline {2.7}Positioning of FlowSync}{15}{section.2.7}%
-\contentsline {chapter}{\numberline {3}Project plan}{16}{chapter.3}%
-\contentsline {section}{\numberline {3.1}Work breakdown}{17}{section.3.1}%
-\contentsline {section}{\numberline {3.2}Milestones}{17}{section.3.2}%
-\contentsline {section}{\numberline {3.3}Parallel lanes and dependencies}{17}{section.3.3}%
-\contentsline {section}{\numberline {3.4}Risks}{17}{section.3.4}%
-\contentsline {chapter}{\numberline {4}Methodologies}{18}{chapter.4}%
-\contentsline {section}{\numberline {4.1}Development process}{18}{section.4.1}%
-\contentsline {section}{\numberline {4.2}Requirements and modelling}{18}{section.4.2}%
-\contentsline {section}{\numberline {4.3}Collaboration and tools}{19}{section.4.3}%
-\contentsline {section}{\numberline {4.4}AI methodology}{19}{section.4.4}%
-\contentsline {section}{\numberline {4.5}Quality assurance}{20}{section.4.5}%
-\contentsline {chapter}{\numberline {5}Software architecture}{21}{chapter.5}%
-\contentsline {section}{\numberline {5.1}Overview}{21}{section.5.1}%
-\contentsline {section}{\numberline {5.2}Frontend}{21}{section.5.2}%
-\contentsline {section}{\numberline {5.3}Backend}{22}{section.5.3}%
-\contentsline {section}{\numberline {5.4}AI service}{23}{section.5.4}%
-\contentsline {section}{\numberline {5.5}Training pipeline and model storage}{24}{section.5.5}%
-\contentsline {section}{\numberline {5.6}Persistence}{24}{section.5.6}%
-\contentsline {section}{\numberline {5.7}Contracts between components}{24}{section.5.7}%
-\contentsline {paragraph}{Common conventions.}{25}{section*.8}%
-\contentsline {paragraph}{A -- Public API.}{25}{section*.9}%
-\contentsline {paragraph}{B -- Optimisation API.}{25}{section*.10}%
-\contentsline {paragraph}{C -- Model registration.}{25}{section*.11}%
-\contentsline {paragraph}{D -- Instance schema.}{26}{section*.12}%
-\contentsline {section}{\numberline {5.8}Deployment}{26}{section.5.8}%
-\contentsline {chapter}{\numberline {6}The artificial intelligence module}{27}{chapter.6}%
-\contentsline {section}{\numberline {6.1}From request to plan}{27}{section.6.1}%
-\contentsline {paragraph}{Planning request.}{28}{section*.14}%
-\contentsline {paragraph}{Problem specification.}{28}{section*.15}%
-\contentsline {paragraph}{Validation.}{28}{section*.16}%
-\contentsline {paragraph}{M1 Context.}{28}{section*.17}%
-\contentsline {paragraph}{Disjunctive graph.}{28}{section*.18}%
-\contentsline {paragraph}{M2 Policy and Dispatcher.}{28}{section*.19}%
-\contentsline {paragraph}{Fallback.}{28}{section*.20}%
-\contentsline {paragraph}{Plan result.}{28}{section*.21}%
-\contentsline {section}{\numberline {6.2}Problem representation}{29}{section.6.2}%
-\contentsline {section}{\numberline {6.3}M1 Context: duration estimation}{29}{section.6.3}%
-\contentsline {section}{\numberline {6.4}M2 Policy and Dispatcher}{29}{section.6.4}%
-\contentsline {section}{\numberline {6.5}Training by imitation}{30}{section.6.5}%
-\contentsline {subsection}{\numberline {6.5.1}Instance generator}{30}{subsection.6.5.1}%
-\contentsline {subsection}{\numberline {6.5.2}Objective function}{31}{subsection.6.5.2}%
-\contentsline {subsection}{\numberline {6.5.3}CP-SAT teacher}{31}{subsection.6.5.3}%
-\contentsline {subsection}{\numberline {6.5.4}Dataset construction}{32}{subsection.6.5.4}%
-\contentsline {chapter}{\numberline {7}Implementation}{34}{chapter.7}%
-\contentsline {section}{\numberline {7.1}Data model and migrations}{34}{section.7.1}%
-\contentsline {section}{\numberline {7.2}Backend services}{35}{section.7.2}%
-\contentsline {paragraph}{Errors and API documentation.}{35}{section*.22}%
-\contentsline {paragraph}{Security.}{35}{section*.23}%
-\contentsline {paragraph}{Configuration.}{35}{section*.24}%
-\contentsline {paragraph}{Tests.}{35}{section*.25}%
-\contentsline {section}{\numberline {7.3}Frontend}{35}{section.7.3}%
-\contentsline {paragraph}{Mock-first development.}{35}{section*.26}%
-\contentsline {paragraph}{Screens.}{36}{section*.27}%
-\contentsline {paragraph}{Resource Gantt chart.}{36}{section*.28}%
-\contentsline {section}{\numberline {7.4}AI module}{36}{section.7.4}%
-\contentsline {paragraph}{Instance schema and converters.}{36}{section*.29}%
-\contentsline {paragraph}{Dispatcher and rules.}{37}{section*.30}%
-\contentsline {paragraph}{Teacher and dataset.}{37}{section*.31}%
-\contentsline {paragraph}{Tests.}{37}{section*.32}%
-\contentsline {section}{\numberline {7.5}Integration}{37}{section.7.5}%
-\contentsline {chapter}{\numberline {8}Experimental evaluation}{38}{chapter.8}%
-\contentsline {section}{\numberline {8.1}Methodology}{38}{section.8.1}%
-\contentsline {paragraph}{Data.}{38}{section*.33}%
-\contentsline {paragraph}{Metrics.}{38}{section*.35}%
-\contentsline {section}{\numberline {8.2}Results}{38}{section.8.2}%
-\contentsline {subsection}{\numberline {8.2.1}Due dates of the generator}{38}{subsection.8.2.1}%
-\contentsline {subsection}{\numberline {8.2.2}Dispatching rules}{39}{subsection.8.2.2}%
-\contentsline {subsection}{\numberline {8.2.3}CP-SAT teacher}{39}{subsection.8.2.3}%
-\contentsline {subsection}{\numberline {8.2.4}Training dataset}{39}{subsection.8.2.4}%
-\contentsline {section}{\numberline {8.3}Discussion}{40}{section.8.3}%
+\contentsline {chapter}{\numberline {1}Introduction}{7}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Application domain}{7}{section.1.1}%
+\contentsline {subsection}{\numberline {1.1.1}A common model}{7}{subsection.1.1.1}%
+\contentsline {subsection}{\numberline {1.1.2}Manufacturing}{8}{subsection.1.1.2}%
+\contentsline {subsection}{\numberline {1.1.3}Public administration}{8}{subsection.1.1.3}%
+\contentsline {subsection}{\numberline {1.1.4}Projects}{8}{subsection.1.1.4}%
+\contentsline {subsection}{\numberline {1.1.5}Scope}{8}{subsection.1.1.5}%
+\contentsline {section}{\numberline {1.2}Motivations}{9}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Goals}{9}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Team organisation and contributions}{10}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Thesis structure}{10}{section.1.5}%
+\contentsline {chapter}{\numberline {2}Background and related work}{11}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Scheduling problems}{11}{section.2.1}%
+\contentsline {subsection}{\numberline {2.1.1}Formal model}{11}{subsection.2.1.1}%
+\contentsline {subsection}{\numberline {2.1.2}Objectives}{12}{subsection.2.1.2}%
+\contentsline {subsection}{\numberline {2.1.3}Complexity and benchmarks}{12}{subsection.2.1.3}%
+\contentsline {section}{\numberline {2.2}Disjunctive graph representation}{12}{section.2.2}%
+\contentsline {section}{\numberline {2.3}Exact methods: constraint programming}{13}{section.2.3}%
+\contentsline {section}{\numberline {2.4}Dispatching rules}{14}{section.2.4}%
+\contentsline {section}{\numberline {2.5}Machine learning for scheduling}{14}{section.2.5}%
+\contentsline {subsection}{\numberline {2.5.1}Learned dispatching policies}{15}{subsection.2.5.1}%
+\contentsline {subsection}{\numberline {2.5.2}Imitation learning}{15}{subsection.2.5.2}%
+\contentsline {subsection}{\numberline {2.5.3}Estimation of durations and setups}{15}{subsection.2.5.3}%
+\contentsline {section}{\numberline {2.6}Language models for data entry}{15}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Positioning of FlowSync}{16}{section.2.7}%
+\contentsline {chapter}{\numberline {3}Project plan}{17}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Work breakdown}{18}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Milestones}{18}{section.3.2}%
+\contentsline {section}{\numberline {3.3}Parallel lanes and dependencies}{18}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Risks}{18}{section.3.4}%
+\contentsline {section}{\numberline {3.5}Progress}{19}{section.3.5}%
+\contentsline {chapter}{\numberline {4}Methodologies}{20}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Development process}{20}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Requirements and modelling}{20}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Collaboration and tools}{21}{section.4.3}%
+\contentsline {section}{\numberline {4.4}AI methodology}{21}{section.4.4}%
+\contentsline {section}{\numberline {4.5}Quality assurance}{22}{section.4.5}%
+\contentsline {chapter}{\numberline {5}Requirements}{23}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Elicitation and main decisions}{23}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Actors}{24}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Functional requirements}{24}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Non-functional requirements}{26}{section.5.4}%
+\contentsline {chapter}{\numberline {6}Software architecture}{28}{chapter.6}%
+\contentsline {section}{\numberline {6.1}Overview}{28}{section.6.1}%
+\contentsline {section}{\numberline {6.2}Frontend}{28}{section.6.2}%
+\contentsline {section}{\numberline {6.3}Backend}{30}{section.6.3}%
+\contentsline {section}{\numberline {6.4}AI service}{30}{section.6.4}%
+\contentsline {section}{\numberline {6.5}Training pipeline and model storage}{31}{section.6.5}%
+\contentsline {section}{\numberline {6.6}Persistence}{31}{section.6.6}%
+\contentsline {section}{\numberline {6.7}Contracts between components}{31}{section.6.7}%
+\contentsline {paragraph}{Common conventions.}{33}{section*.10}%
+\contentsline {paragraph}{A -- Public API.}{33}{section*.11}%
+\contentsline {paragraph}{B -- Optimisation API.}{33}{section*.12}%
+\contentsline {paragraph}{C -- Model registration.}{33}{section*.13}%
+\contentsline {paragraph}{D -- Instance schema.}{33}{section*.14}%
+\contentsline {section}{\numberline {6.8}Deployment}{34}{section.6.8}%
+\contentsline {chapter}{\numberline {7}Functionalities and user interface}{35}{chapter.7}%
+\contentsline {section}{\numberline {7.1}Design principles}{35}{section.7.1}%
+\contentsline {section}{\numberline {7.2}Pages and roles}{35}{section.7.2}%
+\contentsline {section}{\numberline {7.3}From an order to an approved plan}{36}{section.7.3}%
+\contentsline {paragraph}{Orders and process graph.}{36}{section*.17}%
+\contentsline {paragraph}{The request.}{37}{section*.18}%
+\contentsline {paragraph}{Waiting for the plans.}{37}{section*.19}%
+\contentsline {paragraph}{Comparing the plans.}{37}{section*.20}%
+\contentsline {paragraph}{Review on the Gantt chart.}{37}{section*.21}%
+\contentsline {paragraph}{Decision.}{37}{section*.22}%
+\contentsline {section}{\numberline {7.4}When something goes wrong}{37}{section.7.4}%
+\contentsline {section}{\numberline {7.5}The operator}{38}{section.7.5}%
+\contentsline {section}{\numberline {7.6}Transparency and control}{38}{section.7.6}%
+\contentsline {section}{\numberline {7.7}Configuration}{38}{section.7.7}%
+\contentsline {chapter}{\numberline {8}The artificial intelligence module}{39}{chapter.8}%
+\contentsline {section}{\numberline {8.1}From request to plan}{39}{section.8.1}%
+\contentsline {paragraph}{Planning request.}{40}{section*.24}%
+\contentsline {paragraph}{Problem specification.}{40}{section*.25}%
+\contentsline {paragraph}{Validation.}{40}{section*.26}%
+\contentsline {paragraph}{M1 Context.}{40}{section*.27}%
+\contentsline {paragraph}{Disjunctive graph.}{40}{section*.28}%
+\contentsline {paragraph}{M2 Policy and Dispatcher.}{40}{section*.29}%
+\contentsline {paragraph}{Fallback.}{40}{section*.30}%
+\contentsline {paragraph}{Plan result.}{40}{section*.31}%
+\contentsline {paragraph}{Three candidate plans.}{41}{section*.32}%
+\contentsline {section}{\numberline {8.2}Problem representation}{41}{section.8.2}%
+\contentsline {section}{\numberline {8.3}M1 Context: duration estimation}{41}{section.8.3}%
+\contentsline {section}{\numberline {8.4}M2 Policy and Dispatcher}{41}{section.8.4}%
+\contentsline {section}{\numberline {8.5}Training by imitation}{42}{section.8.5}%
+\contentsline {subsection}{\numberline {8.5.1}Instance generator}{42}{subsection.8.5.1}%
+\contentsline {subsection}{\numberline {8.5.2}Objective function}{43}{subsection.8.5.2}%
+\contentsline {subsection}{\numberline {8.5.3}CP-SAT teacher}{43}{subsection.8.5.3}%
+\contentsline {subsection}{\numberline {8.5.4}Dataset construction}{44}{subsection.8.5.4}%
+\contentsline {chapter}{\numberline {9}Implementation}{46}{chapter.9}%
+\contentsline {section}{\numberline {9.1}Data model and migrations}{46}{section.9.1}%
+\contentsline {section}{\numberline {9.2}Backend services}{47}{section.9.2}%
+\contentsline {paragraph}{Errors and API documentation.}{47}{section*.33}%
+\contentsline {paragraph}{Security.}{47}{section*.34}%
+\contentsline {paragraph}{Configuration.}{47}{section*.35}%
+\contentsline {paragraph}{Orders and process graph.}{47}{section*.36}%
+\contentsline {paragraph}{Tests.}{47}{section*.37}%
+\contentsline {section}{\numberline {9.3}Frontend}{48}{section.9.3}%
+\contentsline {paragraph}{Libraries.}{48}{section*.38}%
+\contentsline {paragraph}{Structure.}{48}{section*.39}%
+\contentsline {paragraph}{Mock-first development.}{48}{section*.40}%
+\contentsline {paragraph}{Server data and errors.}{48}{section*.41}%
+\contentsline {paragraph}{Resource Gantt chart.}{48}{section*.42}%
+\contentsline {paragraph}{Rescheduling from a report.}{49}{section*.43}%
+\contentsline {paragraph}{Authentication.}{49}{section*.44}%
+\contentsline {paragraph}{Quality.}{49}{section*.45}%
+\contentsline {paragraph}{State.}{49}{section*.46}%
+\contentsline {section}{\numberline {9.4}AI module}{49}{section.9.4}%
+\contentsline {paragraph}{Instance schema and converters.}{50}{section*.47}%
+\contentsline {paragraph}{Dispatcher and rules.}{50}{section*.48}%
+\contentsline {paragraph}{Teacher and dataset.}{50}{section*.49}%
+\contentsline {paragraph}{Tests.}{50}{section*.50}%
+\contentsline {section}{\numberline {9.5}Integration}{50}{section.9.5}%
+\contentsline {chapter}{\numberline {10}Experimental evaluation}{51}{chapter.10}%
+\contentsline {section}{\numberline {10.1}Methodology}{51}{section.10.1}%
+\contentsline {paragraph}{Data.}{51}{section*.51}%
+\contentsline {paragraph}{Metrics.}{51}{section*.53}%
+\contentsline {section}{\numberline {10.2}Results}{51}{section.10.2}%
+\contentsline {subsection}{\numberline {10.2.1}Due dates of the generator}{51}{subsection.10.2.1}%
+\contentsline {subsection}{\numberline {10.2.2}Dispatching rules}{52}{subsection.10.2.2}%
+\contentsline {subsection}{\numberline {10.2.3}CP-SAT teacher}{52}{subsection.10.2.3}%
+\contentsline {subsection}{\numberline {10.2.4}Training dataset}{52}{subsection.10.2.4}%
+\contentsline {section}{\numberline {10.3}Discussion}{53}{section.10.3}%

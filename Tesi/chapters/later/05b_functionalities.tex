@@ -1,0 +1,216 @@
+\chapter{Functionalities and user interface}
+\label{chap:functionalities}
+
+This chapter describes FlowSync from the point of view of its users: the principles that guided
+the design of the interface, how the pages are organised by role, and the main flows, from an
+order to an approved plan and from a reported problem to a new plan. The implementation of the
+interface is described in Section~\ref{sec:impl-frontend}.
+
+\section{Design principles}
+\label{sec:ui-principles}
+
+\begin{itemize}
+  \item \textbf{Decision support, not autopilot.} Every page that shows a plan also shows where
+        it comes from (the model or the fallback rule, with its confidence) and what it costs.
+        The planner always has the last word, and the buttons that change the state of a plan
+        ask for a confirmation or a reason.
+  \item \textbf{Alternatives instead of parameters.} The planner rarely knows in advance which
+        weight to give to punctuality or overtime. FlowSync therefore shows three concrete
+        plans (economic, balanced, fast) together with the classical rules ATC and EDD, and lets
+        the planner choose by comparing their indicators.
+  \item \textbf{Say why.} When something is not allowed, the interface says why, in words and
+        next to the element that caused it: a move on the Gantt chart that violates a
+        precedence is undone with the name of the activity that must finish first, a cycle in
+        the process graph is rejected with the activities involved, a form error appears under
+        its field and receives the focus.
+  \item \textbf{One visual system.} All the pages share the same colours, typography and
+        components, defined once as design tokens; the colours of the states (to review,
+        approved, rejected, superseded) and of the orders on the Gantt chart are the same
+        everywhere.
+  \item \textbf{Accessible.} Text and controls respect the contrast ratios of WCAG~2.1 AA, every
+        control is reachable from the keyboard with a visible focus, interactive targets are at
+        least 44 pixels high, and each drag-and-drop action has a keyboard alternative. The
+        interface is designed for desktop screens, which is where planners work.
+\end{itemize}
+
+\section{Pages and roles}
+\label{sec:ui-pages}
+
+After the login, each role sees only its own pages. The planner and the administrator use a
+layout with a side menu; the operator uses a simpler layout with no menu, built around the
+activities of the day. Table~\ref{tab:pages} lists the pages.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}p{3.4cm}p{2.4cm}p{8cm}@{}}
+    \toprule
+    \textbf{Page} & \textbf{Roles} & \textbf{Purpose} \\
+    \midrule
+    Login & all & Access with username and password \\
+    Dashboard & planner, admin & Indicators of the last weeks, open alerts, utilisation per
+      resource, recent requests \\
+    Orders & planner, admin & Orders, process graph of the activities, alternative resources
+      and durations \\
+    New planning & planner & Request in natural language, interpretation, missing data,
+      weights \\
+    Plans & planner, admin & All the requests with their plans, with search and filters \\
+    Plan comparison & planner, admin & The three plans of a request and the comparison with ATC
+      and EDD \\
+    Gantt and review & planner, admin & A plan on the resource Gantt chart; moves, approval,
+      rejection, new version \\
+    Reschedule & planner & A new plan after a problem in the running plan \\
+    Today's activities & operator & Start, pause, finish; problem reports \\
+    Configuration & planner (read), admin & Resources, calendars, skills, domain profiles \\
+    AI model & planner, admin & Active models, metrics, fallback chain, version history \\
+    Audit & admin & Who did what, when and with which model; CSV export \\
+    \bottomrule
+  \end{tabular}
+  \caption{Pages of FlowSync}
+  \label{tab:pages}
+\end{table}
+
+\section{From an order to an approved plan}
+\label{sec:ui-main-flow}
+
+Figure~\ref{fig:main-flow} shows the main flow of the planner.
+
+\begin{figure}[htpb]
+  \centering
+  \begin{tikzpicture}[
+      font=\small,
+      box/.style={draw, rounded corners, align=center, minimum width=2.3cm,
+                   minimum height=1.1cm, fill=gray!8},
+      ai/.style={draw, dashed, rounded corners, align=center, minimum width=2.3cm,
+                 minimum height=1.1cm},
+      arrow/.style={-{Stealth[length=2mm]}, thick},
+      node distance=0.45cm]
+    \node[box] (orders) {Orders and\\process graph};
+    \node[box, right=of orders] (request) {Request\\(text or form)};
+    \node[box, right=of request] (check) {Check the\\interpretation};
+    \node[ai, right=of check] (compute) {3 plans\\+ ATC, EDD};
+    \node[box, below=0.9cm of compute] (compare) {Compare\\the plans};
+    \node[box, left=of compare] (gantt) {Review on\\the Gantt};
+    \node[box, left=of gantt] (decide) {Approve,\\modify, reject};
+    \node[box, left=of decide] (execute) {Execution by\\the operators};
+    \draw[arrow] (orders) -- (request);
+    \draw[arrow] (request) -- (check);
+    \draw[arrow] (check) -- (compute);
+    \draw[arrow] (compute) -- (compare);
+    \draw[arrow] (compare) -- (gantt);
+    \draw[arrow] (gantt) -- (decide);
+    \draw[arrow] (decide) -- (execute);
+  \end{tikzpicture}
+  \caption{Main flow of the planner. The dashed box is computed by the AI service, through the
+           backend; all the other steps are decisions of the user.}
+  \label{fig:main-flow}
+\end{figure}
+
+\paragraph{Orders and process graph.} An order has a customer, a release date, a due date (which
+may still be unknown), a priority and the weight of its delay. Its activities are drawn as nodes
+of a graph, and a precedence is created by dragging from one activity to another; a precedence
+that would close a cycle is refused at once. Each activity lists the skills it requires and one
+or more alternatives, each with the resource that can execute it and its duration; when the
+duration is not known, it is left empty and estimated by the AI. The same information can be
+edited in a table, which is the keyboard alternative to the graph. Changes to the activities and
+precedences are kept as a draft and saved together; leaving the page with unsaved changes asks
+for a confirmation.
+
+\paragraph{The request.} The planner can describe what is needed in words, for example
+\emph{``plan C-101 to C-104 for next week, avoiding overtime''}. A language model turns the text
+into the parameters of the request: the orders, the horizon, the hard constraints (due dates,
+maintenance windows) and the preferences, which become the weights of the objectives. The page
+shows this interpretation, explains why a weight changed, and asks the questions about the
+missing data, such as a due date that was never entered. Nothing is computed until the planner
+has checked the interpretation and answered the questions.
+
+\paragraph{Waiting for the plans.} The request is computed in the background. The page shows the
+stages of the computation (validation of the data, estimation of the missing durations,
+construction of the plans, comparison with the rules), which take a few seconds, and then
+replaces itself with the result.
+
+\paragraph{Comparing the plans.} The three plans are shown side by side, each with a sentence
+that summarises its trade-off (\emph{``no delay, two hours of overtime on Tuesday''}) and its
+indicators: total duration, total tardiness, overtime, number of setups, average utilisation and
+estimated cost. The plan that best matches the weights of the planner is marked as recommended.
+Below, a table compares the plans of the AI with those of the ATC and EDD rules on the same data.
+
+\paragraph{Review on the Gantt chart.} Each plan opens on a resource Gantt chart: one row per
+resource, one bar per activity, a colour per order, grey bands where a resource is unavailable,
+striped bars where the duration was estimated by the AI. The planner can drag a bar in time or
+onto another resource; the move is checked immediately against the precedences, the other
+activities of the resource, the unavailability and the resources allowed for the activity, and
+the indicators are recomputed. A side panel shows the details of the selected activity, including
+the estimate of the AI with its interval, and offers buttons to move it by fifteen minutes or an
+hour, or to another resource.
+
+\paragraph{Decision.} The planner approves the plan (the other alternatives of the request are
+discarded), rejects it with a reason, or saves the modified plan as a new version with a reason.
+The reason ends up in the audit log. A decided plan becomes read-only.
+
+\section{When something goes wrong}
+\label{sec:ui-reschedule}
+
+Plans meet reality: a machine breaks down, an order becomes urgent, an activity takes longer
+than expected. In FlowSync the problem is reported by the operator who sees it, from the page of
+the activities of the day: the operator chooses the kind of problem (breakdown, missing material,
+delay, other), the machine involved and, if useful, a note. The report reaches the planner
+immediately as an alert on the dashboard.
+
+Since the problem is already known, the planner is not asked to describe it again. The alert
+opens the rescheduling page, which shows:
+\begin{itemize}
+  \item the problem, as it was reported (for example \emph{``Welding machine S2 down, reported
+        by M.~Rossi at 10:42: it does not turn on''});
+  \item its impact on the running plan: the activities blocked by the problem, those that come
+        after them and will slip, the orders involved and their due dates;
+  \item a few optional parameters: until when the machine will be down (if the technician gave
+        a time), the weights of the objectives, and how much the plan may change, from
+        \emph{change as little as possible} to \emph{re-optimise everything}.
+\end{itemize}
+A single button asks the AI to reschedule. The result is a new request, with three plans and the
+comparison with the rules, like any other; activities already started stay where they are. The
+current plan remains in execution until the planner approves one of the new plans, which then
+replaces it. If the AI cannot find a feasible plan, the page says so and why. When the
+rescheduling does not start from a report, for instance from the button on the Gantt chart, the
+page first asks what happened.
+
+\section{The operator}
+\label{sec:ui-operator}
+
+The operator's page lists the activities of the day assigned to the operator's resources: the
+activity in progress, with a timer and large buttons to pause or finish it, the next activities,
+and those already finished. An activity cannot be started if a preceding one has not finished
+(the page says which one and when it is expected to end), and only one activity can be in
+progress at a time. The recorded start and end times are not only a record of the work: they
+are the data from which the duration model M1 learns.
+
+\section{Transparency and control}
+\label{sec:ui-transparency}
+
+Three pages make the behaviour of the system visible.
+\begin{itemize}
+  \item The \textbf{dashboard} shows the indicators of the last weeks (punctuality, late orders,
+        utilisation, adherence to the plan), the open alerts and the recent requests.
+  \item The \textbf{AI model} page shows which versions of M1 and M2 are active and what their
+        metrics mean, in plain words (for example, \emph{gap from the optimum: how much worse
+        the plans of the AI are than those computed by CP-SAT}); the fallback chain, with how many
+        plans of the last thirty days came from the AI and how many from a fallback; and the
+        history of the versions. The page is read-only: a model is published only by the
+        training pipeline.
+  \item The \textbf{audit} page lists who did what and when: plans generated, decisions,
+        reschedulings, fallbacks. Each record shows the model version and the hashes of input and
+        output, with which the plan can be reproduced, and can be exported as CSV.
+\end{itemize}
+
+\section{Configuration}
+\label{sec:ui-configuration}
+
+The administrator maintains the master data on four tabs: resources (type, skills, calendar,
+hourly cost, planned unavailability), calendars (working days, shifts and closures, with the
+resulting weekly hours), skills (with the active resources that have each one, and a warning
+when no resource has it) and domain profiles (default weights of the objectives and active
+constraints). Planners can read these data but not change them.
+
+% TODO (M. Brizi): screenshots of the main pages (dashboard, plan comparison, Gantt, reschedule,
+% operator) in Immagini/, once the data of the real backend are available.

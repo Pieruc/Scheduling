@@ -51,15 +51,78 @@ of Figure~\ref{fig:gantt}.
 
 \section{Parallel lanes and dependencies}
 \label{sec:lanes}
-% TODO: the three development lanes (AI, backend, frontend) run in parallel from 9 November;
-% the backend starts against a mock of the AI service so it does not wait for the models;
-% the Christmas break runs from 24 December to 7 January.
+
+From 9 November the three development lanes, AI, backend and frontend, run in parallel, each
+owned by one member of the team (Section~\ref{sec:contributions}). The lanes depend on each
+other only through the contracts (Section~\ref{sec:contracts}), and each lane starts against a
+mock of the next one: the frontend against a mock of the backend, the backend against a mock of
+the AI service. In this way no lane waits for another, and the integration is a sequence of
+small steps, in which a mock is replaced by the real component one endpoint at a time. The
+Christmas break runs from 24 December to 7 January. The dates of the chart are indicative: the
+plan is revised at each milestone (Section~\ref{sec:process}).
 
 \section{Risks}
 \label{sec:risks}
-% TODO: main risks (e.g. the model does not beat ATC at M1: fallback on dispatching rules;
-% integration delays) and the buffer before the delivery.
 
+\begin{itemize}
+  \item \textbf{The learned policy does not beat the rules.} This is the most uncertain part of
+        the project, and the reason why milestone M1 is a go/no-go decision placed early. If the
+        pilot model does not beat ATC, the system still works with the dispatching rules as
+        optimisation engine, and the effort moves to the features of the policy and to the data.
+  \item \textbf{Integration delays.} Three parts developed in parallel may diverge. The risk is
+        reduced by the contracts agreed before the code, by mocks that follow the contracts
+        exactly, and by updating the contracts as soon as a part needs something new.
+  \item \textbf{Missing real data.} For some domains no reliable public data exist; the models
+        are trained on synthetic instances, and public benchmarks are used to calibrate and to
+        validate them.
+  \item \textbf{Scope.} The feature freeze (M3) leaves two weeks before the delivery for testing,
+        fixes and documentation.
+\end{itemize}
+
+\section{Progress}
+\label{sec:progress}
+
+Table~\ref{tab:progress} summarises the state of the work on 25 November 2026, three weeks after
+milestone M0. The detailed state of each requirement is in Table~\ref{tab:fr}.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}p{2.2cm}p{6.1cm}p{5.2cm}@{}}
+    \toprule
+    \textbf{Lane} & \textbf{Done} & \textbf{Next} \\
+    \midrule
+    AI & Instance schema and validator; converters of the job shop and flexible job shop
+         benchmarks (579 instances); instance generator for the factory and public
+         administration profiles; dispatcher, EDD and ATC rules, independent feasibility
+         checker; CP-SAT teacher; first version of the training dataset with 23 features &
+         Training of the pilot policy M2 and comparison with ATC (M1); duration model M1; AI
+         service \\
+    \addlinespace
+    Backend & Database schema (23 tables, versioned migrations); authentication with access
+         and refresh tokens, registration with approval; resources, calendars, skills and
+         domain profiles (read); orders and process graph &
+         Planning requests with three plans, Gantt view, decisions, rescheduling, execution,
+         alerts, KPIs, audit, client of the AI service \\
+    \addlinespace
+    Frontend & All the screens of the mockups on a mock of the backend; forms of orders,
+         activities, calendars, skills and profiles; rescheduling from a report; test login
+         with role-based pages &
+         Registration and user management; integration with the real backend, one area at a
+         time \\
+    \addlinespace
+    Documentation & Contracts version 1.1, READMEs, this document up to the current state &
+         Kept up to date at each milestone \\
+    \bottomrule
+  \end{tabular}
+  \caption{Progress on 25 November 2026}
+  \label{tab:progress}
+\end{table}
+
+The frontend is ahead of the chart, because developing against a mock let it build every screen
+before the corresponding endpoint existed; the work left for it is mainly integration. The
+critical path now goes through the backend endpoints of planning and review and through the AI
+service, both needed for the minimal end-to-end system of milestone M2.
 % TODO: at each milestone, record its outcome and any change to the plan:
 % M0 (6 Nov 2026, validation with the supervisor), M1 (11 Dec 2026, pilot go / no-go),
 % M2 (23 Dec 2026, minimal end-to-end system), M3 (29 Jan 2027, feature freeze),

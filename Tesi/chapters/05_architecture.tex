@@ -50,25 +50,36 @@ Three principles guided this division.
 The frontend has one module for each activity of its users:
 \begin{itemize}
   \item \textbf{Auth \& Roles}: login and role-based access (administrator, planner,
-        operator), with the token issued by the backend;
+        operator), with the token issued by the backend; registration and the management of
+        users by the administrator;
   \item \textbf{Orders \& Process Graph}: entry of orders and editing of the graph of their
         activities and precedences;
-  \item \textbf{Planning \& Gantt}: planning requests, comparison of the candidate plans and
-        resource Gantt chart;
-  \item \textbf{Plan Review}: approval, modification or rejection of a plan;
+  \item \textbf{Planning \& Gantt}: planning requests, also written in natural language,
+        comparison of the three candidate plans with the ATC and EDD rules, and resource Gantt
+        chart;
+  \item \textbf{Plan Review}: approval, modification or rejection of a plan, and rescheduling
+        of the running plan after a problem;
   \item \textbf{Execution}: recording of the actual start and end of the activities by the
         operators, and reporting of problems;
-  \item \textbf{KPI Dashboard}: indicators over time;
-  \item \textbf{Model Info}: version and metrics of the active model, read-only.
+  \item \textbf{KPI Dashboard}: indicators over time and open alerts;
+  \item \textbf{Model Info}: version and metrics of the active model, read-only;
+  \item \textbf{Configuration} and \textbf{Audit}: master data for the administrator and the
+        log of who did what, added during the design of the screens.
 \end{itemize}
 Two of these modules express design principles. \emph{Plan Review} implements the human in the
 loop: the AI proposes, but a person always decides whether a plan is adopted. \emph{Model Info}
 is read-only: the user can see which model is producing the plans, for transparency, but cannot
 change it; a new model is published only by the training pipeline.
 
+Every planning request produces \textbf{three candidate plans}, which differ in the weights of
+the objectives: an \emph{economic} plan that avoids overtime at the cost of a longer schedule,
+a \emph{balanced} plan computed with the weights chosen by the planner, and a \emph{fast} plan
+that finishes earlier at a higher cost. Each request is also solved with the ATC and EDD rules,
+so that the planner can compare the plans of the AI with the classical baselines
+(Section~\ref{sec:elicitation}).
+
 The architecture was first drawn with Angular as frontend framework; the implementation uses
-React (Section~\ref{sec:impl-frontend}).
-% TODO (M. Brizi): reason for the switch from Angular to React.
+React (Section~\ref{sec:impl-frontend}), the framework that the team knows best.
 
 \section{Backend}
 \label{sec:backend}
@@ -202,8 +213,15 @@ syntactically valid but inconsistent, and 503 when the AI service is unavailable
 \paragraph{A -- Public API.} The API used by the frontend covers authentication, configuration,
 orders and process graph, planning, plan review, execution and KPIs, model information and audit.
 Planning is \emph{asynchronous}: a new request is accepted immediately with status 202 and the
-address of the new plan, which the frontend polls until the plan is ready. In this way no HTTP
-request stays open while the AI computes, even when the fallback takes longer.
+address of the request, which the frontend polls until its three plans and the comparison with
+ATC and EDD are ready. In this way no HTTP request stays open while the AI computes, even when the
+fallback takes longer. The plan of a request is served to the frontend already converted into the
+time scale of the Gantt chart (minutes of working time from the start of the horizon), so the
+calendars are interpreted in one place only, the backend. Version~1.1 of the contract (25
+November 2026) added what the screens of the frontend need beyond the first draft: the
+interpretation of a request written in natural language, the Gantt view and the decisions, the
+rescheduling of the running plan, the alerts and problem reports, the view of the operator, and
+more indicators.
 
 \paragraph{B -- Optimisation API.} The request is the ProblemSpec, which contains resources,
 jobs, activities with their modes, precedences, setup times, the activities already fixed (for
@@ -225,8 +243,9 @@ means that the model sees in production exactly the structure on which it was tr
 (Section~\ref{sec:instance-schema}).
 
 % TODO: open points of the contracts: CP-SAT in the online fallback, polling versus WebSocket or
-% server-sent events for the state of a plan, OpenAPI documents generated from the code and
-% compared with the contracts.
+% server-sent events for the state of a request, OpenAPI documents generated from the code and
+% compared with the contracts, shadow mode (kept or removed), and whether the AI service returns
+% the three plans in one call or in three calls with different weights.
 
 \section{Deployment}
 \label{sec:deployment}

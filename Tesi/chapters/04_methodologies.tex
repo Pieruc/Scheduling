@@ -39,8 +39,8 @@ constraints and the objectives, and looked for what they have in common. In para
 the public data sets identified, for each domain, which data could be used to calibrate the
 instance generator or to validate the models, and under which licence; for the domains without
 reliable public data, only synthetic instances are used.
-% TODO: requirements elicitation and the list of functional and non-functional requirements
-% (draft in chapters/later/03_requirements.tex).
+The resulting functional and non-functional requirements, and the decisions taken while
+reviewing the mockups, are listed in Chapter~\ref{chap:requirements}.
 
 The architecture was modelled in Visual Paradigm with a UML component diagram
 (Figure~\ref{fig:architecture}), later complemented by sequence diagrams of the main
@@ -51,8 +51,10 @@ decided implicitly in the code. The same practice was followed during developmen
 for instance, keeps a log of its design decisions, each with its reason.
 
 The user interface was designed with HTML mockups of all the screens, revised once before the
-frontend was developed, and the database with an entity-relationship model
-(Figure~\ref{fig:er}).
+frontend was developed: the revision removed what was not needed (for example a choice of the
+number of plans, which became always three) and added the pages that were missing (login,
+configuration, model information, audit, list of plans). The database was designed with an
+entity-relationship model (Figure~\ref{fig:er}).
 % TODO: sequence diagrams to be included (FlowSync_SequenceDiagrams_VP.xml).
 
 \section{Collaboration and tools}
@@ -67,7 +69,9 @@ The interfaces between the parts were agreed \emph{before} the code, in a shared
 document (Section~\ref{sec:contracts}). Each part could then be developed against the contract
 instead of waiting for the others: the frontend against a mock of the backend, the backend
 against a mock of the AI service. When a part needs a change to a contract, the change is
-proposed in the document and agreed with the other members.
+proposed in the document and agreed with the other members; for instance, the needs of the
+frontend that emerged while building the screens were collected in a list and then merged into
+version 1.1 of the contracts.
 
 Documentation is kept next to the code: each part has a README with its structure, the commands
 to run it and the choices made, and differences from the contracts are listed explicitly. The
@@ -113,7 +117,9 @@ Each part has automated tests. The AI module has unit tests for each component, 
 conversion of all the real benchmark files and the optimality of the teacher on instances with a
 known solution. The backend has integration tests that run against a real MySQL database
 started in a container, so that the migrations, the entities and the API are tested together.
-The frontend is checked by the TypeScript compiler and a linter at every build. Inputs that are
+The frontend is checked by the TypeScript compiler in strict mode, a linter and a formatter at
+every change, and each page is verified in the browser on its complete flows, including the
+error cases produced on purpose by the mock of the backend. Inputs that are
 syntactically valid but inconsistent are rejected with explicit error codes at every boundary:
 by the backend API and by the validation of the AI service.
 % TODO [Gantt 30, P1-P3, 25 Jan-5 Feb 2027 - Testing and fixes]: frontend component tests,
