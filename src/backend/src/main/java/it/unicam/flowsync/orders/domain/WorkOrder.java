@@ -1,5 +1,6 @@
 package it.unicam.flowsync.orders.domain;
 
+import it.unicam.flowsync.configuration.domain.DomainProfile;
 import it.unicam.flowsync.security.domain.AppUser;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -35,9 +36,13 @@ public class WorkOrder {
     @Column(name = "client_name", length = 150)
     private String clientName;
 
-    /** Riferimento al profilo di dominio (entità non mappata in questo esempio). */
-    @Column(name = "profile_id")
-    private Long profileId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id")
+    private DomainProfile profile;
+
+    /** Da quando la commessa può iniziare (releaseDate del contratto); null = subito. */
+    @Column(name = "release_at")
+    private Instant releaseAt;
 
     /** null = dato mancante: la validazione lo chiede al pianificatore prima di pianificare. */
     @Column(name = "due_at")

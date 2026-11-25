@@ -88,7 +88,7 @@ Se la validazione segnala una colonna, quasi sempre si tratta di una differenza 
 
 # Backend REST
 
-Primo blocco implementato: fondamenta (errori, sicurezza), login JWT e modulo Configuration (risorse, competenze, calendari in sola lettura). Il resto del contratto A (`CONTRATTI_API.md`) segue modulo per modulo.
+Implementato: fondamenta (errori, sicurezza), login JWT, registrazione con approvazione, modulo Configuration (risorse; competenze, calendari e profili di dominio in sola lettura) e commesse con grafo di processo. Il resto del contratto A (`CONTRATTI_API.md`) segue modulo per modulo.
 
 ## Avvio in locale
 
@@ -123,6 +123,8 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 | `AuthApiTest` | Login, refresh, `/auth/me`, token manomesso o del tipo sbagliato, formato problem+json |
 | `RegistrationApiTest` | Registrazione, account in attesa, approvazione con ruolo, rifiuto, disattivazione, protezione dall'auto-blocco dell'ADMIN |
 | `ResourceApiTest` | Permessi per ruolo, CRUD, disattivazione, 404/409/422, competenze, riepilogo dei turni |
+| `OrderApiTest` | Profili di dominio, commesse del seed, filtri, creazione, modifica, annullamento, grafo (salvataggio, sostituzione, cicli, riferimenti) |
+| `GraphValidatorTest` | Logica pura del controllo del grafo (senza Docker) |
 | `ShiftSummarizerTest` | Logica pura del riepilogo turni (senza Docker) |
 
 ## Endpoint implementati
@@ -138,6 +140,12 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 | POST / PUT | `/api/v1/resources[/{id}]` | ADMIN | 409 codice doppio, 422 competenza o calendario inesistenti |
 | DELETE | `/api/v1/resources/{id}` | ADMIN | disattiva (204), idempotente |
 | GET | `/api/v1/skills`, `/api/v1/calendars` | tutti | alimentano le tendine del frontend |
+| GET | `/api/v1/domain-profiles[/{code}]` | tutti | pesi con le chiavi del contratto (`makespan`, `weightedTardiness`, `setup`) |
+| GET / POST | `/api/v1/orders[?status=&dueBefore=]` | PLANNER, ADMIN | `id` = codice (es. `C-101`); `activityCount` nell'elenco |
+| GET / PUT | `/api/v1/orders/{id}` | PLANNER, ADMIN | 409 se la commessa è chiusa (DONE / CANCELLED) |
+| DELETE | `/api/v1/orders/{id}` | PLANNER, ADMIN | annulla (stato `CANCELLED`), idempotente |
+| PATCH | `/api/v1/orders/{id}/priority` | PLANNER, ADMIN | corpo `{"priority": 1..3}` |
+| GET / PUT | `/api/v1/orders/{id}/process-graph` | PLANNER, ADMIN | PUT sostituisce il grafo; 422 per cicli, riferimenti sbagliati, modi non validi |
 | GET | `/api/v1/users[?status=PENDING\|ACTIVE\|DISABLED]` | ADMIN | `?status=PENDING` = registrazioni da approvare |
 | POST | `/api/v1/users/{id}/approve` | ADMIN | corpo `{"role": "PLANNER"}`; 409 se non è in attesa |
 | PATCH | `/api/v1/users/{id}` | ADMIN | `{"role": ..., "active": ...}`; un ADMIN non può disattivare sé stesso né togliersi il ruolo |
@@ -151,6 +159,9 @@ mvn test        # richiede Docker acceso: Testcontainers avvia un MySQL 8.4 vero
 - **Limite noto:** i refresh token non si possono revocare prima della scadenza (niente tabella dei token). Per un prototipo è accettabile; se serve il logout "vero" si aggiunge una tabella con i `jti` revocati.
 - **Nessun limite ai tentativi di login** per ora (da aggiungere prima di un uso reale).
 - **Registrazione con approvazione.** `POST /auth/register` crea un account disattivato (stato `PENDING`, migrazione V7: colonne `approved_at` e `approved_by`). Il login di un account in attesa o disattivato risponde 403 con codice `ACCOUNT_PENDING` / `ACCOUNT_DISABLED`, ma solo se la password è giusta: con la password sbagliata il messaggio resta il generico 401, così non si scopre lo stato degli account altrui. Un campo `role` inviato alla registrazione è ignorato. Limiti: la registrazione rivela se uno username o un'email sono già usati (409), e non c'è un limite alle richieste: un bot può riempire la lista delle attese (gli account restano inutilizzabili finché nessuno li approva).
+- **Commesse: conversioni tra contratto e DB.** `description` (proposta §8 del frontend) = `title`; `customer` = `client_name`; `priority` 1/2/3 = `LOW`/`MEDIUM`/`HIGH`; lo stato `OPEN` del contratto = `DRAFT` o `READY` (le nuove nascono `READY`). Senza `releaseDate` si restituisce la data di creazione.
+- **Grafo di processo.** Il PUT sostituisce tutto il grafo ma lavora per codice: le attività che restano conservano id e famiglia di setup (`setupFamily`, campo facoltativo in più rispetto al contratto), quelle sparite si cancellano (409 se un piano le usa). Un modo = una risorsa (la colonna `duration_min` di `activity_resource`); se tutti i modi hanno la stessa durata, quella diventa `declared_duration_min`. Solo precedenze `FS`. I controlli strutturali (id doppi, modi, cicli) stanno nella classe pura `GraphValidator`, testata senza Docker.
+- **Migrazione V8** (tutti gli ambienti): `work_order.release_at`, tabella `activity_skill` (le competenze richieste diventano una lista; i dati di `required_skill_id` sono copiati e la colonna tolta), `precedence.max_lag_min`, `domain_profile.description` e `features`. **Seed V101** (solo dev): profili FACTORY e PA nel formato del contratto e profilo PROJECT. In produzione i profili vanno ancora creati: manca la scrittura (`PUT /domain-profiles`).
 - **Le competenze di una risorsa** si inviano come elenco di codici; le nuove partono dal livello 1, quelle già presenti conservano il loro livello.
 
 ## Difformità da chiarire con il frontend

@@ -1,6 +1,6 @@
 package it.unicam.flowsync.orders.domain;
 
-import it.unicam.flowsync.configuration.domain.Resource;
+import it.unicam.flowsync.configuration.domain.Skill;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 /** Un nodo del grafo: un'operazione da svolgere su una delle risorse ammesse. */
@@ -28,18 +28,16 @@ public class Activity {
     @JoinColumn(name = "work_order_id", nullable = false)
     private WorkOrder workOrder;
 
+    /** Codice univoco dentro la commessa: è l'id dell'attività nell'API (es. "T"). */
     @Column(nullable = false, length = 30)
     private String code;
 
     @Column(nullable = false, length = 150)
     private String name;
 
-    /** null = la durata la stima M1. */
+    /** Durata comune a tutti i modi; null = diversa per risorsa, oppure da stimare con M1. */
     @Column(name = "declared_duration_min")
     private Integer declaredDurationMin;
-
-    @Column(name = "required_skill_id")
-    private Long requiredSkillId;
 
     /** Famiglia per i setup dipendenti dalla sequenza (es. colore in verniciatura). */
     @Column(name = "setup_family", length = 40)
@@ -50,13 +48,14 @@ public class Activity {
     @Column(nullable = false, length = 20)
     private Status status = Status.PENDING;
 
-    /**
-     * Risorse ammesse ("modi"). La durata specifica per risorsa, se serve,
-     * richiede di mappare activity_resource come entità con chiave composta.
-     */
+    /** Competenze richieste (tabella activity_skill, migrazione V8). */
     @ManyToMany
-    @JoinTable(name = "activity_resource",
+    @JoinTable(name = "activity_skill",
                joinColumns = @JoinColumn(name = "activity_id"),
-               inverseJoinColumns = @JoinColumn(name = "resource_id"))
-    private Set<Resource> eligibleResources = new HashSet<>();
+               inverseJoinColumns = @JoinColumn(name = "skill_id"))
+    private Set<Skill> requiredSkills = new LinkedHashSet<>();
+
+    /** Modi: risorse ammesse con l'eventuale durata specifica. Si modificano solo dal servizio. */
+    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ActivityResource> modes = new LinkedHashSet<>();
 }

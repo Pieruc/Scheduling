@@ -29,4 +29,8 @@ public class Precedence {
 
     @Column(name = "lag_min", nullable = false)
     private int lagMin = 0;
+
+    /** Ritardo massimo (migrazione V8); null = nessun limite. */
+    @Column(name = "max_lag_min")
+    private Integer maxLagMin;
 }
