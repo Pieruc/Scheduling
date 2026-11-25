@@ -2,8 +2,15 @@
 \label{chap:implementation}
 
 This chapter describes how the three parts of FlowSync are implemented: the database and the
-backend, the frontend, and the AI module. Each section is written by the team member who developed
+backend, the frontend, and the AI module. Each section is written by the team member who develops
 that part (Section~\ref{sec:contributions}).
+
+\status{Backend: database schema with migrations, authentication with registration and user
+management, resources, read-only calendars, skills and domain profiles, orders and process graph,
+with integration tests; the planning, review, execution, alert, KPI and audit endpoints and the
+client of the AI service are not implemented yet. Frontend: all the screens, against a mock of
+the backend; no page uses the real backend yet. AI: the library of the data pipeline with unit
+tests; no model and no service yet. The three parts have not been integrated.}
 % NOTE: Sections \ref{sec:impl-db} and \ref{sec:impl-backend} are drafts written from the code and
 % the README: to be reviewed and extended by A. Brutti.
 
@@ -31,10 +38,10 @@ The main design choices are the following.
         filtering are ordinary columns.
   \item \textbf{The problem specification is stored as a snapshot} in each planning request, so a
         plan remains reproducible even if orders or resources change later. Each real request
-        also becomes a potential training example.
+        will also be a potential training example.
   \item \textbf{Execution events are append-only}. The view \texttt{v\_activity\_actuals}
-        compares the actual duration of each activity with the estimate of M1: in production it
-        is the training set of M1.
+        compares the actual duration of each activity with the estimate of M1: once the system
+        is used, it will be the training set of M1.
   \item \textbf{Optimistic locking} on orders and plans, so that two planners editing the same
         plan do not overwrite each other.
 \end{itemize}
@@ -68,8 +75,8 @@ PLANNER or OPERATOR). The login of a pending account reveals its state only if t
 correct, so the endpoint does not disclose information about other accounts.
 
 \paragraph{Configuration.} Resources can be listed, created, updated and deactivated (the last
-three operations are reserved to administrators). Skills and calendars feed the drop-down lists
-of the frontend, with a readable summary of the shifts of each calendar. The public identifier of
+three operations are reserved to administrators). Skills and calendars are exposed read-only,
+with a readable summary of the shifts of each calendar, for the drop-down lists of the frontend. The public identifier of
 a resource is its code (e.g.\ \texttt{LASER}), never the numeric key of the database.
 
 \paragraph{Orders and process graph.} Orders can be listed (with filters on state and due date),
@@ -164,7 +171,7 @@ log the user out, while closing the tab does. The token is sent with every call,
 expired token brings the user back to the login page. The permissions of each role are declared
 in one module and used by the menu and by a guard on the routes, which sends the user to the
 login page or to the home page of the role; the real check remains in the backend. The
-registration page and the users page of the administrator (Section~\ref{sec:ui-users}) follow
+registration page and the users page of the administrator (Section~\ref{sec:ui-other}) follow
 the same contract as the backend, including its error codes: a duplicate username or e-mail is
 shown under its field, and the login of a pending or disabled account explains the reason. This
 first version deliberately leaves out the automatic renewal of the token. The test users are the
@@ -231,9 +238,11 @@ one positive candidate per step, deterministic split).
 \section{Integration}
 \label{sec:impl-integration}
 
-The three parts communicate only through the contracts of Section~\ref{sec:contracts}, and were
-developed in parallel against mocks of each other (Section~\ref{sec:tools}). Integration
-consists in replacing each mock with the real component, one endpoint at a time.
+The three parts communicate only through the contracts of Section~\ref{sec:contracts}, and are
+developed in parallel against mocks of each other (Section~\ref{sec:tools}). The integration has
+not started yet: it will consist in replacing each mock with the real component, one endpoint at
+a time, starting from the parts that the backend already provides (login, registration,
+resources, catalogues, orders and process graph).
 % TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - AI client, mock first]: client of the AI service with
 % timeout, retry and circuit breaker (Resilience4j), first against a mock of the AI service.
 % TODO [Milestone M2, 23 Dec 2026 - Minimal end-to-end system]: first complete flow from the

@@ -10,6 +10,14 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning}
 
+% This document is written while the project goes on: every chapter opens with the state of the
+% work it describes. Update the date and the text at each milestone.
+\newcommand{\statusdate}{25 November 2026}
+\newcommand{\status}[1]{%
+  \par\medskip\noindent
+  \fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small
+    \textbf{State on \statusdate.} #1}}\par\medskip}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % TITLE PAGE DATA
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%

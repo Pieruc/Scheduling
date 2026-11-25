@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 16:38
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 16:57
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1204,24 +1204,24 @@ Package csquotes Info: ... found 'babel' package.
  (./tesi.aux (./chapters/acknowledgements.aux))
 \openout1 = `tesi.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 94.
-LaTeX Font Info:    ... okay on input line 94.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 102.
+LaTeX Font Info:    ... okay on input line 102.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1279,7 +1279,7 @@ Package epstopdf-base Info: Redefining graphics rule for `.eps' on input line 4
 File: epstopdf-sys.cfg 2010/07/13 v1.3 Configuration of (r)epstopdf for TeX Liv
 e
 ))
-Package hyperref Info: Link coloring ON on input line 94.
+Package hyperref Info: Link coloring ON on input line 102.
 
 (./tesi.out) (./tesi.out)
 \@outlinefile=\write7
@@ -1294,8 +1294,8 @@ Package caption Info: longtable package is loaded.
 Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: End \AtBeginDocument code.
-LaTeX Info: Redefining \it@ocap on input line 94.
-LaTeX Info: Redefining \it@ccap on input line 94.
+LaTeX Info: Redefining \it@ocap on input line 102.
+LaTeX Info: Redefining \it@ccap on input line 102.
 
 
 File italian.ldf warning: 
@@ -1303,7 +1303,7 @@ italian.ldf    With OT1 encoding guillemets are poorly faked
 italian.ldf    Use T1 encoding
 italian.ldf    or specify a font with command \CaporaliFrom
 italian.ldf    See the documentation concerning the babel-italian typesetting
-italian.ldf    on input line 94.
+italian.ldf    on input line 102.
 
 Package biblatex Info: Trying to load language 'english'...
 Package biblatex Info: ... file 'english.lbx' found.
@@ -1328,13 +1328,13 @@ Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'tesi.bbl' found.
 
 (./tesi.bbl)
-Package biblatex Info: Reference section=0 on input line 94.
-Package biblatex Info: Reference segment=0 on input line 94.
+Package biblatex Info: Reference section=0 on input line 102.
+Package biblatex Info: Reference segment=0 on input line 102.
 \c@lstlisting=\count525
-<Immagini/stemma.png, id=348, 83.3514pt x 103.587pt>
+<Immagini/stemma.png, id=336, 83.3514pt x 103.587pt>
 File: Immagini/stemma.png Graphic file (type png)
 <use Immagini/stemma.png>
-Package pdftex.def Info: Immagini/stemma.png  used on input line 96.
+Package pdftex.def Info: Immagini/stemma.png  used on input line 104.
 (pdftex.def)             Requested size: 42.67912pt x 53.04205pt.
  [1
 
@@ -1365,151 +1365,156 @@ Chapter 1.
 [7
 
 {/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc}]
- [8] [9]) (./chapters/02_background.tex [10]
-Chapter 2.
-[11
+ [8]
+Underfull \vbox (badness 10000) has occurred while \output is active []
 
-] [12]
+ [9]
+[10]) (./chapters/02_background.tex [11]
+Chapter 2.
+[12
+
+] [13]
 LaTeX Font Info:    Trying to load font information for OT1+pcr on input line 1
-60.
+64.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-[13{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc}] [14]
-[15]
-Underfull \hbox (badness 10000) in paragraph at lines 297--297
+[14{/usr/local/texlive/2026/texmf-dist/fonts/enc/dvips/base/8r.enc}] [15]
+[16]
+Underfull \hbox (badness 1337) in paragraph at lines 298--299
+[]|\OT1/cmr/m/n/10.95 State on 25 Novem-ber
+ []
+
+
+Underfull \hbox (badness 1270) in paragraph at lines 301--301
+[]|\OT1/cmr/m/n/10.95 baselines; fall-back when the
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 302--302
 []|\OT1/cmr/m/n/10.95 Neural dis-patch-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 298--298
+Underfull \hbox (badness 10000) in paragraph at lines 303--303
 []|\OT1/cmr/m/n/10.95 Quantile re-gres-
  []
 
-) (./chapters/03_gantt.tex [16]
+) (./chapters/03_gantt.tex [17]
 Chapter 3.
-<Immagini/gantt.png, id=603, 1442.38875pt x 1494.58376pt>
+<Immagini/gantt.png, id=599, 1442.38875pt x 1494.58376pt>
 File: Immagini/gantt.png Graphic file (type png)
 <use Immagini/gantt.png>
-Package pdftex.def Info: Immagini/gantt.png  used on input line 10.
+Package pdftex.def Info: Immagini/gantt.png  used on input line 14.
 (pdftex.def)             Requested size: 412.56497pt x 427.48877pt.
+[18
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [17
-
- <./Immagini/gantt.png>] [18]
-Underfull \hbox (badness 10000) in paragraph at lines 105--107
+] [19 <./Immagini/gantt.png>]
+Underfull \hbox (badness 10000) in paragraph at lines 109--111
 []|\OT1/cmr/m/n/10 Planning re-quests with three
  []
 
 
-Underfull \hbox (badness 5893) in paragraph at lines 105--107
+Underfull \hbox (badness 5893) in paragraph at lines 109--111
 \OT1/cmr/m/n/10 plans, Gantt view, de-ci-sions,
  []
 
 
-Underfull \hbox (badness 3701) in paragraph at lines 105--107
+Underfull \hbox (badness 3701) in paragraph at lines 109--111
 \OT1/cmr/m/n/10 reschedul-ing, ex-e-cu-tion, alerts,
  []
 
 
-Underfull \hbox (badness 1824) in paragraph at lines 105--107
+Underfull \hbox (badness 1824) in paragraph at lines 109--111
 \OT1/cmr/m/n/10 KPIs, au-dit, client of the AI
  []
 
 
-Overfull \hbox (4.48753pt too wide) in paragraph at lines 113--113
+Overfull \hbox (4.48753pt too wide) in paragraph at lines 117--117
 []|\OT1/cmr/m/n/10 Documentation| 
  []
 
-) (./chapters/04_methodologies.tex [19]
+) (./chapters/04_methodologies.tex [20] [21]
 Chapter 4.
-[20
+[22
 
-] [21]) (./chapters/later/03_requirements.tex [22]
+] [23]) (./chapters/later/03_requirements.tex [24]
 Chapter 5.
-[23
+[25
 
 ]
-Underfull \hbox (badness 2671) in paragraph at lines 111--111
+Underfull \hbox (badness 2671) in paragraph at lines 115--115
 \OT1/cmr/m/n/10 bal-anced, fast) for each re-quest, asyn-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 127--127
+Underfull \hbox (badness 10000) in paragraph at lines 131--131
 []|\OT1/cmr/m/n/10 Planner,
  []
 
 
-ignored: Infinite glue shrinkage found in box being split [24]
+ignored: Infinite glue shrinkage found in box being split [26]
 ignored: Infinite glue shrinkage fo
-und in box being split [25]) (./chapters/05_architecture.tex [26] [27]
+und in box being split [27]) (./chapters/05_architecture.tex [28] [29]
 Chapter 6.
-<Immagini/architecture.png, id=681, 2705.10625pt x 1636.1125pt>
+<Immagini/architecture.png, id=683, 2705.10625pt x 1636.1125pt>
 File: Immagini/architecture.png Graphic file (type png)
 <use Immagini/architecture.png>
-Package pdftex.def Info: Immagini/architecture.png  used on input line 26.
+Package pdftex.def Info: Immagini/architecture.png  used on input line 33.
 (pdftex.def)             Requested size: 412.56497pt x 249.52551pt.
-[28
+[30
 
-] [29 <./Immagini/architecture.png>] [30]
-<Immagini/er.png, id=702, 1573.88pt x 803.0pt>
+] [31 <./Immagini/architecture.png>] [32] [33]
+<Immagini/er.png, id=712, 1573.88pt x 803.0pt>
 File: Immagini/er.png Graphic file (type png)
 <use Immagini/er.png>
-Package pdftex.def Info: Immagini/er.png  used on input line 171.
+Package pdftex.def Info: Immagini/er.png  used on input line 186.
 (pdftex.def)             Requested size: 412.56497pt x 210.49046pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 191--191
+Underfull \hbox (badness 10000) in paragraph at lines 206--206
 []|\OT1/cmr/m/n/10 B -- Op-ti-mi-sa-tion
  []
 
-[31] [32 <./Immagini/er.png (PNG copy)>])
-(./chapters/later/05b_functionalities.tex
-Underfull \vbox (badness 1867) has occurred while \output is active []
-
- [33]
-[34]
+[34 <./Immagini/er.png (PNG copy)>]) (./chapters/later/05b_functionalities.tex
+[35]
 Chapter 7.
+[36
 
-Overfull \hbox (4.08269pt too wide) in paragraph at lines 46--72
+]
+Overfull \hbox (4.08269pt too wide) in paragraph at lines 51--71
  [][] 
  []
 
-[35
-
-] [36] [37]
-Overfull \hbox (5.88498pt too wide) in paragraph at lines 204--207
-[]\OT1/cmr/m/n/10.95 The \OT1/cmr/bx/n/10.95 au-dit \OT1/cmr/m/n/10.95 page lis
-ts who did what and when: plans gen-er-ated, de-ci-sions, reschedul-
- []
-
-[38]) (./chapters/later/05_ai_module.tex [39]
+[37] [38]) (./chapters/later/05_ai_module.tex [39]
 Chapter 8.
 [40
 
-] [41] [42] [43] [44] [45]) (./chapters/later/06_implementation.tex [46]
+] [41]
+Underfull \vbox (badness 1496) has occurred while \output is active []
+
+ [42]
+[43] [44] [45] [46]) (./chapters/later/06_implementation.tex [47]
 Chapter 9.
-[47
+[48
 
-] [48] [49] [50]) (./chapters/later/07_evaluation.tex [51]
+] [49] [50] [51]) (./chapters/later/07_evaluation.tex [52] [53]
 Chapter 10.
-[52
+[54
 
-] [53]) [54]
-Overfull \hbox (4.75151pt too wide) in paragraph at lines 124--124
+] [55]) [56]
+Overfull \hbox (4.75151pt too wide) in paragraph at lines 132--132
 []\OT1/cmr/m/n/10.95 Laurent Per-ron, Fr^^Sed^^Seric Di-dier, and Steven Gay. \
   The CP-SAT-LP Solver".
  []
 
-[55
+[57
 
 ]
 No file tesi.ind.
-[56]
+[58]
 \openout2 = `chapters/acknowledgements.aux'.
 
- (./chapters/acknowledgements.tex) [57
+ (./chapters/acknowledgements.tex) [59
 
 
 ] (./tesi.aux
@@ -1519,7 +1524,7 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `tesi.out' has not changed.
-(rerunfilecheck)             Checksum: 1B8E07AE453A7651BBB365633E55A658;12749.
+(rerunfilecheck)             Checksum: 3581E4146193D2152442A1D1BF2628E8;12694.
 Package logreq Info: Writing requests to 'tesi.run.xml'.
 \openout1 = `tesi.run.xml'.
 
@@ -1545,13 +1550,13 @@ Package logreq Info: Writing requests to 'tesi.run.xml'.
 (\end occurred when \ifnum on line 1 was incomplete)
 (\end occurred when \iffalse on line 1 was incomplete) 
 Here is how much of TeX's memory you used:
- 36221 strings out of 467525
- 671182 string characters out of 5418981
- 1332068 words of memory out of 5000000
- 64345 multiletter control sequences out of 15000+600000
+ 36218 strings out of 467525
+ 671099 string characters out of 5418981
+ 1333170 words of memory out of 5000000
+ 64341 multiletter control sequences out of 15000+600000
  640174 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 90i,12n,104p,1903b,2358s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 90i,12n,104p,1903b,2329s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></usr/local/texlive/2026/t
 exmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/local/texlive/2026/te
@@ -1570,10 +1575,10 @@ public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/p
 ublic/cm-super/sfrm1095.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw
 /courier/ucrb8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw/courier
 /ucrr8a.pfb>
-Output written on tesi.pdf (57 pages, 893976 bytes).
+Output written on tesi.pdf (59 pages, 901011 bytes).
 PDF statistics:
- 1062 PDF objects out of 1200 (max. 8388607)
- 953 compressed objects within 10 object streams
- 227 named destinations out of 1000 (max. 500000)
- 713 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1071 PDF objects out of 1200 (max. 8388607)
+ 960 compressed objects within 10 object streams
+ 228 named destinations out of 1000 (max. 500000)
+ 689 words of extra memory for PDF output out of 10000 (max. 10000000)
 

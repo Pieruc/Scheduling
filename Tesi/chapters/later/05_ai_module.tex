@@ -5,11 +5,21 @@ This chapter describes the AI module of FlowSync: how a scheduling problem is re
 the plan is built step by step by a policy inside a simulator, and how the policy is trained by
 imitation of an exact solver.
 
+\status{Implemented and tested: the unified instance schema with its validator, the converters
+of the job shop and flexible job shop benchmarks, the instance generator (FACTORY and PA
+profiles), the dispatcher, the EDD and ATC rules, the independent feasibility checker, the CP-SAT
+teacher and the first version of the training dataset of M2, with its features. Not built yet:
+the model M2 and its training (first results expected at milestone M1, 11 December), the model
+M1, the AI service with its fallback chain, and the interpretation of text requests. In this
+chapter, Section~\ref{sec:pipeline} describes the designed chain; the following sections
+describe what is implemented, and say so when a part is still a plan.}
+
 \section{From request to plan}
 \label{sec:pipeline}
 
-A planning request goes through a chain of stages, shown in Figure~\ref{fig:pipeline}. The first
-two take place in the backend, the others in the AI service. Each stage has a single
+In the design, a planning request goes through a chain of stages, shown in
+Figure~\ref{fig:pipeline}. The first two take place in the backend, the others in the AI
+service. Each stage has a single
 responsibility and communicates with the next one through a structured document, so that each
 can be tested, evaluated and replaced independently.
 
@@ -45,8 +55,9 @@ can be tested, evaluated and replaced independently.
     \draw[arrow] (fb) |- (res);
     \draw[arrow] (res) -- (rev);
   \end{tikzpicture}
-  \caption{From a planning request to a plan. The request and the ProblemSpec are handled by the
-           backend, the following stages by the AI service. Dashed boxes are the optional
+  \caption{From a planning request to a plan, as designed. The request and the ProblemSpec are
+           handled by the backend, the following stages by the AI service; which stages exist
+           today is said at the start of the chapter. Dashed boxes are the optional
            interpretation of a text request, the fallback and the human review.}
   \label{fig:pipeline}
 \end{figure}
@@ -54,26 +65,28 @@ can be tested, evaluated and replaced independently.
 \paragraph{Planning request.} The planner selects the orders to schedule, the domain profile,
 the planning horizon and, optionally, the objective weights; when the weights are not given, the
 defaults of the domain profile are used. The request can also be written in natural language: in
-that case a language model fills the fields of the request, and the planner checks and completes
-them before sending it (Section~\ref{sec:llm}). The language model never produces the plan.
+that case a language model will fill the fields of the request, and the planner checks and
+completes them before sending it (Section~\ref{sec:llm}). The language model never produces the
+plan.
 
 \paragraph{Problem specification.} The backend turns the request into a \emph{ProblemSpec}, the
 self-contained document described in Section~\ref{sec:instance-schema}, and sends it to the AI
 service (Sections~\ref{sec:backend} and~\ref{sec:contracts}). From this point on, the AI module
 works only on this document.
 
-\paragraph{Validation.} The AI service first checks the specification, both its structure and
-its consistency: references to unknown jobs, resources or activities, activities that no
+\paragraph{Validation.} The AI service will first check the specification, both its structure
+and its consistency, with the validator of the instance schema that already exists: references to unknown jobs, resources or activities, activities that no
 resource can execute, cyclic precedences, invalid availability windows or weights. An invalid
 specification is rejected with an error code for each problem, which the frontend shows next to
 the corresponding field or node of the process graph. Errors are reported to the planner instead
 of being guessed.
 
 \paragraph{M1 Context.} Some data are often missing or unreliable, typically the duration of an
-activity that the planner did not enter, or a setup time. M1 completes them with estimates
-learned from the execution history, each with an uncertainty, and computes a confidence level
-for the request (Section~\ref{sec:m1}). Every value estimated or corrected by M1 is reported in
-the result, so the planner can see which parts of the plan rest on estimates.
+activity that the planner did not enter, or a setup time. M1 is meant to complete them with
+estimates learned from the execution history, each with an uncertainty, and to compute a
+confidence level for the request (Section~\ref{sec:m1}). Every value estimated or corrected by M1
+will be reported in the result, so the planner can see which parts of the plan rest on
+estimates.
 
 \paragraph{Disjunctive graph.} The completed problem is represented as a disjunctive graph
 (Section~\ref{sec:graph}): the precedences are fixed arcs, and each pair of activities that may
@@ -82,31 +95,33 @@ schedule means orienting these arcs, i.e.\ deciding the order of the activities 
 resource.
 
 \paragraph{M2 Policy and Dispatcher.} The schedule is built step by step by the dispatcher, an
-event-driven simulator; at each step the policy M2 chooses which activity to schedule next,
-among the moves that the dispatcher proposes as legal (Section~\ref{sec:m2}). Every decision
+event-driven simulator (implemented); at each step the policy M2 (to be trained) chooses which
+activity to schedule next, among the moves that the dispatcher proposes as legal
+(Section~\ref{sec:m2}). Every decision
 orients some disjunctive arcs, and the plan obtained at the end is feasible by construction.
 
-\paragraph{Fallback.} If the policy fails or its confidence is below a threshold, the request is
-solved by a fallback chain: CP-SAT with a short time limit, then the dispatching rules ATC and
-EDD, which are instantaneous and always available. The result says which solver produced the
-plan and why the fallback was used, so the system always returns a plan, and the planner always
-knows where it comes from.
+\paragraph{Fallback.} If the policy fails or its confidence is below a threshold, the request
+will be solved by a fallback chain: CP-SAT with a short time limit, then the dispatching rules ATC
+and EDD, which are instantaneous and always available. The result will say which solver produced
+the plan and why the fallback was used, so that the planner always knows where a plan comes
+from.
 % TODO [Gantt 12-13, P1, 14-23 Dec 2026 and 8-15 Jan 2027 - FastAPI AI service]: describe the
 % fallback actually implemented; confirm whether CP-SAT is part of the online fallback (it depends
 % on the response time on large instances).
 
-\paragraph{Plan result.} The result contains the assignments (activity, mode, resources, start
+\paragraph{Plan result.} The result will contain the assignments (activity, mode, resources, start
 and end), the KPIs (makespan, weighted tardiness, late jobs, total setup, utilisation), the values
 estimated by M1, the warnings and the time spent in each stage. Back in the backend, the plan is
 shown to the planner on the resource Gantt chart and compared with the other candidates; it is
 adopted only after an explicit approval. Once the plan is executed, the actual start and end
-times recorded by the operators become new training data for M1, closing the loop.
+times recorded by the operators will become new training data for M1, closing the loop.
 
 \paragraph{Three candidate plans.} For every request the planner receives three plans, which
 differ only in the weights of the objectives: an \emph{economic} plan, which penalises overtime
 and accepts a longer schedule; a \emph{balanced} plan, with the weights chosen by the planner;
-and a \emph{fast} plan, which favours the makespan at a higher cost. Since the policy takes the
-weights as part of its input, the same model produces the three alternatives. The ATC and EDD
+and a \emph{fast} plan, which favours the makespan at a higher cost. Since the features of the policy
+include the weights (Section~\ref{sec:dataset-construction}), the same model will be able to
+produce the three alternatives. The ATC and EDD
 rules are run on the same specification, and their results are returned next to the plans as a
 baseline.
 % TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: whether the three plans come from three calls of
@@ -131,7 +146,8 @@ sends to the AI service:
   \item the \textbf{objective weights}, which say how much makespan, weighted tardiness and
         setup count for this request.
 \end{itemize}
-Times are integers in minutes from the start of the horizon. This model covers the job shop and
+The schema is implemented as a set of Pydantic models. Times are integers in minutes from the
+start of the horizon. This model covers the job shop and
 the flexible job shop (one or several eligible machines per operation), the resource-constrained
 project (activities that need several resources) and the public administration case (people
 with skills). Before any computation, a validator checks the consistency of an instance:
@@ -140,6 +156,11 @@ duration, or required skills not covered by the resources of any mode) and cycli
 
 \section{M1 Context: duration estimation}
 \label{sec:m1}
+
+M1 is not developed yet. It is planned as a quantile regression model
+(Section~\ref{sec:ml-scheduling}) that predicts the duration of an activity, and the setup between
+two activities, with an interval rather than a single value, trained on the execution history;
+public event logs of real processes will be used until FlowSync has its own history.
 % TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: quantile regression of durations and setups,
 % confidence, turning preferences into objective weights; data: real event logs (BPI
 % Challenge~\cite{bpic2015}, Road Traffic Fines~\cite{roadfines}); features, training and
@@ -174,7 +195,8 @@ comparable:
 \begin{itemize}
   \item the \textbf{dispatching rules} EDD and ATC (Section~\ref{sec:dispatching}), used as
         baselines and as the last level of the fallback;
-  \item the \textbf{policy M2}, a ranking model that scores the candidates and picks the best;
+  \item the \textbf{policy M2}, a ranking model that will score the candidates and pick the
+        best;
   \item the \textbf{teacher replay} used to build the training set
         (Section~\ref{sec:dataset-construction}).
 \end{itemize}
@@ -190,11 +212,11 @@ zero, obtained the highest urgency and was systematically preferred.
 \section{Training by imitation}
 \label{sec:imitation}
 
-M2 is trained by imitation learning~\cite{hussein2017imitation}. An exact solver, CP-SAT, is used
-offline as a \emph{teacher}: it solves many instances well, and the model learns to reproduce its
-choices. At inference time the model decides in milliseconds, without calling the solver. The
-training pipeline has three stages: an instance generator, the CP-SAT teacher and the dataset
-builder.
+M2 is to be trained by imitation learning~\cite{hussein2017imitation}. An exact solver, CP-SAT,
+is used offline as a \emph{teacher}: it solves many instances well, and the model will learn to
+reproduce its choices. At inference time the model is expected to decide in milliseconds,
+without calling the solver. The pipeline that produces the training data has three stages, all
+implemented: an instance generator, the CP-SAT teacher and the dataset builder.
 
 \subsection{Instance generator}
 \label{sec:generator}

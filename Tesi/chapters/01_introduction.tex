@@ -10,14 +10,16 @@ problem is easy to state, but hard to solve well: the number of possible plans g
 exponentially with the number of activities, and the data on which the decision is based
 (durations, setup times, availability) is uncertain and changes every day.
 
-This thesis presents \emph{FlowSync}, a web platform that supports the planner in this task. The
-planner describes the problem, possibly in natural language; FlowSync turns the description into
-a structured model, proposes one or more candidate plans together with their indicators, and
-leaves the final decision to the human. The plans are produced by a machine learning model, which
-is trained offline and then answers in a short time, instead of an optimisation solver running
-at every request. This chapter describes the application domain studied
+This document presents \emph{FlowSync}, a web platform being developed to support the planner
+in this task. The planner describes the problem, possibly in natural language; FlowSync is
+designed to turn the description into a structured model, to propose three candidate plans
+together with their indicators, and to leave the final decision to the human. The plans are meant
+to be produced by a machine learning model, trained offline and then able to answer in a short
+time, instead of an optimisation solver running at every request. The document is written while
+the project goes on (Section~\ref{sec:doc-state}). This chapter describes the application domain studied
 (Section~\ref{sec:domain}), the motivations of the work (Section~\ref{sec:motivations}), its
-goals (Section~\ref{sec:goals}) and how the work was organised (Section~\ref{sec:contributions}).
+goals (Section~\ref{sec:goals}), how the work is organised (Section~\ref{sec:contributions}) and
+how this document follows the project (Section~\ref{sec:doc-state}).
 
 \section{Application domain}
 \label{sec:domain}
@@ -51,7 +53,7 @@ a resource and a start time such that all constraints hold. Among the feasible p
 quality is measured by one or more objectives: the \emph{makespan} (the time at which the last
 activity ends), the \emph{weighted tardiness} (how much and how important the late orders are),
 the \emph{overtime} and the total \emph{setup time}. Different domains weigh these objectives in
-different ways, and FlowSync stores a \emph{domain profile} with the default weights, which the
+different ways, and FlowSync keeps a \emph{domain profile} with the default weights, which the
 planner can adjust.
 
 \subsection{Manufacturing}
@@ -65,7 +67,8 @@ tool or material between two consecutive operations can take longer than the ope
 the cost depends on the order in which operations are sequenced. Machines are not always
 available, because of planned maintenance, and orders arrive continuously, so that the plan has to
 be recomputed often. The demonstration workshop used in the prototype, with its CNC machines and a
-handful of production orders, follows this setting.
+handful of production orders, used as demonstration data in the database and in the mock of the
+interface, follows this setting.
 
 \subsection{Public administration}
 \label{sec:domain-pa}
@@ -137,7 +140,7 @@ the model learns.
 \section{Goals}
 \label{sec:goals}
 
-The goal of the thesis is to design and implement a complete, domain-independent platform for
+The goal of the project is to design and implement a complete, domain-independent platform for
 AI-assisted scheduling, and to evaluate it. In more detail:
 
 \begin{enumerate}
@@ -161,7 +164,7 @@ AI-assisted scheduling, and to evaluate it. In more detail:
 \section{Team organisation and contributions}
 \label{sec:contributions}
 
-FlowSync was developed by a team of three students, each responsible for one area:
+FlowSync is developed by a team of three students, each responsible for one area:
 
 \begin{itemize}
   \item \textbf{Leonardo Pierucci}: artificial intelligence and data (instance generator,
@@ -172,10 +175,29 @@ FlowSync was developed by a team of three students, each responsible for one are
         dashboard).
 \end{itemize}
 
-The analysis of the problem, the definition of the interfaces between the three parts, the
-documentation and the integration tests were carried out together.
+The analysis of the problem, the definition of the interfaces between the three parts and the
+documentation are carried out together, and so will be the integration tests.
 % TODO: check with the supervisor whether the thesis requires an individual statement of
 % contribution, and if so detail here what each student did.
+
+\section{State of the project and of this document}
+\label{sec:doc-state}
+
+This document is not written at the end of the project: it grows with it. Each chapter opens
+with a box that says, at the date of writing, what of its content already exists and what is
+still a design. Things that exist are described in the present tense; things that are designed
+but not built yet are described as such, and are revised when they are built. Results are
+reported only when they have been measured.
+
+\status{The project started on 26 October 2026 and is in its fifth week; the delivery is planned
+for 10 February 2027. Analysis, architecture and contracts are done. In the AI part, the data
+pipeline is implemented and evaluated (instance schema, benchmark converters, generator,
+dispatcher, EDD and ATC rules, feasibility checker, CP-SAT teacher, training dataset), while the
+models M1 and M2 and the AI service are not built yet. The backend provides the database,
+authentication with registration, master data and orders with their process graph; planning,
+review, execution and audit are still to do. The frontend implements all the screens against a
+mock of the backend and waits for the real endpoints. Table~\ref{tab:progress} gives the
+details.}
 
 \section{Thesis structure}
 \label{sec:structure}

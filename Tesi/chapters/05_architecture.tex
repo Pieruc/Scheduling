@@ -5,6 +5,13 @@ This chapter presents the architecture of FlowSync: the blocks that compose the 
 responsibility of each, the data they store and the contracts through which they communicate.
 How each block is implemented is described in Chapter~\ref{chap:implementation}.
 
+\status{The architecture is defined and the contracts between the blocks are agreed (version
+1.1 of the public API). Implemented so far: the database schema; the Security, Configuration and
+Orders modules of the backend; the frontend, against a mock of the backend; and the offline part
+of the training pipeline up to the dataset of M2. Not built yet: the Planning, Decisions,
+Execution, Audit and AI Client modules of the backend, the AI service, the training of the
+models, the model storage and the deployment of the whole system.}
+
 \section{Overview}
 \label{sec:overview}
 
@@ -16,9 +23,9 @@ FlowSync is divided into four blocks, each with its own technology and responsib
   \item the \textbf{backend}, a Spring Boot application with the business logic, the security
         and the public API;
   \item the \textbf{database}, MySQL, with the operational data;
-  \item the \textbf{AI} block, in Python, made of an online \emph{inference service} (FastAPI)
-        that answers planning requests, a \emph{storage} for versioned models and datasets, and
-        an offline \emph{training pipeline}.
+  \item the \textbf{AI} block, in Python, designed as an online \emph{inference service}
+        (FastAPI) that answers planning requests, a \emph{storage} for versioned models and
+        datasets, and an offline \emph{training pipeline}, of which the data part exists.
 \end{itemize}
 
 \begin{figure}[htpb]
@@ -71,10 +78,10 @@ loop: the AI proposes, but a person always decides whether a plan is adopted. \e
 is read-only: the user can see which model is producing the plans, for transparency, but cannot
 change it; a new model is published only by the training pipeline.
 
-Every planning request produces \textbf{three candidate plans}, which differ in the weights of
+Every planning request is designed to produce \textbf{three candidate plans}, which differ in the weights of
 the objectives: an \emph{economic} plan that avoids overtime at the cost of a longer schedule,
 a \emph{balanced} plan computed with the weights chosen by the planner, and a \emph{fast} plan
-that finishes earlier at a higher cost. Each request is also solved with the ATC and EDD rules,
+that finishes earlier at a higher cost. Each request is also to be solved with the ATC and EDD rules,
 so that the planner can compare the plans of the AI with the classical baselines
 (Section~\ref{sec:elicitation}).
 
@@ -103,33 +110,38 @@ with separate packages and responsibilities.
   \item \textbf{Persistence}: JPA entities and versioned migrations of the schema.
   \item \textbf{AI Client}: client of the AI service, with timeout, retry and circuit breaker.
 \end{itemize}
+Security, Configuration, Orders and Persistence are implemented
+(Section~\ref{sec:impl-backend}); the other modules are designed but not built yet.
 
-A planning request follows the chain Planning $\rightarrow$ AI Client $\rightarrow$ AI service.
+A planning request will follow the chain Planning $\rightarrow$ AI Client $\rightarrow$ AI service.
 The key choice is that Planning sends a single, self-contained, domain-independent document: the
 AI does not know the tables of the database and receives only the ProblemSpec. This decouples the
 two worlds, and the same document format is used to train the models
 (Section~\ref{sec:instance-schema}). The AI service is an external system that can be slow or
-unavailable: the timeout and the circuit breaker of the AI Client prevent a problem of the AI from
-blocking the whole backend. The audit is a separate, mandatory module because, in contexts such
+unavailable: the timeout and the circuit breaker planned for the AI Client will prevent a problem
+of the AI from blocking the whole backend. The audit is a separate, mandatory module because, in contexts such
 as public administration, every automatic decision must be justifiable: who requested it, when,
 and with which model.
 
 \section{AI service}
 \label{sec:ai-service}
 
-The AI service exposes three internal endpoints, reachable only by the backend and authenticated
-with a key shared between the services:
+The AI service is designed to expose three internal endpoints, reachable only by the backend and
+authenticated with a key shared between the services:
 \begin{itemize}
   \item \texttt{POST /optimize}: receives a ProblemSpec and returns a PlanResult;
   \item \texttt{POST /validate}: only validates a ProblemSpec, for the editors and the tests;
   \item \texttt{GET /health}: state of the service and versions of the loaded models.
 \end{itemize}
-Inside, a request goes through a chain of components: validation, the context model M1, the
+Inside, a request will go through a chain of components: validation, the context model M1, the
 construction of the disjunctive graph, and the policy M2 with the dispatcher, with a fallback in
 case of error or low confidence. The chain is described in Section~\ref{sec:pipeline}. A
-\emph{Model Loader} loads the version of each model that is marked as active.
+\emph{Model Loader} will load the version of each model that is marked as active. Of these
+components, the validator, the dispatcher and the dispatching rules already exist as a Python
+library (Section~\ref{sec:impl-ai}); the service around them does not.
 
-The contract of the service gives three guarantees. If the status of the result is \emph{OK} or
+The contract of the service fixes three guarantees, which the implementation will have to
+respect. If the status of the result is \emph{OK} or
 \emph{FALLBACK}, the plan is feasible: precedences, capacities, availability and fixed
 activities are respected, and every activity appears exactly once. If the problem has no
 solution within the horizon, the status is \emph{INFEASIBLE}, with the cause among the
@@ -143,13 +155,16 @@ same identifier returns the same result.
 The training pipeline runs offline and produces the models used by the AI service. Its stages
 are: converters of benchmarks and event logs into a common schema, instance generator, CP-SAT
 teacher, dataset builder, training of the policy M2 and of the context model M1, evaluation and
-model publisher (Section~\ref{sec:imitation}). The storage keeps three kinds of versioned data:
-model artefacts, training datasets, and process logs and benchmarks.
+model publisher (Section~\ref{sec:imitation}). The stages up to the dataset builder are
+implemented, except the converter of the event logs; training, evaluation of the models and
+publisher come next. The storage will keep three kinds of versioned data: model artefacts,
+training datasets, and process logs and benchmarks; today datasets and teacher solutions are
+versioned files with a manifest.
 
-A model version is published only if the evaluation judges it not worse than the dispatching
+A model version will be published only if the evaluation judges it not worse than the dispatching
 rules ATC and EDD. Publishing a version means storing its artefact and registering it in the
-database, with its metrics and the dataset it was trained on; at most one version per model is
-active. Since every plan records the version of the models that produced it, and every model
+database (the table already exists), with its metrics and the dataset it was trained on; at most
+one version per model is active. Since every plan records the version of the models that produced it, and every model
 records its dataset, each plan can be traced back to the data from which the model learned.
 % TODO: storage technology for models and datasets (e.g. MinIO) once chosen.
 
@@ -222,24 +237,16 @@ interpretation of a request written in natural language, the Gantt view and the 
 rescheduling of the running plan, the alerts and problem reports, the view of the operator, and
 more indicators.
 
-\paragraph{B -- Optimisation API.} The request is the ProblemSpec, which contains resources,
-jobs, activities with their modes, precedences, setup times, the activities already fixed (for
-rescheduling), the objective weights and the options of the request: time limit, whether the
-fallback is allowed, the fallback chain and the minimum confidence. The response, the
-PlanResult, contains the status, the solver that produced the plan and, if any, the reason of the
-fallback, the model versions, the confidence, the assignments, the values estimated by M1, the
-KPIs, the warnings and the time spent in each stage.
-
-\paragraph{C -- Model registration.} Each published model version is a record with its
-identifier, the component (policy or context), the location and hash of the artefact, the
-dataset version, the supported versions of the ProblemSpec, the metrics (e.g.\ share of
-instances where it beats ATC) and its state (candidate, active or retired).
-
-\paragraph{D -- Instance schema.} Benchmarks, generated instances and real requests share the
-format of the ProblemSpec, with an additional block that records the source of the instance, its
-licence and the best known value, if any. Using one schema for training, evaluation and inference
-means that the model sees in production exactly the structure on which it was trained
-(Section~\ref{sec:instance-schema}).
+\paragraph{B, C and D -- internal contracts.} The optimisation API exchanges the
+\emph{ProblemSpec} (resources, jobs, activities with their modes, precedences, setups, activities
+already fixed, objective weights and options such as the time limit and the fallback chain) and
+the \emph{PlanResult} (status, solver, model versions, confidence, assignments, values estimated
+by M1, KPIs, warnings). Model registration is a database record per published version, with its
+metrics, dataset and state. The instance schema is the format shared by benchmarks, generated
+instances and real requests, so that the model sees in production the same structure on which it
+was trained (Section~\ref{sec:instance-schema}). The full definitions are kept in the contracts
+document of the repository; contract D is implemented by the AI module, contracts B and C will be
+implemented with the AI service and the model publisher.
 
 % TODO: open points of the contracts: CP-SAT in the online fallback, polling versus WebSocket or
 % server-sent events for the state of a request, OpenAPI documents generated from the code and
@@ -249,11 +256,11 @@ means that the model sees in production exactly the structure on which it was tr
 \section{Deployment}
 \label{sec:deployment}
 
-Each block runs in its own container, and the whole system is started with Docker Compose: the
-frontend, the backend, the AI service, the database and the model storage. The training pipeline
-is not part of the running system: it runs separately, possibly on a machine with a GPU, and
-communicates with the system only by publishing models. During development the database already
-runs in a container, which the backend starts automatically.
+Each block will run in its own container, and the whole system will be started with Docker
+Compose: the frontend, the backend, the AI service, the database and the model storage. The
+training pipeline is not part of the running system: it runs separately, possibly on a machine
+with a GPU, and communicates with the system only by publishing models. Today only the database
+runs in a container, which the backend starts automatically during development.
 % TODO [Gantt 28, P1-P3, 18-29 Jan 2027 - Docker Compose and end-to-end integration]: final
 % Compose file, containers, networks (internal network for the AI service), configuration and
 % secrets, training profile with GPU.

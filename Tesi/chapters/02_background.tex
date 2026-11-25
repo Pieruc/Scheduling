@@ -11,6 +11,10 @@ reviews the use of machine learning for scheduling and Section~\ref{sec:llm} the
 models to build the problem description. Section~\ref{sec:positioning} summarises how these
 pieces are combined in FlowSync.
 
+\status{This chapter reviews the literature and does not depend on the progress of the project.
+Where it mentions the role of a method in FlowSync, the last section and
+Table~\ref{tab:positioning} say whether that role is already implemented.}
+
 \section{Scheduling problems}
 \label{sec:scheduling}
 
@@ -139,8 +143,8 @@ setups, which add a weight to the arcs.
 This representation matters for two reasons. First, it makes explicit that scheduling is a
 \emph{graph} problem, so that its instances can be processed by graph-based models. Second, it
 describes the schedule as a sequence of decisions, one arc at a time, which is the view adopted
-by the learned dispatching policies discussed in Section~\ref{sec:ml-scheduling}. FlowSync builds
-this graph deterministically from the problem specification, as shown in the next chapters.
+by the learned dispatching policies discussed in Section~\ref{sec:ml-scheduling}. In FlowSync the
+same structure is built step by step by the dispatcher of the AI module (Section~\ref{sec:m2}).
 
 \section{Exact methods: constraint programming}
 \label{sec:cpsat}
@@ -164,9 +168,9 @@ found nothing within the limit.
 
 Exact solvers have clear advantages: they handle many kinds of constraints in a uniform way and
 they can prove optimality. Their limit is the computation time, which grows quickly with the
-size of the instance, and which is not predictable. For this reason FlowSync does not call
-CP-SAT when it serves a request. The solver is used only offline, to compute good schedules on
-synthetic instances: these schedules are the examples from which the neural model learns
+size of the instance, and which is not predictable. For this reason FlowSync is designed not to
+call CP-SAT when it serves a request. The solver is used offline, to compute good schedules on
+synthetic instances: these schedules are the examples from which the neural model will learn
 (Section~\ref{sec:ml-scheduling}). In this role CP-SAT is the \emph{teacher}.
 
 \section{Dispatching rules}
@@ -197,8 +201,8 @@ Dispatching rules are instantaneous, simple to implement and to explain, and the
 large instances. Their weakness is that each decision depends only on the current state and on a
 fixed formula, so that the quality of the schedule can be far from the optimum, and different
 rules are best on different instances. In FlowSync, EDD and ATC have two roles: they are the
-\emph{baselines} that the learned model has to beat, and they are the \emph{fallback} used when
-the model cannot provide a plan.
+\emph{baselines} that the learned model has to beat, and they are designed to be the
+\emph{fallback} used when the model cannot provide a plan.
 
 \section{Machine learning for scheduling}
 \label{sec:ml-scheduling}
@@ -239,8 +243,8 @@ address this problem.
 
 FlowSync follows the imitation approach, with a specific choice of the expert: CP-SAT solves
 synthetic instances offline, and the decisions that lead to the best schedule found are the
-labels. The model is limited by the quality of the teacher, but in exchange it needs no reward
-design, and it runs at inference time without any solver.
+labels. The model will be limited by the quality of the teacher, but in exchange it needs no
+reward design, and it can run at inference time without any solver.
 
 \subsection{Estimation of durations and setups}
 
@@ -251,8 +255,8 @@ regression}~\cite{koenker1978} the model predicts, instead of the mean, a chosen
 distribution, so that an interval of values can be obtained and the confidence of the
 estimate is explicit. Event logs of real processes, such as the public logs of the Dutch
 municipalities~\cite{bpic2015} or of a traffic fine management process~\cite{roadfines}, are a source
-of examples of durations with this kind of variability, and are used in FlowSync as a testbed
-for this estimator.
+of examples of durations with this kind of variability, and are the planned testbed for this
+estimator in FlowSync.
 
 \section{Language models for data entry}
 \label{sec:llm}
@@ -265,12 +269,12 @@ studied for instance by Ramamonjison et al.~\cite{ramamonjison2022} for linear p
 text is translated into a structured representation of the problem, which is then passed to a
 solver.
 
-Language models can however produce plausible but wrong output, and for this reason in FlowSync
-the LLM has a limited role. It does not decide the plan: it only fills a \emph{problem
-specification} (ProblemSpec), whose structure is fixed by a schema. The specification is then
+Language models can however produce plausible but wrong output, and for this reason the design of
+FlowSync gives the LLM a limited role. It does not decide the plan: it only fills a
+\emph{problem specification} (ProblemSpec), whose structure is fixed by a schema. The specification is then
 validated by deterministic code, which checks types, references and consistency (for example,
-that every precedence refers to existing activities), and the system asks the planner for the
-information that is missing instead of guessing it. In this way an error of the language model
+that every precedence refers to existing activities), and the planner is asked for the information
+that is missing instead of guessing it. In this way an error of the language model
 can produce an incomplete specification, which is detected, but not an infeasible schedule.
 
 \section{Positioning of FlowSync}
@@ -279,24 +283,25 @@ can produce an incomplete specification, which is detected, but not an infeasibl
 The previous sections describe the building blocks, and FlowSync combines them in a specific
 way. Compared with the learned dispatching approaches of the literature, which target the job
 shop or the flexible job shop with the makespan as objective, FlowSync works on a common model
-that includes setups, calendars, deadlines and a weighted combination of objectives, and that
-covers factory, public administration and project scheduling. Compared with exact methods, it
-moves the cost of optimisation to an offline training phase, and keeps a classical dispatcher as
-fallback. Compared with a fully automatic system, it places the planner at the end of the
-process, with several candidate plans and their indicators. Table~\ref{tab:positioning} summarises the
-role of each method.
+that includes setups, calendars, deadlines and a weighted combination of objectives, and that is
+meant to cover factory, public administration and project scheduling (the instance generator
+covers the first two so far). Compared with exact methods, it moves the cost of optimisation to
+an offline training phase, and keeps a classical dispatcher as fallback. Compared with a fully
+automatic system, it places the planner at the end of the process, with three candidate plans and
+their indicators. Table~\ref{tab:positioning} summarises the role of each method and how far it
+is implemented.
 
 \begin{table}[t]
   \centering
   \begin{tabular}{@{}p{3.1cm}p{5.2cm}p{4.2cm}@{}}
     \toprule
-    Method & Role in FlowSync & Used \\
+    Method & Role in FlowSync & State on \statusdate \\
     \midrule
-    CP-SAT & teacher: produces the labelled schedules & offline, training only \\
-    EDD, ATC & baselines and fallback & online (fallback) and in evaluation \\
-    Neural dispatching policy & optimisation engine & online \\
-    Quantile regression & estimate of durations and setups & online \\
-    LLM & translation of the request into a ProblemSpec & online, validated \\
+    CP-SAT & teacher: produces the labelled schedules, offline & implemented \\
+    EDD, ATC & baselines; fallback when the model fails & implemented as baselines \\
+    Neural dispatching policy & optimisation engine, online & dataset ready, model to train \\
+    Quantile regression & estimate of durations and setups & to do \\
+    LLM & translation of the request into a ProblemSpec, validated & to do \\
     \bottomrule
   \end{tabular}
   \caption{Methods described in this chapter and their role in FlowSync.}

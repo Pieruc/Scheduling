@@ -1,6 +1,15 @@
 \chapter{Experimental evaluation}
 \label{chap:evaluation}
 
+This chapter reports the experiments carried out on the AI module. The full record, with dates
+and commands, is kept in the experiment log of the repository.
+
+\status{The results below concern the components built so far: the instance generator, the
+dispatching rules, the CP-SAT teacher and the training dataset of M2. They show that the
+baselines and the training data are sound and that there is room for a learned policy to beat
+ATC. The evaluation of the models themselves (M2 against ATC and EDD, M1 on the event logs) and
+of the response time of the AI service will be added when those parts exist.}
+
 \section{Methodology}
 \label{sec:methodology}
 
@@ -45,7 +54,7 @@ feasibility checker before it is counted.
 % TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: metrics of M1: MAE, coverage of the prediction
 % intervals.
 
-\section{Results}
+\section{Results so far}
 \label{sec:results}
 
 \subsection{Due dates of the generator}
@@ -164,6 +173,5 @@ dispatcher, and the target for the policy M2.
 % TODO [Gantt 29, P1, 18 Jan-3 Feb 2027 - Experimental evaluation]: response time of the AI
 % service. (The shadow mode planned in the Gantt was dropped on 25 Nov 2026.)
 
-\section{Discussion}
-\label{sec:discussion}
-% TODO: where the model works, where it does not, and why.
+% TODO: section Discussion (where the model works, where it does not, and why), once M2 is
+% evaluated.

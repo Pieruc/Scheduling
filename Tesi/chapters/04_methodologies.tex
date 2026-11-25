@@ -1,10 +1,14 @@
 \chapter{Methodologies}
 \label{chap:methodologies}
 
-This chapter describes how the project was carried out: the development process, the way the
+This chapter describes how the project is carried out: the development process, the way the
 requirements and the architecture were modelled, the tools used to work together, the
 methodology followed for the AI part, and the measures taken to ensure the quality of the
 result.
+
+\status{The practices described here are in use since the start of the project. The
+end-to-end tests of the whole system and the integration of the three parts are planned for
+January (Chapter~\ref{chap:gantt}).}
 
 \section{Development process}
 \label{sec:process}
@@ -76,8 +80,9 @@ version 1.1 of the contracts.
 Documentation is kept next to the code: each part has a README with its structure, the commands
 to run it and the choices made, and differences from the contracts are listed explicitly. The
 plan is maintained with an online Gantt tool (onlinegantt.com), whose files are versioned in the
-repository. Docker is used to run the database and the services locally in the same way on
-every machine, and this thesis is written in LaTeX in the same repository.
+repository. Docker runs the database locally in the same way on every machine, and is planned
+for the whole system (Section~\ref{sec:deployment}); this document is written in LaTeX in the
+same repository.
 % TODO: branching and pull request policy, if adopted later.
 
 \section{AI methodology}
@@ -111,7 +116,8 @@ its decisions. The details are in Chapter~\ref{chap:ai}; here we summarise the p
 The central quality requirement of FlowSync is that every plan returned to the planner is
 feasible. It is enforced twice: by construction, because plans are built by a dispatcher that
 only accepts legal moves, and by an independent feasibility checker, written without reusing the
-code of the dispatcher, which verifies every plan before it is counted or returned.
+code of the dispatcher. Today the checker verifies every plan used in the experiments; once the
+AI service exists, it will also verify every plan before it is returned.
 
 Each part has automated tests. The AI module has unit tests for each component, including the
 conversion of all the real benchmark files and the optimality of the teacher on instances with a
@@ -121,6 +127,6 @@ The frontend is checked by the TypeScript compiler in strict mode, a linter and 
 every change, and each page is verified in the browser on its complete flows, including the
 error cases produced on purpose by the mock of the backend. Inputs that are
 syntactically valid but inconsistent are rejected with explicit error codes at every boundary:
-by the backend API and by the validation of the AI service.
+by the backend API and by the validator of the instance schema, which the AI service will use.
 % TODO [Gantt 30, P1-P3, 25 Jan-5 Feb 2027 - Testing and fixes]: frontend component tests,
 % end-to-end tests of the whole system, code review practice, test results.

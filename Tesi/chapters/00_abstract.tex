@@ -1,24 +1,30 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-% DRAFT: revise once the results are available (about 200-300 words).
+% Written while the project goes on: it describes the goal and the state of the work, and will be
+% rewritten with the results at the end (about 200-300 words).
 Production scheduling assigns activities to resources over time while respecting precedences,
 capacities, calendars and deadlines. The same problem appears well beyond the factory floor, for
 instance in public administration offices that process files through a sequence of steps.
 Exact solvers find optimal plans but their computation time grows quickly with the size of the
 instance, while classic dispatching rules are fast but myopic.
 
-This thesis presents \emph{FlowSync}, an AI-assisted scheduling platform built around the idea
-that the AI proposes the plan and the planner decides. A request, possibly written in natural
-language, is turned into a structured problem specification; a first neural model (M1) estimates
-uncertain durations and setups from historical execution logs, and a second model (M2) builds
-the schedule step by step inside an event-driven simulator, so that every plan is feasible by
-construction. M2 is trained by imitation, using a constraint programming solver (CP-SAT) only as
-an offline teacher on synthetic instances. The system is delivered as a web application
-(React frontend, Spring Boot backend, MySQL, Python AI service) deployed with Docker Compose.
+This document describes \emph{FlowSync}, an AI-assisted scheduling platform that a team of three
+students is building around the idea that the AI proposes the plan and the planner decides. In
+the intended design, a request, possibly written in natural language, is turned into a
+structured problem specification; a first model (M1) estimates uncertain durations from the
+history of the executions, and a second model (M2) builds the schedule step by step inside a
+simulator, so that every plan is feasible by construction. M2 is to be trained by imitation of a
+constraint programming solver (CP-SAT) used only offline. For each request the planner receives
+three alternative plans, compared with the ATC and EDD dispatching rules.
 
-% TODO: one or two sentences with the main experimental results (e.g. comparison with ATC/EDD
-% on public benchmarks) and the main conclusion.
+The document is written while the project goes on, and each chapter states how far the work has
+come. At the time of writing, the architecture and the contracts between the parts are defined;
+the data pipeline of the AI (instance generator, dispatcher, dispatching rules, CP-SAT teacher
+and training dataset) is implemented and evaluated; the backend provides the database,
+authentication, master data and orders; and the web interface is implemented against a mock of
+the backend. The models, the AI service and the planning functions of the backend are the next
+steps.
 
 \vspace{0.5cm}
 \noindent\textbf{Keywords:} production scheduling, imitation learning, dispatching rules,
