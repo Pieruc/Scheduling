@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 16:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 17:48
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1331,7 +1331,7 @@ Package biblatex Info: ... file 'tesi.bbl' found.
 Package biblatex Info: Reference section=0 on input line 102.
 Package biblatex Info: Reference segment=0 on input line 102.
 \c@lstlisting=\count525
-<Immagini/stemma.png, id=336, 83.3514pt x 103.587pt>
+<Immagini/stemma.png, id=396, 83.3514pt x 103.587pt>
 File: Immagini/stemma.png Graphic file (type png)
 <use Immagini/stemma.png>
 Package pdftex.def Info: Immagini/stemma.png  used on input line 104.
@@ -1402,7 +1402,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 303--303
 
 ) (./chapters/03_gantt.tex [17]
 Chapter 3.
-<Immagini/gantt.png, id=599, 1442.38875pt x 1494.58376pt>
+<Immagini/gantt.png, id=677, 1442.38875pt x 1494.58376pt>
 File: Immagini/gantt.png Graphic file (type png)
 <use Immagini/gantt.png>
 Package pdftex.def Info: Immagini/gantt.png  used on input line 14.
@@ -1457,7 +1457,7 @@ ignored: Infinite glue shrinkage found in box being split [26]
 ignored: Infinite glue shrinkage fo
 und in box being split [27]) (./chapters/05_architecture.tex [28] [29]
 Chapter 6.
-<Immagini/architecture.png, id=683, 2705.10625pt x 1636.1125pt>
+<Immagini/architecture.png, id=761, 2705.10625pt x 1636.1125pt>
 File: Immagini/architecture.png Graphic file (type png)
 <use Immagini/architecture.png>
 Package pdftex.def Info: Immagini/architecture.png  used on input line 33.
@@ -1465,7 +1465,7 @@ Package pdftex.def Info: Immagini/architecture.png  used on input line 33.
 [30
 
 ] [31 <./Immagini/architecture.png>] [32] [33]
-<Immagini/er.png, id=712, 1573.88pt x 803.0pt>
+<Immagini/er.png, id=789, 1573.88pt x 803.0pt>
 File: Immagini/er.png Graphic file (type png)
 <use Immagini/er.png>
 Package pdftex.def Info: Immagini/er.png  used on input line 186.
@@ -1501,20 +1501,111 @@ Chapter 9.
 Chapter 10.
 [54
 
-] [55]) [56]
-Overfull \hbox (4.75151pt too wide) in paragraph at lines 132--132
+] [55]) (./chapters/later/09_user_guide.tex [56]
+Chapter 11.
+[57
+
+] [58]) (./chapters/later/10_developer_guide.tex [59]
+Chapter 12.
+
+Underfull \hbox (badness 10000) in paragraph at lines 33--34
+[]|\OT1/cmr/m/n/10 Spring Boot ap-pli-ca-tion, MySQL schema (Fly-way),
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 37--37
+[]|\OT1/pcr/m/n/10 FE[]Mockups/\OT1/cmr/m/n/10 , \OT1/pcr/m/n/10 GANTT/\OT1/cmr
+/m/n/10 ,
+ []
+
+[60
+
+]
+LaTeX Font Info:    Trying to load font information for TS1+pcr on input line 7
+5.
+ (/usr/local/texlive/2026/texmf-dist/tex/latex/psnfss/ts1pcr.fd
+File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
+) [61]
+LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 1
+10.
+
+(/usr/local/texlive/2026/texmf-dist/tex/latex/psnfss/omspcr.fd
+File: omspcr.fd 
+)
+LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 110.
+
+Underfull \hbox (badness 10000) in paragraph at lines 145--150
+[]\OT1/cmr/m/n/10.95 One pack-age per mod-ule un-der \OT1/pcr/m/n/10.95 it.unic
+am.flowsync \OT1/cmr/m/n/10.95 (\OT1/pcr/m/n/10.95 security\OT1/cmr/m/n/10.95 ,
+
+ []
+
+
+Underfull \hbox (badness 1436) in paragraph at lines 145--150
+\OT1/pcr/m/n/10.95 configuration\OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 orders\
+OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 planning\OT1/cmr/m/n/10.95 , \OT1/pcr/m/
+n/10.95 execution\OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 audit\OT1/cmr/m/n/10.9
+5 ), each with
+ []
+
+[62]
+Underfull \hbox (badness 10000) in paragraph at lines 170--174
+[]\OT1/pcr/m/n/10.95 dispatcher.py\OT1/cmr/m/n/10.95 : the sim-u-la-tor, with \
+OT1/pcr/m/n/10.95 candidates() \OT1/cmr/m/n/10.95 and
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 170--174
+\OT1/pcr/m/n/10.95 apply(candidate)\OT1/cmr/m/n/10.95 ; a \OT1/cmr/m/it/10.95 r
+ule \OT1/cmr/m/n/10.95 is any func-tion \OT1/pcr/m/n/10.95 (Dispatcher,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 170--174
+\OT1/pcr/m/n/10.95 list[Candidate]) -> Candidate\OT1/cmr/m/n/10.95 , and \OT1/p
+cr/m/n/10.95 run(instance, rule,
+ []
+
+
+Underfull \hbox (badness 5359) in paragraph at lines 174--176
+[]\OT1/pcr/m/n/10.95 rules.py \OT1/cmr/m/n/10.95 (EDD, ATC), \OT1/pcr/m/n/10.95
+ checker.py \OT1/cmr/m/n/10.95 (in-de-pen-dent fea-si-bil-ity check),
+ []
+
+
+Underfull \hbox (badness 1502) in paragraph at lines 176--178
+[]\OT1/pcr/m/n/10.95 teacher.py \OT1/cmr/m/n/10.95 (CP-SAT), \OT1/pcr/m/n/10.95
+ features.py \OT1/cmr/m/n/10.95 (fea-tures of the can-di-dates) and
+ []
+
+[63]
+Underfull \hbox (badness 2080) in paragraph at lines 217--223
+[]\OT1/cmr/m/n/10.95 Frontend: type in \OT1/pcr/m/n/10.95 api/types/\OT1/cmr/m/
+n/10.95 , func-tion in \OT1/pcr/m/n/10.95 api/<area>.ts\OT1/cmr/m/n/10.95 , key
+ in
+ []
+
+
+Underfull \hbox (badness 4492) in paragraph at lines 217--223
+\OT1/pcr/m/n/10.95 queryKeys.ts\OT1/cmr/m/n/10.95 , hook in \OT1/pcr/m/n/10.95 
+features/<area>/hooks.ts\OT1/cmr/m/n/10.95 , the page in
+ []
+
+[64]) [65]
+Overfull \hbox (4.75151pt too wide) in paragraph at lines 134--134
 []\OT1/cmr/m/n/10.95 Laurent Per-ron, Fr^^Sed^^Seric Di-dier, and Steven Gay. \
   The CP-SAT-LP Solver".
  []
 
-[57
+[66
 
 ]
 No file tesi.ind.
-[58]
+[67]
 \openout2 = `chapters/acknowledgements.aux'.
 
- (./chapters/acknowledgements.tex) [59
+ (./chapters/acknowledgements.tex) [68
 
 
 ] (./tesi.aux
@@ -1524,7 +1615,7 @@ LaTeX2e <2025-11-01>
 L3 programming layer <2026-01-19>
  ***********
 Package rerunfilecheck Info: File `tesi.out' has not changed.
-(rerunfilecheck)             Checksum: 3581E4146193D2152442A1D1BF2628E8;12694.
+(rerunfilecheck)             Checksum: 4FF1FFEB9042755599DDEA62593DC581;14790.
 Package logreq Info: Writing requests to 'tesi.run.xml'.
 \openout1 = `tesi.run.xml'.
 
@@ -1548,13 +1639,17 @@ Package logreq Info: Writing requests to 'tesi.run.xml'.
 (\end occurred when \ifnum on line 1 was incomplete)
 (\end occurred when \iffalse on line 1 was incomplete)
 (\end occurred when \ifnum on line 1 was incomplete)
+(\end occurred when \iffalse on line 1 was incomplete)
+(\end occurred when \ifnum on line 1 was incomplete)
+(\end occurred when \iffalse on line 1 was incomplete)
+(\end occurred when \ifnum on line 1 was incomplete)
 (\end occurred when \iffalse on line 1 was incomplete) 
 Here is how much of TeX's memory you used:
- 36218 strings out of 467525
- 671099 string characters out of 5418981
- 1333170 words of memory out of 5000000
- 64341 multiletter control sequences out of 15000+600000
- 640174 words of font info for 87 fonts, out of 8000000 for 9000
+ 36662 strings out of 467525
+ 675949 string characters out of 5418981
+ 1501988 words of memory out of 5000000
+ 64686 multiletter control sequences out of 15000+600000
+ 641497 words of font info for 92 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,12n,104p,1903b,2329s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2026/
@@ -1575,10 +1670,10 @@ public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/p
 ublic/cm-super/sfrm1095.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw
 /courier/ucrb8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw/courier
 /ucrr8a.pfb>
-Output written on tesi.pdf (59 pages, 901011 bytes).
+Output written on tesi.pdf (68 pages, 933891 bytes).
 PDF statistics:
- 1071 PDF objects out of 1200 (max. 8388607)
- 960 compressed objects within 10 object streams
- 228 named destinations out of 1000 (max. 500000)
- 689 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1268 PDF objects out of 1440 (max. 8388607)
+ 1146 compressed objects within 12 object streams
+ 312 named destinations out of 1000 (max. 500000)
+ 809 words of extra memory for PDF output out of 10000 (max. 10000000)
 

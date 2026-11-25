@@ -1,0 +1,271 @@
+\chapter{Developer guide}
+\label{chap:dev-guide}
+% Many code paths in this chapter: allow looser lines instead of overfull ones
+\sloppy
+
+This chapter is a practical guide for whoever continues the work on FlowSync: how to run each
+part, how the code is organised, how a request travels through the system, which conventions to
+follow, and how to extend the system in the most common ways. It complements the README files of
+the repository, which keep the full list of commands.
+
+\status{The guide reflects the code on the date of this box. Where a step depends on a part that
+does not exist yet (the planning modules of the backend, the AI service, the trained models), the
+guide says so and describes the intended way of extending it, so that it can be followed when the
+part is built.}
+
+\lstset{basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, frame=single,
+        breaklines=true, xleftmargin=2pt, xrightmargin=2pt}
+
+\section{Map of the repository}
+\label{sec:dev-map}
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}p{4.4cm}p{9.4cm}@{}}
+    \toprule
+    \textbf{Path} & \textbf{Content} \\
+    \midrule
+    \texttt{README.md} & What FlowSync is, state of each part, how to start it, test accounts \\
+    \texttt{CONTRATTI\_API.md} & The contracts A--D between the parts (reference for every API) \\
+    \texttt{FRONTEND\_STRUTTURA.md} & Structure and choices of the frontend \\
+    \texttt{src/frontend/} & React application (Vite, TypeScript) \\
+    \texttt{src/backend/} & Spring Boot application, MySQL schema (Flyway), \texttt{compose.yaml} \\
+    \texttt{src/ai/} & Python package \texttt{p06\_ai}: schema, generator, dispatcher, rules,
+      teacher, dataset; \texttt{docs/} with design decisions and experiment log \\
+    \texttt{Tesi/} & This document (LaTeX) \\
+    \texttt{FE\_Mockups/}, \texttt{GANTT/}, \texttt{*.vpp} & Mockups, project plan, UML models \\
+    \bottomrule
+  \end{tabular}
+  \caption{Map of the repository}
+  \label{tab:repo-map}
+\end{table}
+
+\section{Running the parts}
+\label{sec:dev-run}
+
+Each part runs on its own; the frontend does not need the others thanks to its mock.
+
+\paragraph{Frontend} (Node.js~22). It starts on \texttt{http://localhost:5173} with the mock of
+the backend enabled by \texttt{VITE\_USE\_MOCKS=true} in \texttt{.env.development}.
+\begin{lstlisting}
+cd src/frontend
+npm install
+npm run dev            # development server with the mock
+npm run build          # type check + production build
+npm run lint           # oxlint;  npm run format = Prettier
+\end{lstlisting}
+
+\paragraph{Backend} (Java~21, Maven, Docker running). The profile \texttt{dev} starts MySQL from
+\texttt{compose.yaml}, applies the migrations and loads the demonstration data. Swagger UI is at
+\texttt{/swagger-ui.html}.
+\begin{lstlisting}
+cd src/backend
+cp .env.example .env   # database password and JWT secret
+mvn spring-boot:run -Pdev
+mvn test               # integration tests (Testcontainers MySQL)
+\end{lstlisting}
+
+\paragraph{AI} (Python~3.11 or later). The commands of the data pipeline are modules of the
+package; the data they produce go into \texttt{src/ai/data/}, which is not versioned.
+\begin{lstlisting}
+cd src/ai
+python -m venv .venv && .venv/bin/python -m pip install -e ".[dev]"
+PY=.venv/bin/python
+$PY -m pytest -q
+$PY -m p06_ai.generator --profile FACTORY --count 200 --seed 0 \
+    --out data/generated
+$PY -m p06_ai.baselines data/generated --csv data/baselines.csv
+$PY -m p06_ai.teacher data/generated --out data/teacher --time-limit 10
+$PY -m p06_ai.dataset --instances data/generated \
+    --teacher data/teacher --out data/datasets --version v1
+\end{lstlisting}
+
+\paragraph{Frontend on the real backend.} Set \texttt{VITE\_USE\_MOCKS=false} and start the
+backend: the development server forwards \texttt{/api} to \texttt{localhost:8080}. A partial mode
+is also possible: with the mock enabled, a call for which no mock handler exists goes through to
+the real backend (with a warning in the console). Since the real backend accepts only its own
+tokens, in partial mode the login must be real too, i.e.\ the mock handlers of authentication must
+be removed first.
+
+\section{How a request travels through the system}
+\label{sec:dev-flow}
+
+The planning request is the central flow and touches every part. Its steps, and whether each
+step exists today, are the following.
+\begin{enumerate}
+  \item The page \emph{Nuova pianificazione} sends the text to the interpretation endpoint
+        (\texttt{POST /plan-requests/interpret}) and shows the result (frontend: done;
+        backend and language model: to do, simulated by the mock).
+  \item The page sends \texttt{POST /plan-requests}; the backend answers \texttt{202} with the id
+        of the request (frontend: done; backend: to do).
+  \item The backend Planning module builds the ProblemSpec from orders, resources and calendars
+        and stores it as a snapshot; the AI Client sends it three times, or once, to
+        \texttt{POST /optimize} (to do).
+  \item The AI service validates the specification, completes it with M1, builds the plans with
+        M2 inside the dispatcher, falls back to the rules when needed, and returns the PlanResult
+        (validator, dispatcher and rules: done as a library; service and models: to do).
+  \item The backend stores plans and indicators, runs ATC and EDD for the comparison and writes
+        the audit record (to do).
+  \item The frontend polls \texttt{GET /plan-requests/\{id\}} every 1.5~s until the request is no
+        longer pending, then shows the three plans; the Gantt chart reads
+        \texttt{GET /plans/\{id\}/gantt} (frontend: done).
+\end{enumerate}
+The other flows (decisions, executions, reports, rescheduling) follow the same pattern: the
+frontend calls an endpoint of contract A, the backend applies the business rules and, for a new
+plan, calls the AI service through contract B.
+
+\section{Frontend internals}
+\label{sec:dev-frontend}
+
+\begin{itemize}
+  \item \texttt{src/api/} is the only folder that knows URLs and formats: \texttt{client.ts}
+        (token, errors in RFC~7807 format turned into \texttt{ApiError}), one file of functions
+        per area, \texttt{types/} with the types of contract A, and \texttt{queryKeys.ts} with the
+        keys of the cache.
+  \item \texttt{src/features/<area>/} holds the pages of an area, its components and a
+        \texttt{hooks.ts} that wraps the API functions in TanStack Query (\texttt{useQuery} to
+        read, \texttt{useMutation} to write and then refresh the keys that changed).
+  \item \texttt{src/mocks/} is the simulated backend: \texttt{data/} with the demonstration data
+        and \texttt{handlers/} with one file per area, registered in \texttt{handlers/index.ts}.
+        In the browser console, \texttt{sessionStorage.setItem('mock:fail','1')} makes every call
+        fail with 503, to test the error states.
+  \item \texttt{src/app/router.tsx} lists all the routes; \texttt{RequireAuth} protects a route
+        with a permission declared in \texttt{features/auth/permissions.ts}.
+  \item \texttt{src/components/} and \texttt{src/lib/} hold the shared pieces: page header, card,
+        status tag, form field with label and error, formats of durations, dates and amounts,
+        labels and colours of the states, and the rules of the Gantt chart
+        (\texttt{lib/schedule.ts}).
+\end{itemize}
+
+\section{Backend internals}
+\label{sec:dev-backend}
+
+\begin{itemize}
+  \item One package per module under \texttt{it.unicam.flowsync}
+        (\texttt{security}, \texttt{configuration}, \texttt{orders}, \texttt{planning},
+        \texttt{execution}, \texttt{audit}), each with the sub-packages \texttt{domain} (JPA
+        entities), \texttt{repository}, \texttt{service} (business rules, transactions) and
+        \texttt{web} (controllers and DTOs as Java records).
+  \item All the paths start with \texttt{ApiPaths.V1} (\texttt{/api/v1}); permissions are
+        declared on the methods, e.g.\ \texttt{@PreAuthorize("hasRole('ADMIN')")}.
+  \item Errors are thrown as \texttt{ApiException} (\texttt{notFound}, \texttt{conflict},
+        \texttt{forbidden}, \texttt{unprocessable} with a list of errors, each with a code and a
+        path) and are turned into RFC~7807 responses in one place, so the frontend can show each
+        message next to its field.
+  \item The schema is created only by Flyway migrations in \texttt{db/migration}
+        (\texttt{V1}, \texttt{V2}, \dots); Hibernate only validates it. An applied migration is
+        never modified. Demonstration data live in \texttt{db/seed} (\texttt{V100} and above),
+        loaded only by the \texttt{dev} profile.
+\end{itemize}
+
+\section{AI internals}
+\label{sec:dev-ai}
+
+\begin{itemize}
+  \item \texttt{schema.py} (Pydantic models of the instance) and \texttt{validation.py}
+        (consistency checks with error codes);
+  \item \texttt{converters/} (benchmarks into the schema), \texttt{generator.py} (profiles and
+        generation), \texttt{calibration.py};
+  \item \texttt{dispatcher.py}: the simulator, with \texttt{candidates()} and
+        \texttt{apply(candidate)}; a \emph{rule} is any function
+        \texttt{(Dispatcher, list[Candidate]) -> Candidate}, and \texttt{run(instance, rule,
+        solver)} builds a whole plan with it;
+  \item \texttt{rules.py} (EDD, ATC), \texttt{checker.py} (independent feasibility check),
+        \texttt{plan.py} (PlanResult and indicators), \texttt{objective.py} (weighted cost);
+  \item \texttt{teacher.py} (CP-SAT), \texttt{features.py} (features of the candidates) and
+        \texttt{dataset.py} (labelled steps and split).
+\end{itemize}
+
+\section{Conventions}
+\label{sec:dev-conventions}
+
+\begin{itemize}
+  \item \textbf{Contracts first.} A new field or endpoint is first written in
+        \texttt{CONTRATTI\_API.md}, agreed with the other parts, and then implemented. The
+        frontend may simulate it in the mock in the meantime, with exactly the agreed format.
+  \item \textbf{One branch.} Work is committed and pushed directly to \texttt{main}; commit
+        messages start with the area (\texttt{frontend:}, \texttt{AI:}, \texttt{docs:},
+        \texttt{thesis:}, \dots).
+  \item \textbf{Languages.} The user interface is in Italian; the public API uses
+        \texttt{camelCase}, the AI \texttt{snake\_case}; this document is in English.
+  \item \textbf{Checks before a commit.} Frontend: \texttt{npm run build}, \texttt{npm run lint},
+        \texttt{npm run format:check}; backend: \texttt{mvn test}; AI: \texttt{pytest}.
+  \item \textbf{Documentation.} A change that alters a contract, a command or the state of a part
+        updates the corresponding README and the status boxes of this document.
+\end{itemize}
+
+\section{How to extend FlowSync}
+\label{sec:dev-extend}
+
+The recipes below cover the most common extensions. Each lists the files to touch, in order.
+
+\paragraph{Add a field to an existing object} (e.g.\ a ``material'' on an order).
+\begin{enumerate}
+  \item Contract: add the field to the object in \texttt{CONTRATTI\_API.md}.
+  \item Backend: a new migration \texttt{V<n>\_\_order\_material.sql} with the column; the field
+        in the entity (\texttt{orders/domain}), in the request and response records
+        (\texttt{orders/web/OrderDtos.java}) and in the service; a check in the integration test.
+  \item Frontend: the field in \texttt{api/types/orders.ts}, in the mock data, and in the form
+        (\texttt{features/orders/components/OrderForm.tsx}: Zod schema, default values, a
+        \texttt{FormField}).
+\end{enumerate}
+
+\paragraph{Add a page with its endpoint.}
+\begin{enumerate}
+  \item Contract: the endpoint, its roles and its JSON.
+  \item Frontend: type in \texttt{api/types/}, function in \texttt{api/<area>.ts}, key in
+        \texttt{queryKeys.ts}, hook in \texttt{features/<area>/hooks.ts}, the page in
+        \texttt{features/<area>/}, the route in \texttt{app/router.tsx} (inside
+        \texttt{RequireAuth} with the right permission), the menu entry in
+        \texttt{app/layouts/Sidebar.tsx}, and a mock handler so the page works before the
+        backend.
+  \item Backend: controller, service and repository in the package of the module, with
+        \texttt{@PreAuthorize}, errors through \texttt{ApiException}, and an integration test.
+  \item When the backend endpoint is ready, delete the mock handler: the page does not change.
+\end{enumerate}
+
+\paragraph{Connect an area of the frontend to the real backend.} Compare the real responses with
+the types of the frontend (Swagger UI helps); fix the differences in the contract and on the side
+that is wrong; then remove the handlers of that area from \texttt{mocks/handlers/index.ts} and
+test the pages with \texttt{VITE\_USE\_MOCKS=false}. Small differences can also be absorbed in
+\texttt{src/api/}, as done for the resources (\texttt{normalizeResource}).
+
+\paragraph{Add a role or change a permission.} Backend: the role in the enumeration of the user
+and in the \texttt{CHECK} constraint (a new migration), and the \texttt{@PreAuthorize} of the
+methods. Frontend: the role in \texttt{api/types/auth.ts}, its label and its permissions in
+\texttt{features/auth/permissions.ts}; menu and routes follow automatically.
+
+\paragraph{Add a domain profile} (e.g.\ a hospital).
+\begin{enumerate}
+  \item Backend: a row in \texttt{domain\_profile} with code, name, default weights and active
+        constraints (a migration, or a seed for demonstration data). The frontend shows it
+        without changes.
+  \item AI: a new \texttt{Profile} in \texttt{generator.py} (sizes, durations, skills, branches,
+        due dates, setups), added to \texttt{PROFILES}; then generate instances, run the
+        baselines and the teacher, and build a new dataset version, so that the models learn the
+        new kind of problem.
+\end{enumerate}
+
+\paragraph{Add a dispatching rule.} Write a function \texttt{(Dispatcher, list[Candidate]) ->
+Candidate} in \texttt{rules.py} (for instance SPT: the candidate with the smallest
+\texttt{duration\_min}, with the same tie-breaking as EDD), a \texttt{solve\_<rule>} function that
+calls \texttt{run}, a unit test that checks feasibility with \texttt{check\_plan}, and the rule in
+the dictionary of \texttt{baselines.py} so that it is evaluated with the others.
+
+\paragraph{Add a feature for the policy M2.} Add its name and description to \texttt{FEATURES} in
+\texttt{features.py} and compute it in \texttt{candidate\_features}, keeping it independent of the
+scale of the instance; then build a new dataset version. The same function serves training and
+inference, so the model will see the feature in both.
+
+\paragraph{Add a new kind of constraint.} This is the deepest change, because feasibility is
+guaranteed in several places that must stay consistent: the schema and its validator, the
+dispatcher (legal moves), the independent checker, the CP-SAT model of the teacher, and the
+ProblemSpec built by the backend. Each needs a test with an instance where the constraint is
+binding.
+
+\paragraph{Publish a model version} (when the training exists). The pipeline will evaluate the
+new version against ATC and EDD, store its artefact and register it in the table
+\texttt{model\_version} (contract C) as a candidate; promoting it to active is a deliberate step,
+after which the AI service loads it and the page \emph{Modello AI} shows it.
+\fussy

@@ -95,7 +95,7 @@ Password: `demo`. Con il backend finto del frontend si entra anche lasciando i c
 
 | Documento | Contenuto |
 |---|---|
-| [`Tesi/`](Tesi/) | Relazione in LaTeX (inglese): `tesi.tex`, capitoli in `Tesi/chapters/` |
+| [`Tesi/`](Tesi/) | Relazione in LaTeX (inglese), scritta mentre il progetto va avanti: ogni capitolo dice cosa è fatto. I capitoli *User guide* e *Developer guide* sono il manuale d'uso e la guida per chi sviluppa ed estende FlowSync |
 | [`CONTRATTI_API.md`](CONTRATTI_API.md) | Contratti tra frontend, backend, AI e pipeline |
 | [`Spiegazione_architettura_VPP.txt`](Spiegazione_architettura_VPP.txt) | Spiegazione del diagramma dei componenti (Visual Paradigm) |
 | [`FRONTEND_STRUTTURA.md`](FRONTEND_STRUTTURA.md) | Struttura e scelte del frontend |

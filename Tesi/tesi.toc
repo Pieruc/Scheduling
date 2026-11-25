@@ -123,3 +123,39 @@
 \contentsline {subsection}{\numberline {10.2.2}Dispatching rules}{55}{subsection.10.2.2}%
 \contentsline {subsection}{\numberline {10.2.3}CP-SAT teacher}{55}{subsection.10.2.3}%
 \contentsline {subsection}{\numberline {10.2.4}Training dataset}{56}{subsection.10.2.4}%
+\contentsline {chapter}{\numberline {11}User guide}{57}{chapter.11}%
+\contentsline {section}{\numberline {11.1}Getting started}{57}{section.11.1}%
+\contentsline {section}{\numberline {11.2}Planner}{57}{section.11.2}%
+\contentsline {paragraph}{1. Prepare the orders.}{57}{section*.60}%
+\contentsline {paragraph}{2. Ask for the plans.}{58}{section*.61}%
+\contentsline {paragraph}{3. Choose a plan.}{58}{section*.62}%
+\contentsline {paragraph}{4. Review and decide.}{58}{section*.63}%
+\contentsline {paragraph}{5. When something goes wrong.}{58}{section*.64}%
+\contentsline {section}{\numberline {11.3}Operator}{59}{section.11.3}%
+\contentsline {section}{\numberline {11.4}Administrator}{59}{section.11.4}%
+\contentsline {paragraph}{Users.}{59}{section*.65}%
+\contentsline {paragraph}{Configuration.}{59}{section*.66}%
+\contentsline {paragraph}{Audit and model.}{59}{section*.67}%
+\contentsline {section}{\numberline {11.5}Troubleshooting}{59}{section.11.5}%
+\contentsline {chapter}{\numberline {12}Developer guide}{60}{chapter.12}%
+\contentsline {section}{\numberline {12.1}Map of the repository}{60}{section.12.1}%
+\contentsline {section}{\numberline {12.2}Running the parts}{60}{section.12.2}%
+\contentsline {paragraph}{Frontend}{60}{section*.69}%
+\contentsline {paragraph}{Backend}{61}{section*.70}%
+\contentsline {paragraph}{AI}{61}{section*.71}%
+\contentsline {paragraph}{Frontend on the real backend.}{61}{section*.72}%
+\contentsline {section}{\numberline {12.3}How a request travels through the system}{61}{section.12.3}%
+\contentsline {section}{\numberline {12.4}Frontend internals}{62}{section.12.4}%
+\contentsline {section}{\numberline {12.5}Backend internals}{62}{section.12.5}%
+\contentsline {section}{\numberline {12.6}AI internals}{63}{section.12.6}%
+\contentsline {section}{\numberline {12.7}Conventions}{63}{section.12.7}%
+\contentsline {section}{\numberline {12.8}How to extend FlowSync}{63}{section.12.8}%
+\contentsline {paragraph}{Add a field to an existing object}{64}{section*.73}%
+\contentsline {paragraph}{Add a page with its endpoint.}{64}{section*.74}%
+\contentsline {paragraph}{Connect an area of the frontend to the real backend.}{64}{section*.75}%
+\contentsline {paragraph}{Add a role or change a permission.}{64}{section*.76}%
+\contentsline {paragraph}{Add a domain profile}{64}{section*.77}%
+\contentsline {paragraph}{Add a dispatching rule.}{65}{section*.78}%
+\contentsline {paragraph}{Add a feature for the policy M2.}{65}{section*.79}%
+\contentsline {paragraph}{Add a new kind of constraint.}{65}{section*.80}%
+\contentsline {paragraph}{Publish a model version}{65}{section*.81}%

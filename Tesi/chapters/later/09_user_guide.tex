@@ -1,0 +1,139 @@
+\chapter{User guide}
+\label{chap:user-guide}
+
+This chapter explains how to use FlowSync, role by role, as a short practical manual. It follows
+the pages of the frontend (Chapter~\ref{chap:functionalities}); the interface is in Italian, so
+the names of buttons and pages are given in Italian, with a translation where useful.
+
+\status{All the steps below can be followed today in the frontend running against its mock
+backend (Section~\ref{sec:dev-run}): the demonstration data are those of a small workshop with
+nine resources and four orders. Plans, indicators, alerts and audit records are produced by the
+mock; with the real backend, the same steps will work as its modules are completed. Registration,
+login, resources, catalogues and orders already exist in the real backend.}
+
+\section{Getting started}
+\label{sec:ug-start}
+
+Open the address of the application (in development \texttt{http://localhost:5173}) and log in
+on the page \emph{Accedi}. Three test accounts exist, one per role, both in the mock and in the
+development database; their password is \texttt{demo}, and with the mock the fields can also be
+left empty to enter as a planner.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lll@{}}
+    \toprule
+    \textbf{Username} & \textbf{Role} & \textbf{First page} \\
+    \midrule
+    \texttt{pianificatore} & planner & dashboard \\
+    \texttt{operatore} & operator & activities of the day \\
+    \texttt{amministratore} & administrator & dashboard (with Users and Audit in the menu) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Test accounts (development only)}
+  \label{tab:test-accounts}
+\end{table}
+
+A new person asks for an account from the link \emph{Registrati} on the login page, giving name,
+username, e-mail and a password of at least eight characters. The account is created
+\emph{pending}: it can be used only after an administrator has approved it and chosen its role
+(Section~\ref{sec:ug-admin}). The name, the role and the button \emph{Esci} (log out) are at the
+bottom of the side menu, or at the top of the page for operators.
+
+\section{Planner}
+\label{sec:ug-planner}
+
+\paragraph{1. Prepare the orders.} In \emph{Commesse} (orders) the list on the left shows the open
+orders; \emph{Nuova commessa} creates one, \emph{Modifica dati} changes customer, dates, priority
+and weight of the delay. The due date may be left empty: the system will ask for it before
+planning. Below, the graph shows the activities of the selected order:
+\begin{itemize}
+  \item \emph{Aggiungi attività} adds an activity: name, required skills and one or more
+        alternatives, each with one resource and its duration in hours; tick
+        \emph{Durata non nota} when the duration is unknown, and the AI will estimate it;
+  \item drag from the dot on the right of an activity to the dot on the left of another to say
+        that the second starts after the first; click an arrow to remove it. The column
+        \emph{Dopo} (after) of the table does the same from the keyboard;
+  \item nothing is stored until \emph{Salva modifiche}; \emph{Annulla modifiche} restores the
+        saved version.
+\end{itemize}
+
+\paragraph{2. Ask for the plans.} In \emph{Nuova pianificazione} write the request in words,
+for example ``plan C-101 to C-104 for next week, avoiding overtime'' (\emph{Usa un esempio}
+fills in a sample text), and press \emph{Interpreta}. Check what the system understood: orders, period, hard constraints and preferences,
+which become the three weights (punctuality, overtime, setups); move the sliders if needed and
+answer the questions about missing data. Then press \emph{Genera i 3 piani}: the page shows the
+progress and, after a few seconds, the result.
+
+\paragraph{3. Choose a plan.} The comparison page shows three plans: \emph{Economico}
+(slower, cheaper), \emph{Bilanciato} (balanced, the recommended one) and \emph{Veloce} (faster,
+more expensive), each with total duration, tardiness, overtime, setups, utilisation and cost,
+and a table with the same indicators for the ATC and EDD rules. \emph{Apri nel Gantt} opens a
+plan.
+
+\paragraph{4. Review and decide.} On the Gantt chart each row is a resource and each bar an
+activity. Drag a bar to move it in time or to another row; if the move is not allowed, a message
+explains why and the bar goes back. Selecting a bar opens a panel with the details and with
+buttons to move it by 15 minutes or an hour, or to another resource. Then:
+\begin{itemize}
+  \item \emph{Approva} makes the plan the running one and discards the other two alternatives;
+  \item \emph{Rifiuta} rejects it, with a reason;
+  \item after some moves, \emph{Salva come nuova versione} stores the modified plan, with a
+        reason, as a new plan to approve.
+\end{itemize}
+All the requests and plans are listed in \emph{Piani}, with search and filters.
+
+\paragraph{5. When something goes wrong.} When an operator reports a problem, an alert appears
+on the dashboard. Its link \emph{ripianifica} opens the rescheduling page, which already knows
+the problem: check the activities affected, optionally set until when the machine will be down,
+the weights and how much the plan may change, and press \emph{Ripianifica con l'AI}. The result
+is a new request with three plans, to be compared and approved as in steps 3 and 4; the running
+plan is replaced only when a new one is approved. The button \emph{Ripianifica} on the Gantt
+chart of an approved plan does the same, asking first what happened if there is no report.
+
+\section{Operator}
+\label{sec:ug-operator}
+
+The page \emph{Le tue attività di oggi} lists the activities of the day. Press \emph{Inizia}
+(start) when you begin an activity, \emph{Pausa} and \emph{Riprendi} to interrupt and resume it,
+\emph{Termina} when it is finished. Only one activity can be in progress, and an activity cannot
+start before the previous ones of its order are finished: the page says what you are waiting for.
+To report a problem, choose its kind in \emph{Segnala un problema} (machine breakdown, missing
+material, delay, other), the machine involved and, if useful, a note, and send it: the planner
+receives it at once.
+
+\section{Administrator}
+\label{sec:ug-admin}
+
+\paragraph{Users.} The page \emph{Utenti} shows first the pending registrations (their number is
+also next to the menu entry): choose the role and press \emph{Approva}, or \emph{Rifiuta} to
+delete the request. Below, the list of the accounts allows changing a role or disabling and
+re-enabling an account. Your own account cannot be disabled or lose the administrator role.
+
+\paragraph{Configuration.} In \emph{Configurazione} four tabs hold the master data: resources
+(type, skills, calendar, hourly cost, planned unavailability such as a maintenance), calendars
+(working days, shifts, closures), skills and domain profiles (default weights and active
+constraints). These data are used by every planning request: for instance, a maintenance window
+entered here is respected by every new plan.
+
+\paragraph{Audit and model.} \emph{Audit} lists who did what and when, with filters and the
+export \emph{Esporta CSV}; each record shows the model version and the hashes that make the plan
+reproducible. \emph{Modello AI} shows which model versions are active and how often the fallback
+rules were used.
+
+\section{Troubleshooting}
+\label{sec:ug-troubleshooting}
+
+\begin{itemize}
+  \item \emph{``Il tuo account aspetta ancora l'approvazione''}: the account is pending; an
+        administrator must approve it.
+  \item \emph{``Sessione scaduta''} or the login page appearing by itself: the session has
+        expired; log in again.
+  \item A section shows \emph{``Il servizio non è disponibile''} with a retry button: the backend
+        did not answer. With the mock, this message can be produced on purpose (see
+        Section~\ref{sec:dev-frontend}).
+  \item A move on the Gantt chart is refused: the message names the constraint, typically an
+        activity that must finish first, a resource already busy, or a resource not allowed for
+        that activity.
+\end{itemize}
