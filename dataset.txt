@@ -62,7 +62,7 @@ L'addestramento avviene sulle istanze generate ed etichettate da CP-SAT.
    Dove:      research.tue.nl, una pagina per comune (DOI 4TU)
               es. https://research.tue.nl/en/datasets/bpi-challenge-2015-municipality-2/
    Contenuto: log dei permessi edilizi di 5 comuni olandesi
-   Ruolo:     taratura del profilo PA, shadow mode
+   Ruolo:     taratura del profilo PA
    Licenza:   da verificare su 4TU
 
 11) PUBBLICA AMMINISTRAZIONE - Road Traffic Fine Management Process

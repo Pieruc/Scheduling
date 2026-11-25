@@ -76,10 +76,10 @@ Scelte rilevanti:
   - Planning            Costruisce la ProblemSpec (la descrizione completa del
                         problema da passare all'AI), espone l'API REST pubblica
                         e gestisce la rischedulazione.
-  - Execution & KPIs    Shadow mode e indicatori. In shadow mode il piano
-                        dell'AI viene calcolato in parallelo a quello reale ma
-                        non applicato: serve a misurare quanto l'AI sarebbe
-                        stata migliore/peggiore senza rischi operativi.
+  - Execution & KPIs    Esecuzione reale, segnalazioni e indicatori.
+                        (La "shadow mode" del diagramma è stata tolta dal
+                        progetto il 25/11/2026: il confronto dell'AI si fa con
+                        ATC/EDD a ogni richiesta e nella valutazione offline.)
   - Decisions           Approvazione, modifica, rifiuto del piano (lato server
                         di Plan Review).
   - Audit               Registra input, versione del modello, output e

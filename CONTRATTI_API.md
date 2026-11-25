@@ -370,9 +370,8 @@ una nuova richiesta: 3 piani e confronto con ATC/EDD; la richiesta porta `resche
   "utilizationByResource": [ { "resourceId": "CNC1", "resourceName": "Fresa CNC 1", "utilization": 0.92 } ] }
 ```
 
-> **Modalità shadow** (piano AI calcolato accanto a quello reale senza applicarlo, per
-> confrontarli): decisione aperta, vedi "Punti aperti". Se resta, servono `mode: SHADOW` nella
-> richiesta e `GET /kpis/shadow?from=&to=` (PLANNER, ADMIN).
+> La **modalità shadow** (piano AI calcolato accanto a quello reale senza applicarlo) è stata
+> tolta dal progetto il 25/11/2026: niente `mode: SHADOW` né `GET /kpis/shadow`.
 
 ### A.7 Model Info (sola lettura)
 
@@ -447,7 +446,6 @@ Documento autosufficiente e indipendente dal dominio: l'AI non conosce il DB.
   "spec_version": "1.0",
   "request_id": "PLAN-0041",
   "domain_profile": "FACTORY",
-  "mode": "NORMAL",                               // NORMAL | SHADOW
   "horizon": { "start": "2026-11-06T08:00:00+01:00", "length_min": 10080 },
   "objective_weights": { "makespan": 0.2, "weighted_tardiness": 0.6, "setup": 0.2 },
 
@@ -607,7 +605,5 @@ vede in produzione esattamente la stessa struttura su cui è stato addestrato.
 3. Polling vs WebSocket/SSE per lo stato della richiesta (per ora polling su `GET /plan-requests/{id}`).
 4. Schema OpenAPI: generare `openapi.yaml` da Spring (springdoc) e da FastAPI
    (automatico) e confrontarlo con questo documento.
-5. Modalità shadow: tenerla (richiesta `mode: SHADOW` + `GET /kpis/shadow`) o toglierla da
-   architettura e tesi. Il frontend per ora non la mostra.
-6. Come l'AI produce i 3 piani: tre chiamate a `/optimize` con pesi diversi, oppure una
+5. Come l'AI produce i 3 piani: tre chiamate a `/optimize` con pesi diversi, oppure una
    chiamata che restituisce più piani (estensione di B.2). Il contratto A non cambia.

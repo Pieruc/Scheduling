@@ -31,6 +31,11 @@ rest of the system.
   \item \textbf{Known problems are not asked again.} When an operator reports a problem (for
         example a machine breakdown), the rescheduling starts from the report: the planner sees
         the problem and its impact on the running plan, and only adjusts a few parameters.
+  \item \textbf{No shadow mode.} The first architecture included a \emph{shadow mode}, in which
+        the plan of the AI is computed next to the plan actually used, without applying it, to
+        measure the AI on real operations. It was dropped: every request is already compared
+        with the ATC and EDD rules, and the models are assessed offline before publication
+        (Chapter~\ref{chap:evaluation}), which gives the same evidence at a much lower cost.
   \item \textbf{Italian user interface.} The users are planners and operators of Italian
         organisations, so the interface is in Italian; code, contracts and this document are in
         English or Italian according to the audience.
@@ -128,11 +133,12 @@ not started, and an empty cell when the part is not involved.
   FR-28 & System & Estimate missing durations and setups, with their uncertainty (M1) & Must & & -- & -- \\
   FR-29 & System & Build plans with the learned policy (M2), feasible by construction & Must & & -- & P \\
   FR-30 & System & Fall back to CP-SAT, ATC or EDD on error or low confidence, and say which solver produced the plan & Must & M & -- & P \\
-  FR-31 & System & Shadow mode: compute the plan of the AI next to the real one without applying it, to compare them & Could & -- & -- & -- \\
   \bottomrule
 \end{longtable}
 }
-% NOTE: FR-31 (shadow mode) is still under discussion in the team (CONTRATTI_API.md, open points).
+% NOTE: a "shadow mode" (the plan of the AI computed next to the real one without applying it) was
+% in the first architecture and was dropped on 25 November 2026: the AI is compared with ATC and
+% EDD on every request and in the offline evaluation.
 
 \section{Non-functional requirements}
 \label{sec:nfr}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 16:13
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 16:33
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1437,12 +1437,12 @@ Chapter 5.
 [23
 
 ]
-Underfull \hbox (badness 2671) in paragraph at lines 106--106
+Underfull \hbox (badness 2671) in paragraph at lines 111--111
 \OT1/cmr/m/n/10 bal-anced, fast) for each re-quest, asyn-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 122--122
+Underfull \hbox (badness 10000) in paragraph at lines 127--127
 []|\OT1/cmr/m/n/10 Planner,
  []
 
@@ -1451,7 +1451,7 @@ ignored: Infinite glue shrinkage found in box being split [24]
 ignored: Infinite glue shrinkage fo
 und in box being split [25]) (./chapters/05_architecture.tex [26] [27]
 Chapter 6.
-<Immagini/architecture.png, id=675, 2705.10625pt x 1636.1125pt>
+<Immagini/architecture.png, id=676, 2705.10625pt x 1636.1125pt>
 File: Immagini/architecture.png Graphic file (type png)
 <use Immagini/architecture.png>
 Package pdftex.def Info: Immagini/architecture.png  used on input line 26.
@@ -1459,13 +1459,13 @@ Package pdftex.def Info: Immagini/architecture.png  used on input line 26.
 [28
 
 ] [29 <./Immagini/architecture.png>] [30]
-<Immagini/er.png, id=696, 1573.88pt x 803.0pt>
+<Immagini/er.png, id=697, 1573.88pt x 803.0pt>
 File: Immagini/er.png Graphic file (type png)
 <use Immagini/er.png>
-Package pdftex.def Info: Immagini/er.png  used on input line 172.
+Package pdftex.def Info: Immagini/er.png  used on input line 171.
 (pdftex.def)             Requested size: 412.56497pt x 210.49046pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 192--192
+Underfull \hbox (badness 10000) in paragraph at lines 191--191
 []|\OT1/cmr/m/n/10 B -- Op-ti-mi-sa-tion
  []
 
@@ -1552,7 +1552,7 @@ Package logreq Info: Writing requests to 'tesi.run.xml'.
 Here is how much of TeX's memory you used:
  36217 strings out of 467525
  671137 string characters out of 5418981
- 1333035 words of memory out of 5000000
+ 1332035 words of memory out of 5000000
  64343 multiletter control sequences out of 15000+600000
  640174 words of font info for 87 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -1575,10 +1575,10 @@ public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/p
 ublic/cm-super/sfrm1095.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw
 /courier/ucrb8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw/courier
 /ucrr8a.pfb>
-Output written on tesi.pdf (56 pages, 892424 bytes).
+Output written on tesi.pdf (56 pages, 892628 bytes).
 PDF statistics:
- 1051 PDF objects out of 1200 (max. 8388607)
- 943 compressed objects within 10 object streams
+ 1052 PDF objects out of 1200 (max. 8388607)
+ 944 compressed objects within 10 object streams
  225 named destinations out of 1000 (max. 500000)
  705 words of extra memory for PDF output out of 10000 (max. 10000000)
 

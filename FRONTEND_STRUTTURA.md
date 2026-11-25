@@ -176,7 +176,6 @@ che serve al progetto. Il riferimento per ogni campo sono i tipi in `src/api/typ
 in `src/mocks/`.
 
 Punti ancora aperti, lato frontend:
-- **Modalità shadow**: da decidere se resta (il frontend per ora non la mostra).
 - **Nome dell'utente**: il backend usa `fullName`; il frontend oggi legge `displayName`.
   Si allinea a `fullName` insieme alle pagine di registrazione e gestione utenti.
 - **Una risorsa per alternativa**: il backend accetta un solo `resourceId` per modo

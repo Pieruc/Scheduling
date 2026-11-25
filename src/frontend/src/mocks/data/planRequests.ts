@@ -218,7 +218,7 @@ export const planRequests: PlanRequest[] = [
     status: 'FAILED',
     createdAt: daysAgo(15, 8, 10),
     createdBy: 'gneri',
-    label: 'Confronto shadow',
+    label: 'Prova di confronto',
     orderIds: ['C-088', 'C-089', 'C-090'],
     horizonStart: daysAgo(15, 8),
     horizonEnd: daysAgo(11, 17),

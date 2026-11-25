@@ -96,9 +96,8 @@ with separate packages and responsibilities.
         other modules, exposes the planning API and handles rescheduling.
   \item \textbf{Decisions}: approval, modification and rejection of plans, the server side of
         Plan Review.
-  \item \textbf{Execution \& KPIs}: actual execution and indicators. It also supports a
-        \emph{shadow mode}, in which the plan of the AI is computed next to the real one but not
-        applied, to measure how the AI would have performed without operational risk.
+  \item \textbf{Execution \& KPIs}: actual execution of the activities, problem reports and
+        alerts, and indicators.
   \item \textbf{Audit}: records, for each plan, the input, the model version, the output and the
         decision of the planner.
   \item \textbf{Persistence}: JPA entities and versioned migrations of the schema.
@@ -244,7 +243,7 @@ means that the model sees in production exactly the structure on which it was tr
 
 % TODO: open points of the contracts: CP-SAT in the online fallback, polling versus WebSocket or
 % server-sent events for the state of a request, OpenAPI documents generated from the code and
-% compared with the contracts, shadow mode (kept or removed), and whether the AI service returns
+% compared with the contracts, and whether the AI service returns
 % the three plans in one call or in three calls with different weights.
 
 \section{Deployment}

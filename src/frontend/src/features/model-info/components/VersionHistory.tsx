@@ -53,8 +53,8 @@ export function VersionHistory() {
         </table>
       )}
       <p className={styles.note}>
-        Una versione «In valutazione» lavora in ombra: calcola piani di confronto ma non li propone.
-        Si pubblica solo dalla pipeline di addestramento.
+        Una versione «In valutazione» si prova sui casi di test: non produce i piani finché non
+        diventa attiva. Si pubblica solo dalla pipeline di addestramento.
       </p>
     </Card>
   )

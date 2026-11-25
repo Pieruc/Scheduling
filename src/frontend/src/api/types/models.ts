@@ -25,7 +25,7 @@ export type ActiveModels = {
 /** M2 = POLICY (ordine delle attività), M1 = CONTEXT (stima di durate e setup) */
 export type ModelComponent = 'POLICY' | 'CONTEXT'
 
-/** PROPOSTA §8: CANDIDATE = in valutazione (shadow), non ancora usata per i piani */
+/** CANDIDATE = in valutazione offline, non ancora usata per i piani (contratto A.7) */
 export type ModelVersionStatus = 'ACTIVE' | 'CANDIDATE' | 'RETIRED'
 
 /** PROPOSTA §8: una riga di GET /models (storico versioni, contratti A.7) */
