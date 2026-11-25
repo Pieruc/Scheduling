@@ -2,8 +2,9 @@
 
 Codice Python della parte AI: schema comune delle istanze, convertitori dei
 benchmark, generatore di istanze sintetiche, Dispatcher e regole di riferimento
-EDD/ATC. Corrisponde ai blocchi *Log & Benchmark Converters*, *Instance
-Generator* e *M2 Policy + Dispatcher / Fallback* di
+EDD/ATC, teacher CP-SAT e costruzione del dataset di training. Corrisponde ai
+blocchi *Log & Benchmark Converters*, *Instance Generator*, *M2 Policy +
+Dispatcher / Fallback*, *CP-SAT Teacher* e *Dataset Builder* di
 [Spiegazione_architettura_VPP.txt](../../Spiegazione_architettura_VPP.txt).
 
 Altri documenti:
@@ -11,7 +12,7 @@ Altri documenti:
 - [docs/decisioni.md](docs/decisioni.md): scelte di progetto e differenze dal contratto
 - [docs/esperimenti.md](docs/esperimenti.md): registro di prove e risultati
 
-## Stato (17 novembre 2026)
+## Stato (23 novembre 2026)
 
 | Componente | Task del Gantt | Stato |
 |---|---|---|
@@ -25,6 +26,9 @@ Altri documenti:
 | Regole EDD e ATC | 8 | fatte |
 | Verifica di ammissibilità dei piani | 8 | fatta |
 | Valutazione delle baseline | 8 | fatta |
+| Teacher CP-SAT | CP-SAT teacher | fatto |
+| Costruzione del dataset (stati, candidati, etichette, split) | Dataset construction | fatta, versione v1 |
+| Feature della policy M2 | Dataset construction | fatte, 23 feature |
 
 ## Installazione
 
@@ -56,7 +60,11 @@ ai/
 │   ├── rules.py           regole EDD e ATC
 │   ├── checker.py         verifica di ammissibilità di un piano
 │   ├── plan.py            PlanResult (contratto B.2) e calcolo dei KPI
-│   └── baselines.py       valutazione di EDD e ATC su una cartella di istanze
+│   ├── baselines.py       valutazione di EDD e ATC su una cartella di istanze
+│   ├── objective.py       costo composto (makespan, ritardo pesato, setup)
+│   ├── teacher.py         teacher CP-SAT (OR-Tools)
+│   ├── features.py        feature dei candidati per la policy M2
+│   └── dataset.py         Dataset Builder: etichette per imitazione e split
 ├── tests/                 test pytest
 └── data/                  dati prodotti (esclusa da git)
 ```
@@ -126,6 +134,33 @@ Stampa un riassunto per dataset e regola (istanze non risolte, gap medio dal
 miglior valore noto, ritardo pesato medio, tempo); il CSV ha una riga per
 istanza e regola.
 
+### Risolvere le istanze con il teacher CP-SAT
+
+```bash
+.\.venv\Scripts\python.exe -m p06_ai.teacher data\generated --out data\teacher --time-limit 10 --workers 8
+```
+
+Output: `data/teacher/<PROFILO>/seed-<n>.json`, una `TeacherSolution` per
+istanza (piano, costo, lower bound, gap, costo delle regole, parametri). Le
+istanze che hanno già una soluzione vengono saltate (`--overwrite` per
+rifarle), quindi il comando si può interrompere e riprendere. Con 10 s per
+istanza le 400 istanze generate richiedono circa un'ora. Funziona anche sui
+benchmark (`data\converted\JSPLIB`): utile per controllare gli ottimi noti.
+
+### Costruire il dataset per la policy
+
+```bash
+.\.venv\Scripts\python.exe -m p06_ai.dataset --instances data\generated --teacher data\teacher --out data\datasets --version v1
+```
+
+Output in `data/datasets/v1/`: `train.csv`, `val.csv`, `test.csv` (una riga per
+candidato, colonne `instance`, `step`, `label`, `teacher_rank` e le feature) e
+`manifest.json` (feature, split, conteggi, hash dei file, costo del teacher e
+del piano rigiocato per ogni istanza). Opzioni: `--max-gap 0.2` scarta le
+soluzioni del teacher con gap più alto, `--split 0.7 0.15 0.15`,
+`--split-seed`. Per leggere un file un passo alla volta:
+`p06_ai.dataset.iter_groups(path)`.
+
 ### Usare i moduli da Python
 
 ```python
@@ -160,6 +195,6 @@ while not disp.done:
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Al 17 novembre: 80 test, tutti passati. Comprendono la conversione di tutti i
+Al 23 novembre: 97 test, tutti passati (circa 3 minuti). Comprendono la conversione di tutti i
 file reali, la verifica di ammissibilità dei piani su benchmark e istanze
 generate, e un controllo che nessun makespan scenda sotto i limiti noti di JSPLIB.

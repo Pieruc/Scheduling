@@ -148,10 +148,88 @@ sulle risorse con capacità 1.
 ritardo conta solo i job con scadenza; l'utilizzo è il tempo di lavorazione
 diviso (capacità × makespan), setup esclusi.
 
-## 5. Non ancora gestito
+## 5. Teacher CP-SAT
+
+**T1 – Obiettivo composto.** Per confrontare piani di solutori diversi serve un
+solo numero: `costo = Σ w_k × KPI_k ÷ scala_k` su makespan, ritardo pesato e
+setup, con `w_k` = `objective_weights` dell'istanza (benchmark: solo makespan).
+Le scale dipendono solo dall'istanza, così lo stesso piano ha sempre lo stesso
+costo: lower bound del makespan; somma dei pesi dei job con scadenza × durata
+media; numero di attività × setup medio (`objective.py`). Alternativa scartata:
+normalizzare sul piano di ATC, che rende il costo dipendente da un'euristica e
+instabile quando ATC ha ritardo nullo. **Da concordare**: il contratto B non
+dice come si combinano i pesi degli obiettivi.
+
+**T2 – Modello.** Stessi vincoli del Dispatcher: un intervallo opzionale per
+modo eseguibile (esattamente uno scelto), NoOverlap per capacità 1, Cumulative
+per capacità > 1, buchi tra le finestre di disponibilità come intervalli fissi.
+In più gestisce `max_lag_min`, che il Dispatcher non sa rispettare. I setup
+dipendenti dalla sequenza usano un vincolo Circuit per risorsa e valgono solo
+con capacità 1, come nel controllo dei piani (R6).
+
+**T3 – Hint dalle regole.** Il miglior piano tra EDD, ATC k = 1 e ATC k = 2 è
+passato a CP-SAT come soluzione di partenza. Garantisce un piano almeno buono
+quanto le regole anche quando il tempo finisce, e fa partire la ricerca da una
+soluzione ammissibile. L'orizzonte del modello è sempre ≥ makespan dell'hint.
+
+**T4 – Compattazione.** Se il makespan non è nell'obiettivo, CP-SAT può
+lasciare attività in attesa senza motivo. Il piano viene compattato a sinistra
+mantenendo modi e ordine sulle risorse: il costo non peggiora e il Dataset
+Builder vede un ordine di scelta più pulito. Solo con capacità 1; se il piano
+compattato viola un vincolo si tiene l'originale.
+
+**T5 – Tempo e determinismo.** Default 10 s per istanza e 8 thread. Con più
+thread CP-SAT non è deterministico: due esecuzioni possono dare piani diversi
+quando l'ottimo non è dimostrato. Per riproducibilità le soluzioni si salvano
+su disco (un JSON per istanza, con parametri e versione di OR-Tools) e il
+dataset si costruisce da quelle; con `--workers 1` il risultato è ripetibile.
+
+**T6 – Gap.** Il gap riportato è quello di CP-SAT tra soluzione e lower bound
+dimostrato. Con i setup il lower bound è debole: un gap alto non vuol dire per
+forza una soluzione cattiva (vedi E6).
+
+## 6. Dataset per la policy M2
+
+**S1 – Etichette per imitazione.** Il piano del teacher viene rigiocato nel
+Dispatcher. A ogni passo l'etichetta 1 va al candidato dell'attività che il
+teacher fa iniziare per prima tra quelle candidate, col modo del teacher (se
+non è tra i candidati, quello che finisce prima). Così le etichette stanno
+sempre tra le mosse che la policy vedrà online, e il piano rigiocato misura il
+massimo raggiungibile da un imitatore perfetto (`replay_cost` nel manifest).
+Alternativa scartata: usare direttamente gli inizi del teacher, che possono
+non corrispondere a nessun candidato del Dispatcher (risorse accodate, insieme
+attivo).
+
+**S2 – Un gruppo per passo.** Ogni passo è una query di ranking: più righe
+(candidati), una sola con etichetta 1. Formato pensato per ranker listwise o
+pairwise (LightGBM `lambdarank`, rete con softmax sui candidati). La colonna
+`teacher_rank` dà anche l'ordine completo del teacher tra i candidati.
+
+**S3 – Feature senza scala.** Tempi divisi per la durata media residua e
+misurati dall'istante di decisione; ranghi normalizzati tra i candidati; pesi
+degli obiettivi come feature di stato (il modello deve adattarsi ai pesi,
+architettura §7). Le feature sono calcolate da `features.py`, che userà anche
+la policy online: training e inferenza vedono gli stessi numeri.
+
+**S4 – Split per istanza.** Train/validation/test 70/15/15, deciso dallo
+sha256 di seme e nome dell'istanza: mai passi della stessa istanza in split
+diversi, e aggiungere istanze non sposta quelle già assegnate.
+
+**S5 – Versioni.** Ogni dataset sta in `data/datasets/<versione>/` con
+`manifest.json` (sorgenti, filtri, split, descrizione delle feature, conteggi,
+sha256 dei CSV, una riga per istanza con costo del teacher, delle regole e del
+rigiocato). Una versione esistente non si sovrascrive senza `--overwrite`.
+
+## 7. Non ancora gestito
 
 - `fixed_assignments` (attività congelate per la rischedulazione): presenti
   nella ProblemSpec, assenti nello schema delle istanze e nel Dispatcher.
 - `horizon` e `options` della ProblemSpec: non usati.
 - Durate nulle (da stimare con M1): i modi senza durata vengono ignorati dal
   Dispatcher.
+- Stati fuori dalla traiettoria del teacher: il dataset contiene solo gli stati
+  che si incontrano seguendo il teacher. Quando la policy sbaglia finisce in
+  stati mai visti. Soluzione prevista dopo il primo modello: DAgger (far
+  scegliere la policy, chiedere al teacher la mossa giusta da quegli stati e
+  aggiungerli al dataset).
+- Setup su risorse con capacità > 1: ignorati dal teacher e dal controllo.

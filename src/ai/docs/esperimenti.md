@@ -196,3 +196,71 @@ Sulle 200 istanze per profilo in `data/generated`:
   FACTORY, −33% su PA (con k = 2).
 - Con la correzione, k = 1 è migliore o uguale a k = 2 in quasi tutti i casi.
   Il default resta 2 in attesa di una decisione; da rivedere prima del pilota.
+
+---
+
+## E6 – Teacher CP-SAT (23 novembre 2026)
+
+**Cosa:** il teacher (`p06_ai.teacher`, OR-Tools 9.15) eseguito sulle 400
+istanze generate (200 FACTORY, 200 PA), 10 s per istanza, 8 thread, hint dal
+miglior piano tra EDD, ATC k = 1 e ATC k = 2. Costo = obiettivo composto
+(decisione T1).
+
+**Controllo sui benchmark:** su 22 istanze JSPLIB con ottimo noto (ft06,
+ft10, ft20, la01–la19), 5 s per istanza: tutte risolte all'ottimo dimostrato
+e makespan uguale all'ottimo della letteratura (ft06 = 55, ft10 = 930, ...).
+
+**Risultati sulle istanze generate:**
+
+| Profilo | Ottime dimostrate | Senza piano | Gap mediano | Gap medio | Costo vs migliore regola | Secondi medi |
+|---|---|---|---|---|---|---|
+| FACTORY | 95 / 200 | 0 | 4,5% | 22,1% | −27,9% | 5,9 |
+| PA | 141 / 200 | 0 | 0,0% | 13,8% | −32,8% | 3,9 |
+
+**Conclusioni:**
+
+- Il teacher è nettamente migliore delle regole: c'è margine perché la policy
+  M2, imitandolo, batta ATC.
+- Su FACTORY metà delle istanze arriva al limite di tempo: sono quelle con
+  setup dipendenti dalla sequenza (vincolo Circuit). Il gap medio alto viene
+  da un lower bound debole, non necessariamente da soluzioni cattive (T6).
+- Con 8 thread i risultati non sono ripetibili esattamente (T5): FACTORY
+  seed-0 ha dato costo 0,450 in una prova e 0,482 nell'esecuzione completa.
+  Per questo il dataset si costruisce dalle soluzioni salvate.
+
+**Da provare:** 30 s per istanza solo su quelle FACTORY non ottime, per vedere
+quanto migliora la qualità delle etichette.
+
+## E7 – Dataset v1 per la policy M2 (23 novembre 2026)
+
+**Cosa:** `p06_ai.dataset` sulle soluzioni di E6, nessun filtro sul gap, split
+70/15/15 per istanza con seme 0. Output in `data/datasets/v1/`.
+
+| Split | Istanze | Passi (gruppi) | Righe (candidati) |
+|---|---|---|---|
+| train | 287 | 16.198 | 178.550 |
+| val | 64 | 3.472 | 35.458 |
+| test | 49 | 2.705 | 24.170 |
+
+Candidati per passo in media: 7,4 su FACTORY e 12,8 su PA. Passi con un solo
+candidato (nessuna scelta): 4,5% su FACTORY e 2,7% su PA.
+
+**Fedeltà delle etichette:** il piano ottenuto rigiocando le scelte del teacher
+nel Dispatcher (il massimo per un imitatore perfetto) costa in media:
+
+| Profilo | Rigiocato vs teacher | Rigiocato vs migliore regola | Istanze dove il rigiocato è peggio delle regole |
+|---|---|---|---|
+| FACTORY | +3,2% | −26,0% | 6 / 200 |
+| PA | +5,0% | −30,3% | 8 / 200 |
+
+La perdita viene dal Dispatcher, che accoda le attività sulle risorse e
+considera solo l'insieme attivo: alcune sequenze del teacher non sono
+riproducibili esattamente. In 17 istanze FACTORY il rigiocato è anzi migliore
+del teacher (soluzioni non ottime che il Dispatcher compatta).
+
+**Conclusioni:**
+
+- Un imitatore perfetto starebbe circa il 26–30% sotto la migliore regola: è
+  il tetto per la policy M2 con questo Dispatcher.
+- Il dataset è pronto per il task "Policy training": ranker con un gruppo per
+  passo, etichetta 1 sul candidato del teacher.

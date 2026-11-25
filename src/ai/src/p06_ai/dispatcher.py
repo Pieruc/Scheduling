@@ -89,6 +89,10 @@ class Dispatcher:
                           if modes else 0.0 for aid, modes in self._modes.items()}
         self._tail = self._compute_tails()
         self._remaining_dur = sum(self._mean_dur.values())
+        self._job_size: dict[str, int] = defaultdict(int)
+        for a in inst.activities:
+            self._job_size[a.job_id] += 1
+        self._job_left = dict(self._job_size)
 
     # ------------------------------------------------------------------ stato
 
@@ -119,6 +123,24 @@ class Dispatcher:
         """Durata media delle attività non ancora schedulate (minimo 1)."""
         left = len(self._acts) - len(self._done)
         return max(self._remaining_dur / left, 1.0) if left else 1.0
+
+    def usable_modes(self, activity_id: str) -> list[tuple[int, Mode]]:
+        """Modi eseguibili dell'attività (durata nota, competenze coperte)."""
+        return self._modes[activity_id]
+
+    def successors(self, activity_id: str) -> list[str]:
+        return [s for s, _ in self._succs[activity_id]]
+
+    def is_scheduled(self, activity_id: str) -> bool:
+        return activity_id in self._done
+
+    @property
+    def n_scheduled(self) -> int:
+        return len(self._done)
+
+    def job_progress(self, job_id: str) -> tuple[int, int]:
+        """(attività del job ancora da schedulare, attività totali del job)."""
+        return self._job_left[job_id], self._job_size[job_id]
 
     def unscheduled_without_candidates(self) -> list[str]:
         """Attività pronte che non hanno nessun modo eseguibile."""
@@ -162,6 +184,7 @@ class Dispatcher:
         self._ready.remove(aid)
         self.total_setup_min += cand.setup_min
         self._remaining_dur -= self._mean_dur[aid]
+        self._job_left[cand.job_id] -= 1
         for succ, _ in self._succs[aid]:
             self._waiting[succ] -= 1
             if self._waiting[succ] == 0:
