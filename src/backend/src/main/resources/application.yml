@@ -51,6 +51,13 @@ flowsync:
       secret: ${JWT_SECRET}       # almeno 32 caratteri (HS256); in produzione solo da variabile d'ambiente
       access-ttl: PT15M           # contratto A.1: expiresIn = 900 s
       refresh-ttl: P7D
+  ai:
+    # servizio AI (contratto B): in locale "uvicorn p06_ai.service:app --port 8000" da src/ai
+    base-url: ${AI_BASE_URL:http://localhost:8000}
+    service-key: ${AI_SERVICE_KEY:}     # header X-Service-Key, se il servizio lo richiede
+    time-limit-ms: 5000                # va nella ProblemSpec; l'attesa della risposta è time-limit + 2 s
+    connect-timeout: PT2S
+    retries: 1
 
 ---
 # Profilo dev: dati di esempio (utenti demo, officina, commesse C-101…C-104) e valori di comodo.

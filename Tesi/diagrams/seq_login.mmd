@@ -1,0 +1,27 @@
+sequenceDiagram
+    actor U as User
+    participant FE as Frontend
+    participant AC as AuthController / AuthService
+    participant DB as MySQL
+    participant SEC as Security filter chain
+    U->>FE: username and password
+    FE->>AC: POST /auth/login
+    AC->>DB: find user by username
+    DB-->>AC: user, password hash
+    alt wrong password
+        AC-->>FE: 401 problem+json
+    else account pending or disabled
+        AC-->>FE: 403 ACCOUNT_PENDING / ACCOUNT_DISABLED
+    else ok
+        AC-->>FE: 200 accessToken (15 min), refreshToken (7 days), user
+    end
+    FE->>SEC: GET /resources, Authorization: Bearer access token
+    SEC->>SEC: check signature, expiry, token_use = access, roles
+    opt token expired
+        SEC-->>FE: 401
+        FE->>AC: POST /auth/refresh {refreshToken}
+        AC->>DB: reload user, still active?
+        AC-->>FE: 200 new token pair
+        FE->>SEC: repeat the call with the new token
+    end
+    SEC-->>FE: 200 resources

@@ -104,7 +104,9 @@ public class ProcessGraphService {
                     .map(skillByCode::get).collect(Collectors.toCollection(LinkedHashSet::new)));
             activity.setDeclaredDurationMin(commonDuration(dto.modes()));
         }
-        orders.saveAndFlush(order);      // le attività nuove ricevono l'id, che serve ai modi
+        // la commessa è gestita: flush (non save, che farebbe merge e copierebbe le attività nuove, lasciando
+        // in byCode istanze non salvate) persiste per cascata le attività nuove, che ricevono l'id
+        orders.flush();
 
         // 4. modi: allineati per risorsa (aggiornare invece di ricreare evita conflitti sulla chiave)
         for (ActivityDto dto : graph.activities()) {
@@ -221,7 +223,8 @@ public class ProcessGraphService {
         List<ModeDto> modes = a.getModes().stream()
                 .sorted(Comparator.comparing(m -> m.getResource().getCode()))
                 .map(m -> new ModeDto(List.of(m.getResource().getCode()),
-                        Objects.requireNonNullElse(m.getDurationMin(), a.getDeclaredDurationMin())))
+                        // null = durata da stimare (M1): ammesso dal contratto A.3
+                        m.getDurationMin() != null ? m.getDurationMin() : a.getDeclaredDurationMin()))
                 .toList();
         List<String> skillCodes = a.getRequiredSkills().stream().map(Skill::getCode).sorted().toList();
         return new ActivityDto(a.getCode(), a.getName(), skillCodes, modes, a.getSetupFamily());

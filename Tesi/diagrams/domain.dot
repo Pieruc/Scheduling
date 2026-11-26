@@ -1,0 +1,39 @@
+// Classi del dominio dei moduli planning ed execution (entità JPA). dot -Tpdf domain.dot -o ../Immagini/domain.pdf
+digraph D {
+  graph [rankdir=TB, nodesep=0.3, ranksep=0.5, fontname="Helvetica"];
+  node [shape=plaintext, fontname="Helvetica", fontsize=12];
+  edge [fontname="Helvetica", fontsize=10, color="#555555", arrowsize=0.8];
+  PlanningRequest [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>PlanningRequest</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">label, horizonStart, horizonEnd</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">objectiveWeights, problemSpec : JSON</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">status : QUEUED &#124; RUNNING &#124; DONE &#124; FAILED</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">stage, baselines : JSON, elapsedMs</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">triggerEvent : JSON, freezeBefore</TD></TR></TABLE>>];
+  Plan [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>Plan</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">variant : ECONOMIC &#124; BALANCED &#124; FAST</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">solver : POLICY &#124; CP_SAT &#124; ATC &#124; EDD &#124; MANUAL</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">status : CANDIDATE &#124; APPROVED &#124; EXECUTING</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">    &#124; CLOSED &#124; REJECTED &#124; SUPERSEDED</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">makespanMin, totalTardinessMin, setupCount</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">kpiDetails : JSON, confidence, summary</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">version (optimistic lock)</TD></TR></TABLE>>];
+  Assignment [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>Assignment</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">startAt, endAt : Instant (UTC)</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">startMin, endMin : working minutes</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">estimatedDurationMin</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">locked, manuallyModified</TD></TR></TABLE>>];
+  PlanDecision [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>PlanDecision</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">decision : APPROVED &#124; REJECTED &#124; MODIFIED</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">reason, decidedAt</TD></TR></TABLE>>];
+  ExecutionEvent [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>ExecutionEvent</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">eventType : START &#124; PAUSE &#124; RESUME &#124; COMPLETE</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">occurredAt, note</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">(append-only)</TD></TR></TABLE>>];
+  IssueReport [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>IssueReport</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">kind : BREAKDOWN &#124; MISSING_MATERIAL</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">    &#124; DELAY &#124; OTHER</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">status : OPEN &#124; ACKNOWLEDGED &#124; RESOLVED</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">reportedAt, resolvedAt</TD></TR></TABLE>>];
+  WorkOrder [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>WorkOrder</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">code, releaseAt, dueAt</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">priority, weight, status</TD></TR></TABLE>>];
+  Activity [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>Activity</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">code, name, setupFamily</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">declaredDurationMin</TD></TR></TABLE>>];
+  Resource [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>Resource</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">code, type, capacity</TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">costPerHour</TD></TR></TABLE>>];
+  AppUser [label=<<TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#f7f7f7"><TR><TD BGCOLOR="#e2e2e2"><B>AppUser</B></TD></TR><TR><TD ALIGN="LEFT" BALIGN="LEFT">username, role</TD></TR></TABLE>>];
+  PlanningRequest -> Plan [arrowtail=diamond, dir=both, arrowhead=none, taillabel="1", headlabel="0..*", label=" plans"];
+  PlanningRequest -> WorkOrder [arrowhead=vee, taillabel="0..*", headlabel="1..*", label=" orders"];
+  PlanningRequest -> Plan [arrowhead=vee, style=dashed, taillabel="0..*", headlabel="0..1", label=" rescheduleOf"];
+  Plan -> Plan [arrowhead=vee, taillabel="0..*", headlabel="0..1", label=" parentPlan"];
+  Plan -> Assignment [arrowtail=diamond, dir=both, arrowhead=none, taillabel="1", headlabel="0..*", label=" assignments"];
+  PlanDecision -> Plan [arrowhead=vee, taillabel="0..*", headlabel="1"];
+  PlanDecision -> AppUser [arrowhead=vee, label=" decidedBy"];
+  Assignment -> Activity [arrowhead=vee, taillabel="0..*", headlabel="1"];
+  Assignment -> Resource [arrowhead=vee, taillabel="0..*", headlabel="1"];
+  ExecutionEvent -> Assignment [arrowhead=vee, taillabel="0..*", headlabel="1"];
+  ExecutionEvent -> AppUser [arrowhead=vee, label=" operator"];
+  IssueReport -> Assignment [arrowhead=vee, taillabel="0..*", headlabel="0..1"];
+  IssueReport -> Plan [arrowhead=vee, taillabel="0..*", headlabel="0..1"];
+  IssueReport -> Resource [arrowhead=vee, taillabel="0..*", headlabel="0..1"];
+  WorkOrder -> Activity [arrowtail=diamond, dir=both, arrowhead=none, taillabel="1", headlabel="0..*", label=" activities"];
+  { rank=same; PlanningRequest; WorkOrder; }
+  { rank=same; PlanDecision; Plan; Activity; }
+  { rank=same; Assignment; AppUser; }
+  { rank=same; ExecutionEvent; IssueReport; Resource; }
+  PlanningRequest -> PlanDecision [style=invis];
+  WorkOrder -> Activity [style=invis];
+  Plan -> Assignment [style=invis];
+  Assignment -> ExecutionEvent [style=invis];
+}

@@ -1,0 +1,18 @@
+{
+ "theme": "neutral",
+ "sequence": {
+  "useMaxWidth": false,
+  "mirrorActors": false,
+  "wrap": true,
+  "width": 135,
+  "actorMargin": 22,
+  "boxMargin": 6,
+  "messageMargin": 30,
+  "messageFontSize": 17,
+  "actorFontSize": 17,
+  "noteFontSize": 16
+ },
+ "themeVariables": {
+  "fontFamily": "Helvetica, Arial, sans-serif"
+ }
+}

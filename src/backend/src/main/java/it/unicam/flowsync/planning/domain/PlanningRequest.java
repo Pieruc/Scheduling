@@ -1,5 +1,6 @@
 package it.unicam.flowsync.planning.domain;
 
+import it.unicam.flowsync.configuration.domain.WorkCalendar;
 import it.unicam.flowsync.orders.domain.WorkOrder;
 import it.unicam.flowsync.security.domain.AppUser;
 import jakarta.persistence.*;
@@ -27,6 +28,39 @@ public class PlanningRequest {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "requested_by", nullable = false)
     private AppUser requestedBy;
+
+    /** Descrizione breve per gli elenchi, es. "Commesse C-101 – C-104" (migrazione V9). */
+    @Column(length = 150)
+    private String label;
+
+    /** Calendario che definisce la scala in minuti di lavoro del periodo (migrazione V9). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "calendar_id")
+    private WorkCalendar calendar;
+
+    /** Fase in corso mentre la richiesta è in lavorazione (VALIDATION, CONTEXT, POLICY, BASELINES). */
+    @Column(length = 20)
+    private String stage;
+
+    /** Confronto con le regole sugli stessi dati: [{"solver":"ATC","kpis":{...}}, ...] (migrazione V9). */
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "baselines")
+    private List<Map<String, Object>> baselines;
+
+    @Column(name = "elapsed_ms")
+    private Integer elapsedMs;
+
+    /** Ripianificazione (contratto A.4): il piano approvato da cui si riparte, l'evento e l'istante di congelamento. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reschedule_of")
+    private Plan rescheduleOf;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "trigger_event")
+    private Map<String, Object> triggerEvent;
+
+    @Column(name = "freeze_before")
+    private Instant freezeBefore;
 
     @Column(name = "horizon_start", nullable = false)
     private Instant horizonStart;

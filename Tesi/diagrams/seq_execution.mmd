@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor O as Operator
+    actor P as Planner
+    participant FE as Frontend
+    participant BE as Backend
+    participant DB as MySQL
+    O->>FE: today's activities
+    FE->>BE: GET /operator/today
+    BE->>DB: assignments of approved plans, execution events
+    BE-->>FE: activities with state (TODO, IN_PROGRESS, PAUSED, DONE)
+    O->>FE: Start
+    FE->>BE: POST /executions {START}
+    alt predecessor not done, or another activity in progress
+        BE-->>FE: 409
+    else allowed
+        BE->>DB: append execution event
+        BE-->>FE: 201 activity IN_PROGRESS
+    end
+    O->>FE: report a breakdown
+    FE->>BE: POST /incidents {BREAKDOWN, resource}
+    BE->>DB: save report
+    BE-->>FE: 201 {id: AL-31}
+    P->>FE: alerts
+    FE->>BE: GET /alerts
+    BE-->>FE: AL-31 with event RESOURCE_DOWN and link to the plan
+    P->>FE: Reschedule
+    FE->>BE: POST /plans/PLAN-0042/reschedule {event, freezeBefore, alertId}
+    BE->>DB: unavailability of the resource, close AL-31, new request (rescheduleOf)
+    BE-->>FE: 202 {id: REQ-0015}
+    Note over BE,DB: started activities stay frozen, the rest is planned again (3 plans + baselines)
+    P->>FE: approve a new plan
+    FE->>BE: POST /plans/PLAN-0051/decisions {APPROVE}
+    BE->>DB: PLAN-0051 APPROVED, PLAN-0042 SUPERSEDED, audit DECISION
+    BE-->>FE: 201

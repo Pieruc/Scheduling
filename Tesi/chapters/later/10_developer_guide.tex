@@ -9,9 +9,9 @@ follow, and how to extend the system in the most common ways. It complements the
 the repository, which keep the full list of commands.
 
 \status{The guide reflects the code on the date of this box. Where a step depends on a part that
-does not exist yet (the planning modules of the backend, the AI service, the trained models), the
-guide says so and describes the intended way of extending it, so that it can be followed when the
-part is built.}
+does not exist yet (the trained models, the frontend on the real backend),
+the guide says so and describes the intended way of extending it, so that it can be followed when
+the part is built.}
 
 \lstset{basicstyle=\ttfamily\footnotesize, columns=fullflexible, keepspaces=true, frame=single,
         breaklines=true, xleftmargin=2pt, xrightmargin=2pt}
@@ -80,6 +80,13 @@ $PY -m p06_ai.teacher data/generated --out data/teacher --time-limit 10
 $PY -m p06_ai.dataset --instances data/generated \
     --teacher data/teacher --out data/datasets --version v1
 \end{lstlisting}
+The AI service of contract~B, needed by the planning endpoints of the backend, runs with:
+\begin{lstlisting}
+.venv/bin/python -m pip install -e ".[service]"
+.venv/bin/uvicorn p06_ai.service:app --port 8000
+\end{lstlisting}
+The backend finds it at \texttt{AI\_BASE\_URL} (default \texttt{http://localhost:8000}); if the
+service is off, planning requests end as failed and the rest of the backend works.
 
 \paragraph{Frontend on the real backend.} Set \texttt{VITE\_USE\_MOCKS=false} and start the
 backend: the development server forwards \texttt{/api} to \texttt{localhost:8080}. A partial mode
@@ -96,20 +103,24 @@ step exists today, are the following.
 \begin{enumerate}
   \item The page \emph{Nuova pianificazione} sends the text to the interpretation endpoint
         (\texttt{POST /plan-requests/interpret}) and shows the result (frontend: done;
-        backend and language model: to do, simulated by the mock).
-  \item The page sends \texttt{POST /plan-requests}; the backend answers \texttt{202} with the id
-        of the request (frontend: done; backend: to do).
-  \item The backend Planning module builds the ProblemSpec from orders, resources and calendars
-        and stores it as a snapshot; the AI Client sends it three times, or once, to
-        \texttt{POST /optimize} (to do).
+        backend: done with rules in \texttt{InterpretService}; language model: to do).
+  \item The page sends \texttt{POST /plan-requests}; \texttt{PlanningService} checks the request
+        (422 with paths), saves it with its ProblemSpec and answers \texttt{202} with the id
+        (done).
+  \item After the commit, \texttt{PlanningRunner} (\texttt{@Async}) rebuilds the problem with
+        \texttt{PlanningContextFactory} in working minutes (\texttt{WorkTimeScale}) and the
+        \texttt{AiClient} calls \texttt{POST /optimize} three times, one per variant (done).
   \item The AI service validates the specification, completes it with M1, builds the plans with
         M2 inside the dispatcher, falls back to the rules when needed, and returns the PlanResult
-        (validator, dispatcher and rules: done as a library; service and models: to do).
-  \item The backend stores plans and indicators, runs ATC and EDD for the comparison and writes
-        the audit record (to do).
+        (service: done, \texttt{p06\_ai.service}; until the models exist it returns the best rule
+        as a fallback).
+  \item The backend calls the service twice more for the ATC and EDD baselines, computes the
+        indicators (\texttt{PlanKpis}) and stores plans and assignments; an unreachable service
+        ends the request as failed with an audit record (done).
   \item The frontend polls \texttt{GET /plan-requests/\{id\}} every 1.5~s until the request is no
         longer pending, then shows the three plans; the Gantt chart reads
-        \texttt{GET /plans/\{id\}/gantt} (frontend: done).
+        \texttt{GET /plans/\{id\}/gantt}, and a decision goes to
+        \texttt{POST /plans/\{id\}/decisions} (frontend: done on the mock; backend: done).
 \end{enumerate}
 The other flows (decisions, executions, reports, rescheduling) follow the same pattern: the
 frontend calls an endpoint of contract A, the backend applies the business rules and, for a new
@@ -157,6 +168,13 @@ plan, calls the AI service through contract B.
         (\texttt{V1}, \texttt{V2}, \dots); Hibernate only validates it. An applied migration is
         never modified. Demonstration data live in \texttt{db/seed} (\texttt{V100} and above),
         loaded only by the \texttt{dev} profile.
+  \item The planning module works in \emph{minutes of working time}: convert an instant with
+        \texttt{WorkTimeScale.toMinute} (round up for starts and releases, down for due dates)
+        and back with \texttt{toInstant} (the boundary between two shifts is the end of an
+        activity, not a start). Activity ids outside the database are
+        \texttt{<order>/<code>}, e.g.\ \texttt{C-101/T}.
+  \item The rules of a manual move are in the pure class \texttt{PlanChangeValidator}; a new rule
+        goes there, with a unit test, and also in the Gantt module of the frontend.
 \end{itemize}
 
 \section{AI internals}

@@ -39,6 +39,13 @@ public class Assignment {
     @Column(name = "end_at", nullable = false)
     private Instant endAt;
 
+    /** Inizio e fine in minuti di lavoro dall'inizio del periodo: la scala del Gantt (migrazione V9). */
+    @Column(name = "start_min")
+    private Integer startMin;
+
+    @Column(name = "end_min")
+    private Integer endMin;
+
     /** Mediana stimata da M1. */
     @Column(name = "estimated_duration_min", nullable = false)
     private int estimatedDurationMin;

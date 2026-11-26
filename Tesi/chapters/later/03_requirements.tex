@@ -9,8 +9,9 @@ chapter also records, for each requirement, how far the three parts of the syste
 
 \status{The requirements are stable: they were fixed with the mockups and revised when the
 screens were built. Table~\ref{tab:fr} shows, requirement by requirement, what is done in the
-frontend, in the backend and in the AI. Most requirements that involve planning, review and
-execution are done only in the frontend, against the mock of the backend.}
+frontend, in the backend and in the AI. On 26 November 2026 the backend covers every requirement
+of the frontend; what is missing is the integration of the two (the frontend still runs on its
+mock) and the trained models of the AI.}
 
 \section{Elicitation and main decisions}
 \label{sec:elicitation}
@@ -80,7 +81,7 @@ not started, and an empty cell when the part is not involved.
 
 {\small
 \begin{longtable}{@{}lp{1.5cm}p{6.8cm}cccc@{}}
-  \caption{Functional requirements and their state on 25 November 2026}
+  \caption{Functional requirements and their state on 26 November 2026}
   \label{tab:fr}\\
   \toprule
   \textbf{ID} & \textbf{Actor} & \textbf{Requirement} & \textbf{Prio.} & \textbf{FE} &
@@ -98,10 +99,10 @@ not started, and an empty cell when the part is not involved.
   FR-03 & Admin & Approve or reject registrations, assign or change roles, disable users & Should & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Configuration}} \\
-  FR-04 & Admin & Manage resources: type, skills, calendar, hourly cost, planned unavailability & Must & M & P & \\
-  FR-05 & Admin & Manage calendars: working days, shifts, holidays and closures & Must & M & P & \\
-  FR-06 & Admin & Manage skills, and see which resources have each skill & Should & M & P & \\
-  FR-07 & Admin & Edit the domain profiles: default objective weights and active constraints & Should & M & P & \\
+  FR-04 & Admin & Manage resources: type, skills, calendar, hourly cost, planned unavailability & Must & M & D & \\
+  FR-05 & Admin & Manage calendars: working days, shifts, holidays and closures & Must & M & D & \\
+  FR-06 & Admin & Manage skills, and see which resources have each skill & Should & M & D & \\
+  FR-07 & Admin & Edit the domain profiles: default objective weights and active constraints & Should & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Orders}} \\
   FR-08 & Planner & Create, edit and cancel orders: customer, release and due date, priority, weight of the delay, profile & Must & M & D & \\
@@ -109,34 +110,34 @@ not started, and an empty cell when the part is not involved.
   FR-10 & Planner & Edit the precedences on a graph; a cycle is rejected immediately & Must & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Planning}} \\
-  FR-11 & Planner & Write a request in natural language; the system turns it into parameters that the planner checks & Should & M & -- & -- \\
-  FR-12 & Planner & Be asked for the missing data (e.g.\ a due date) before the plans are computed & Must & M & -- & \\
-  FR-13 & Planner & Set the weights of the objectives (punctuality, overtime, setups) & Must & M & -- & \\
-  FR-14 & System & Produce three alternative plans (economic, balanced, fast) for each request, asynchronously, showing the progress & Must & M & -- & -- \\
-  FR-15 & System & Solve each request also with ATC and EDD and show the comparison & Must & M & -- & P \\
-  FR-16 & Planner & Compare the plans on makespan, tardiness, overtime, setups, utilisation and estimated cost & Must & M & -- & \\
-  FR-17 & Planner & List and search all the requests and plans by order, state and period & Should & M & -- & \\
+  FR-11 & Planner & Write a request in natural language; the system turns it into parameters that the planner checks & Should & M & D & -- \\
+  FR-12 & Planner & Be asked for the missing data (e.g.\ a due date) before the plans are computed & Must & M & D & \\
+  FR-13 & Planner & Set the weights of the objectives (punctuality, overtime, setups) & Must & M & D & \\
+  FR-14 & System & Produce three alternative plans (economic, balanced, fast) for each request, asynchronously, showing the progress & Must & M & D & P \\
+  FR-15 & System & Solve each request also with ATC and EDD and show the comparison & Must & M & D & D \\
+  FR-16 & Planner & Compare the plans on makespan, tardiness, overtime, setups, utilisation and estimated cost & Must & M & D & \\
+  FR-17 & Planner & List and search all the requests and plans by order, state and period & Should & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Review}} \\
-  FR-18 & Planner & See a plan on a resource Gantt chart, with unavailability and estimated durations & Must & M & -- & \\
-  FR-19 & Planner & Move an activity in time or to another resource, with immediate validation of the constraints & Must & M & -- & \\
-  FR-20 & Planner & Approve a plan, reject it with a reason, or save a modified version with a reason & Must & M & -- & \\
-  FR-21 & Planner & Reschedule the running plan after an event (machine down, urgent order, delay); when the event comes from a report, see its impact and only adjust the parameters & Must & M & -- & -- \\
+  FR-18 & Planner & See a plan on a resource Gantt chart, with unavailability and estimated durations & Must & M & D & \\
+  FR-19 & Planner & Move an activity in time or to another resource, with immediate validation of the constraints & Must & M & D & \\
+  FR-20 & Planner & Approve a plan, reject it with a reason, or save a modified version with a reason & Must & M & D & \\
+  FR-21 & Planner & Reschedule the running plan after an event (machine down, urgent order, delay); when the event comes from a report, see its impact and only adjust the parameters & Must & M & D & P \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Execution}} \\
-  FR-22 & Operator & See the activities of the day; start, pause, resume and finish them, one at a time and respecting the precedences & Must & M & -- & \\
-  FR-23 & Operator & Report a problem (breakdown, missing material, delay, other), which reaches the planner as an alert & Must & M & -- & \\
+  FR-22 & Operator & See the activities of the day; start, pause, resume and finish them, one at a time and respecting the precedences & Must & M & D & \\
+  FR-23 & Operator & Report a problem (breakdown, missing material, delay, other), which reaches the planner as an alert & Must & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Monitoring and transparency}} \\
-  FR-24 & Planner, Admin & Dashboard with indicators over time, alerts, utilisation per resource and recent requests & Should & M & -- & \\
-  FR-25 & All & See which models produce the plans, their metrics and how often the fallback is used & Should & M & -- & \\
-  FR-26 & Admin & See the history of the model versions & Could & M & -- & \\
-  FR-27 & Admin & Consult the audit log with filters and details, and export it as CSV & Must & M & -- & \\
+  FR-24 & Planner, Admin & Dashboard with indicators over time, alerts, utilisation per resource and recent requests & Should & M & D & \\
+  FR-25 & All & See which models produce the plans, their metrics and how often the fallback is used & Should & M & D & \\
+  FR-26 & Admin & See the history of the model versions & Could & M & D & \\
+  FR-27 & Admin & Consult the audit log with filters and details, and export it as CSV & Must & M & D & \\
   \midrule
   \multicolumn{7}{@{}l}{\emph{Optimisation}} \\
-  FR-28 & System & Estimate missing durations and setups, with their uncertainty (M1) & Must & & -- & -- \\
-  FR-29 & System & Build plans with the learned policy (M2), feasible by construction & Must & & -- & P \\
-  FR-30 & System & Fall back to CP-SAT, ATC or EDD on error or low confidence, and say which solver produced the plan & Must & M & -- & P \\
+  FR-28 & System & Estimate missing durations and setups, with their uncertainty (M1) & Must & & P & -- \\
+  FR-29 & System & Build plans with the learned policy (M2), feasible by construction & Must & & D & P \\
+  FR-30 & System & Fall back to CP-SAT, ATC or EDD on error or low confidence, and say which solver produced the plan & Must & M & D & P \\
   \bottomrule
 \end{longtable}
 }

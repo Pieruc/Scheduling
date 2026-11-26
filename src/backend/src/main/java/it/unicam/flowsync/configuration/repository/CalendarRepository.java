@@ -10,4 +10,6 @@ public interface CalendarRepository extends JpaRepository<WorkCalendar, Long> {
 
     @EntityGraph(attributePaths = "shifts")
     List<WorkCalendar> findAllByOrderByNameAsc();
+
+    java.util.Optional<WorkCalendar> findByName(String name);
 }

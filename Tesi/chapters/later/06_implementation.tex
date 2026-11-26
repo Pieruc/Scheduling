@@ -5,19 +5,23 @@ This chapter describes how the three parts of FlowSync are implemented: the data
 backend, the frontend, and the AI module. Each section is written by the team member who develops
 that part (Section~\ref{sec:contributions}).
 
-\status{Backend: database schema with migrations, authentication with registration and user
-management, resources, read-only calendars, skills and domain profiles, orders and process graph,
-with integration tests; the planning, review, execution, alert, KPI and audit endpoints and the
-client of the AI service are not implemented yet. Frontend: all the screens, against a mock of
-the backend; no page uses the real backend yet. AI: the library of the data pipeline with unit
-tests; no model and no service yet. The three parts have not been integrated.}
+\status{Backend: every endpoint of contract~A: database schema with migrations, authentication with
+registration and user management, resources, calendars, skills and domain profiles, orders and
+process graph, planning requests with three plans and two baselines, Gantt view, review of plans,
+rescheduling, execution, reports, alerts, KPIs, model information and audit log, client of the
+AI service. All 87 tests pass, including the integration tests of planning, execution,
+rescheduling and audit against a fake AI service. Frontend: all the screens, against a mock
+of the backend; no page uses the real backend yet. AI: the library of the data pipeline with unit
+tests and a first HTTP service that answers with the best dispatching rule; no trained model
+yet. Backend and AI service have been connected through contract B; the frontend is not
+connected yet.}
 % NOTE: Sections \ref{sec:impl-db} and \ref{sec:impl-backend} are drafts written from the code and
 % the README: to be reviewed and extended by A. Brutti.
 
 \section{Data model and migrations}
 \label{sec:impl-db}
 
-The database is MySQL~8.4, and its schema is created and versioned with Flyway. It has 23 tables
+The database is MySQL~8.4, and its schema is created and versioned with Flyway. It has 24 tables
 and one view, grouped by the modules of the backend: security (users and roles), configuration
 (domain profiles, calendars with shifts and holidays, resources, skills, unavailabilities),
 orders (work orders, activities, allowed resources, precedences, setup times), planning
@@ -25,6 +29,38 @@ orders (work orders, activities, allowed resources, precedences, setup times), p
 Hibernate does not generate the schema: it only validates the entities against it
 (\texttt{ddl-auto: validate}), so a mismatch between code and database stops the application at
 startup. An applied migration is never modified; every change is a new migration.
+Table~\ref{tab:migrations} lists the ten migrations written so far: the first six create the
+schema designed with the architecture, the others follow the changes of the API contracts.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}lp{11.6cm}@{}}
+    \toprule
+    \textbf{Migration} & \textbf{Content} \\
+    \midrule
+    V1 & Users and roles \\
+    V2 & Configuration: domain profiles, calendars with shifts and holidays, skills, resources,
+         unavailabilities \\
+    V3 & Orders: work orders, activities, allowed resources with their durations, precedences,
+         setup times \\
+    V4 & Planning: requests with the problem specification, candidate plans with their KPIs,
+         assignments \\
+    V5 & Decisions, execution events, reports of the operators; view of the actual durations \\
+    V6 & Audit log and model versions \\
+    V7 & Approval of the registrations \\
+    V8 & Orders in the format of the contract: release date, required skills as a list, maximum
+         lag of a precedence, description and features of the profiles \\
+    V9 & Planning as in contract 1.1: label, stage, baselines and calendar of a request; variant,
+         confidence and summary of a plan; working minutes of an assignment; hourly cost of a
+         resource; modified plans in the history of the decisions \\
+    V10 & Rescheduling (source plan, event, freezing instant), profile in use, note of an
+          execution event, plan of a report, dataset and specification version of a model \\
+    \bottomrule
+  \end{tabular}
+  \caption{Migrations of the database schema}
+  \label{tab:migrations}
+\end{table}
 
 The main design choices are the following.
 \begin{itemize}
@@ -50,7 +86,62 @@ A demo data set, loaded only in the development profile, reproduces the workshop
 same names used by the mock of the frontend (\texttt{pianificatore}, \texttt{operatore},
 \texttt{amministratore}). In development, MySQL runs in a Docker
 container defined by a Compose file, which Spring Boot starts automatically.
-% TODO (A. Brutti): domain class diagram; tables of the planning and execution modules.
+
+\paragraph{Planning and execution.} These two modules hold the data that change every day and
+that the rest of the thesis talks about; Figure~\ref{fig:domain} shows their entities as classes
+of the backend, and Table~\ref{tab:planning-tables} the role of each table. A planning request
+owns its plans, and a plan owns its assignments, one per activity: deleting a request deletes
+its plans, unless some of their activities have already been executed (execution events are
+never deleted), while the orders and resources they refer to are independent. Two links make the
+history of a schedule readable from the data alone. A plan modified by hand points to the plan it
+comes from (\texttt{parent\_plan\_id}), and a rescheduling request points to the approved plan it
+starts from (\texttt{reschedule\_of}): following these links gives every version of a schedule,
+with the decisions and the events that produced it. Each assignment stores its times twice, as
+real instants for the operators and as minutes of working time for the Gantt chart and for the
+validation of manual moves (Section~\ref{sec:impl-backend}). Execution events belong to an
+assignment, but the state of an activity is computed from the events of all the assignments of
+that activity: an activity started before a rescheduling keeps its state in the new plan.
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[angle=90, height=0.88\textheight, width=\textwidth, keepaspectratio]{domain.pdf}
+  \caption[Classes of the planning and execution modules]{Classes of the planning and execution
+    modules (JPA entities), with their main attributes and the values of their states. A filled
+    diamond marks ownership: deleting the owner deletes the owned objects. Generated from
+    \texttt{Tesi/diagrams/domain.dot}.}
+  \label{fig:domain}
+\end{figure}
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}p{4.5cm}p{9.3cm}@{}}
+    \toprule
+    \textbf{Table} & \textbf{Role} \\
+    \midrule
+    \texttt{planning\_request} & One request of the planner: horizon, orders, weights, the problem
+      specification sent to the AI service, the stage while it is computed, the KPIs of the ATC
+      and EDD baselines; for a rescheduling, the source plan, the event and the freezing
+      instant \\
+    \texttt{planning\_request\_order} & Orders of a request (many to many) \\
+    \texttt{plan} & A candidate plan: variant, solver, model version, state, main KPIs as columns
+      (for sorting) and all of them as JSON, a one-line summary; the source plan of a modified
+      version \\
+    \texttt{assignment} & One bar of the Gantt chart: activity, resource, real start and end,
+      start and end in working minutes, duration, whether it was moved by hand or is frozen \\
+    \texttt{plan\_decision} & History of the decisions on a plan: approved, rejected or modified,
+      by whom, with which reason \\
+    \texttt{execution\_event} & Start, pause, resumption and end of an activity, by which
+      operator, with an optional note; never modified \\
+    \texttt{issue\_report} & A problem reported by an operator (breakdown, missing material,
+      delay, other) on a resource, an activity or a plan; open until a rescheduling resolves it \\
+    \texttt{audit\_log} & Who did what: plans generated, decisions, reschedulings, use of the
+      fallback, failures of the AI service, with the hashes of input and output \\
+    \bottomrule
+  \end{tabular}
+  \caption{Tables of the planning, execution and audit modules}
+  \label{tab:planning-tables}
+\end{table}
 
 \section{Backend services}
 \label{sec:impl-backend}
@@ -75,7 +166,9 @@ PLANNER or OPERATOR). The login of a pending account reveals its state only if t
 correct, so the endpoint does not disclose information about other accounts.
 
 \paragraph{Configuration.} Resources can be listed, created, updated and deactivated (the last
-three operations are reserved to administrators). Skills and calendars are exposed read-only,
+three operations are reserved to administrators). A resource also carries its hourly cost, used
+to estimate the cost of a plan, and its unavailabilities (maintenance, breakdowns, leave), which
+the planner treats as gaps in its availability. Skills and calendars are exposed read-only,
 with a readable summary of the shifts of each calendar, for the drop-down lists of the frontend. The public identifier of
 a resource is its code (e.g.\ \texttt{LASER}), never the numeric key of the database.
 
@@ -90,15 +183,146 @@ fields of an order include a short description and the number of its activities,
 frontend needs to show the list without loading every graph. The domain profiles are exposed
 with their default weights, in the format of the contract.
 
+\paragraph{Working-time scale.} Plans, the problem specification sent to the AI service and the
+Gantt chart all measure time in \emph{minutes of working time} from the start of the planning
+horizon. Only the minutes inside the shifts of working days are counted, and every working day
+occupies the same number of consecutive minutes (480 for two shifts of four hours), so day $d$
+starts at minute $480\,d$. The conversion is done once, on the server, with the calendar used by
+most of the resources involved: release dates are rounded up to the next working minute, due
+dates down to the previous one, and the unavailabilities of each resource become gaps in its
+availability windows. A shorter day leaves at its end a few minutes that no activity can use;
+the Gantt chart shows them as unavailable. Since the AI service only sees working minutes, it
+cannot place an activity outside the shifts, and the frontend can draw the days with a fixed
+width without knowing any calendar. The conversion is a class without dependencies on the
+framework, tested on its edge cases: lunch breaks, weekends, holidays and the minute that ends a
+shift, which is the end of an activity but not a valid start.
+
+\paragraph{Planning requests.} A planning request names the orders, the horizon and three
+weights from 0 to 10 (punctuality, overtime, setup). The backend first checks what it can check
+at once, and answers 422 with the path of the wrong field: unknown orders or orders that are no
+longer open, orders without a process graph, a horizon without working days, and orders without
+a due date, for which the request must contain an answer (the answer becomes the due date of the
+order). It then saves the request together with the problem specification it will send, so the
+input of every plan is kept, and answers 202 with the address of the request. The computation
+runs in the background after the transaction is committed: the service builds the problem again,
+asks the AI service for three plans with different objective weights (\emph{economic},
+\emph{balanced}, \emph{fast}) and for the plans of the two dispatching rules ATC and EDD on the
+same data, and saves the result. The current stage of the request is saved in a short
+transaction of its own, so the frontend, which polls the request every 1.5~seconds, can show
+progress. If the AI service cannot be reached, the request ends as failed with a readable reason
+and an entry in the audit log; the backend never computes plans by itself
+(Section~\ref{sec:contracts}). The KPIs of all the plans (makespan, total tardiness and late
+orders, number and minutes of setups, average utilisation, estimated cost) are computed by the
+backend from the assignments, with the same code for the plans of the AI service, for the
+baselines and for the plans modified by hand, so the numbers are comparable.
+
+\paragraph{Interpretation of a written request.} The planner can also describe the request in
+words (``plan C-101 to C-104 next week, avoid overtime''). In this version the text is
+interpreted by rules: the service recognises order codes, including ranges, a few expressions
+of time (``next week'', ``tomorrow'') and keywords that raise a weight, and it asks a question for
+every order without a due date. The answer has the same format that a language model would
+return, so the rules can later be replaced without changing the frontend.
+
+\paragraph{Review of a plan.} A proposed plan can be approved, rejected or modified; a reason is
+required for the last two. Approving a plan marks the other plans of the same request as
+superseded and the orders as planned. A modification is a list of moves (activity, resource,
+start), checked with the same rules as the Gantt chart of the frontend: the resource must be
+allowed for the activity, the activity takes the duration it has on that resource, and the moved
+bar must stay inside the horizon, outside the unavailabilities, without overlapping another bar
+of the same resource and after its predecessors. Each violated rule is returned with the index
+of the move, so the frontend can point at the bar. A valid modification does not change the
+original plan: it creates a new version, linked to the original, which becomes proposed again
+and can be reviewed like any other plan. Every decision is kept in the history of the plan and
+in the audit log.
+
+\paragraph{Rescheduling.} When something changes after a plan has been approved (a machine
+breaks down, an urgent order arrives, an order is late), the planner asks for a new schedule
+starting from the approved plan. The request is handled like a new one and returns three plans
+and the two baselines, with two differences. Activities that have already started, because
+their planned start is before a given instant or because the operator has recorded a start,
+are \emph{frozen}: they stay where they are, the AI service does not see them, their resources
+are busy until they end, and the rest of their order cannot start earlier; a frozen activity
+cannot be moved by hand either. The event is applied to the data before the problem is built:
+a breakdown becomes an unavailability of the resource, an urgent order joins the request with a
+high priority, a delay moves the release of the rest of the order forward. Approving one of the
+new plans supersedes the plan the request started from.
+
+\paragraph{Execution and reports.} Operators record the start, pause, resumption and end of each
+activity. These events are never modified: the state of an activity (to do, in progress, paused,
+done), the minutes worked and the real start and end are derived from them, and they are the
+data from which M1 will learn real durations. The events belong to the activity rather than to
+a version of the plan, so an activity started before a rescheduling keeps its state in the new
+plan. The backend refuses the transitions that cannot happen in the workshop: starting an
+activity before its predecessors are done, having two activities in progress at once, ending an
+activity that never started. An operator can also report a problem; open reports, plans waiting
+for a decision and the maintenance of the next days are shown to the planner as alerts, and a
+breakdown report already carries the event needed to reschedule.
+
+\paragraph{Indicators, models and audit.} The dashboard receives one row of indicators per week,
+computed from the approved plans and their execution: makespan, late orders, utilisation,
+adherence to the plan (activities finished within a quarter of an hour of their planned end)
+and the share of orders finished on time. The model pages read the versions published by the
+training pipeline and ask the AI service whether it is running. Every generated plan,
+decision, rescheduling and use of the fallback leaves a record in the audit log, with the hash
+of the problem specification and of the resulting assignments: with the same input and the same
+model version, the plan can be reproduced.
+
 \paragraph{Tests.} The integration tests run against a real MySQL~8.4 started by Testcontainers.
 They check that the migrations and the entities are consistent, the authentication flows,
-registration and approval, and the permissions and error codes of the API.
-% TODO [Gantt 17, P2, until 4 Dec 2026 - Security and CRUD]: write operations on calendars, skills
-% and domain profiles; hourly cost and unavailability of the resources (contract A.2 v1.1).
-% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - Scheduling and AI client]: construction of the
-% ProblemSpec, planning requests (202 + polling), rescheduling; code example.
-% TODO [Gantt 19, P2, 8-22 Jan 2027 - Decisions, execution, KPIs, audit]: approval and changes of a
-% plan with validation of an activity move, execution events, KPIs, audit log.
+registration and approval, and the permissions and error codes of the API. The planning flow is
+tested from the written request to the approved plan against a small fake AI service, an HTTP
+server started by the test that places the activities one after the other: the test does not
+depend on Python, and checks the behaviour of the backend, not the quality of the plans. The
+time scale, the validation of the moves, the construction of the problem, the KPIs and the state
+of an execution are pure classes with their own unit tests. The same integration test continues
+on the approved plan: it records the execution of an activity, including the refused
+transitions, reports a breakdown, reschedules from it with the started activity frozen, approves
+the new plan and checks the audit log, the model status and the indicators.
+
+\begin{table}[htpb]
+  \centering
+  \small
+  \begin{tabular}{@{}p{4.9cm}rp{7.8cm}@{}}
+    \toprule
+    \textbf{Test class} & \textbf{Tests} & \textbf{What it checks} \\
+    \midrule
+    \multicolumn{3}{@{}l}{\emph{Integration (Spring context and MySQL in Testcontainers)}} \\
+    \texttt{SchemaAndMigrationsTest} & 2 & Migrations applied, entities consistent with the schema \\
+    \texttt{AuthApiTest} & 10 & Login, refresh, expired and malformed tokens, roles \\
+    \texttt{RegistrationApiTest} & 13 & Registration, approval, rejection, management of users \\
+    \texttt{ResourceApiTest} & 16 & Resources, skills and calendars: permissions, error codes \\
+    \texttt{CatalogWriteApiTest} & 4 & Writing calendars, skills and domain profiles \\
+    \texttt{OrderApiTest} & 13 & Orders and process graphs, including the rejected graphs \\
+    \texttt{PlanningApiTest} & 3 & Contracts A.4--A.8 end to end, against a fake AI service \\
+    \addlinespace
+    \multicolumn{3}{@{}l}{\emph{Unit (pure classes, no database)}} \\
+    \texttt{WorkTimeScaleTest} & 4 & Working-time scale: breaks, weekends, holidays, boundaries \\
+    \texttt{PlanChangeValidatorTest} & 3 & Rules of the manual moves \\
+    \texttt{PlanningContextTest} & 4 & Problem specification, durations, KPIs, weights \\
+    \texttt{ExecutionStateTest} & 2 & State of an activity from its execution events \\
+    \texttt{GraphValidatorTest}, \texttt{ShiftSummarizerTest}, \texttt{InterpretCodesTest} & 13 &
+      Process graphs, summary of the shifts, order codes in a written request \\
+    \midrule
+    \textbf{Total} & \textbf{87} & \\
+    \bottomrule
+  \end{tabular}
+  \caption{Automated tests of the backend on 26 November 2026, all passing}
+  \label{tab:backend-tests}
+\end{table}
+
+Table~\ref{tab:backend-tests} lists the tests. The first complete run against a real database
+found three defects that the unit tests and the review of the code had missed, which is the
+reason for running the integration tests on the same database engine used in production. The
+shifts of the calendars were read one hour late: the persistence layer is configured to store
+instants in UTC, and it applied the same conversion to the times of the shifts, which have no
+time zone, so on a computer in Italy 08:00 became 09:00 and every plan would have started an
+hour late; the times of the shifts are now read and written as plain text. Reading a process
+graph failed when an activity had no declared duration, a case that the contract allows (the
+duration is estimated by M1). Saving a graph with new activities failed because the activities
+were merged instead of persisted, so the precedences referred to copies that had never been
+saved. All three are fixed, and the tests that found them now pass.
+% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - Scheduling and AI client]: circuit breaker of the AI
+% client; a cost for moving activities in a MINIMAL rescheduling.
 % TODO [Gantt 20, P2, 18-29 Jan 2027 - Public API and CloudEvents]: public API for external
 % systems and events in the CloudEvents format.
 
@@ -229,6 +453,15 @@ Section~\ref{sec:dataset-construction}.
 benchmark files, the feasibility of the plans of the rules and of the teacher, the optimality of
 the teacher on small instances with a known solution, and the consistency of the dataset (exactly
 one positive candidate per step, deterministic split).
+\paragraph{Inference service.} A first version of the AI service implements contract~B with
+FastAPI as a thin layer over the library: it validates the problem specification with the same
+error codes, solves it and returns the plan with its KPIs. Until M1 and M2 are trained, the
+service answers with the plan of the best rule (EDD, or ATC with a few values of its parameter)
+according to the objective weights of the request, marked as a fallback, and fills missing
+durations with the mean of the other modes of the activity, declaring each estimate in the
+response. A repeated request with the same identifier and the same content returns the same
+plan, so a retry of the backend is harmless.
+% NOTE (L. Pierucci): paragraph written with the backend integration; to be reviewed and extended.
 % TODO [Gantt 10, P1, 30 Nov-11 Dec 2026 - Pilot]: training code of M2 and model files.
 % TODO [Gantt 11, P1, 7-23 Dec 2026 - M1 context]: conversion of the event logs, training of M1.
 % TODO [Gantt 12-13, P1, 14-23 Dec 2026 and 8-15 Jan 2027 - FastAPI AI service]: endpoints
@@ -239,12 +472,17 @@ one positive candidate per step, deterministic split).
 \label{sec:impl-integration}
 
 The three parts communicate only through the contracts of Section~\ref{sec:contracts}, and are
-developed in parallel against mocks of each other (Section~\ref{sec:tools}). The integration has
-not started yet: it will consist in replacing each mock with the real component, one endpoint at
-a time, starting from the parts that the backend already provides (login, registration,
-resources, catalogues, orders and process graph).
-% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - AI client, mock first]: client of the AI service with
-% timeout, retry and circuit breaker (Resilience4j), first against a mock of the AI service.
+developed in parallel against mocks of each other (Section~\ref{sec:tools}). The first
+connection is between the backend and the AI service. The client of the backend sends the
+problem specification as it is defined by contract~B, waits at most the time limit of the request
+plus two seconds, and tries once more after a network error or a server error, never after a
+validation error, which a second attempt would not fix. The problem specifications produced by
+the backend were checked against the real service, and the backend is tested against a fake one.
+Contract~B gained one optional field in this step: a request can ask for a specific rule, which
+the backend uses for the ATC and EDD baselines shown next to the three plans. The integration
+with the frontend will replace its mock one endpoint at a time, starting from the parts that the
+backend already provides.
+% TODO [Gantt 18, P2, 30 Nov-23 Dec 2026 - AI client]: circuit breaker (Resilience4j).
 % TODO [Milestone M2, 23 Dec 2026 - Minimal end-to-end system]: first complete flow from the
 % frontend to a plan computed by the AI service.
 % TODO [Gantt 28, P1-P3, 18-29 Jan 2027 - Docker Compose and end-to-end integration]: one

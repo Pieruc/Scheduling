@@ -36,7 +36,7 @@ public final class AuthDtos {
     }
 
     /** id nel formato opaco del contratto ("U-1"); roles è una lista anche se oggi ogni utente ha un solo ruolo. */
-    public record UserDto(String id, String username, List<String> roles) {
+    public record UserDto(String id, String username, String fullName, String department, List<String> roles) {
     }
 
     public record TokenResponse(String accessToken, String refreshToken, long expiresIn, UserDto user) {

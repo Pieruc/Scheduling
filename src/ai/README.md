@@ -29,6 +29,7 @@ Altri documenti:
 | Teacher CP-SAT | CP-SAT teacher | fatto |
 | Costruzione del dataset (stati, candidati, etichette, split) | Dataset construction | fatta, versione v1 |
 | Feature della policy M2 | Dataset construction | fatte, 23 feature |
+| Servizio HTTP del contratto B (`/optimize`, `/validate`, `/health`) | 12 – FastAPI AI service | primo passo (25/11): fallback EDD/ATC finché M2 non c'è |
 
 ## Installazione
 
@@ -198,3 +199,21 @@ while not disp.done:
 Al 23 novembre: 97 test, tutti passati (circa 3 minuti). Comprendono la conversione di tutti i
 file reali, la verifica di ammissibilità dei piani su benchmark e istanze
 generate, e un controllo che nessun makespan scenda sotto i limiti noti di JSPLIB.
+
+## Servizio HTTP (contratto B)
+
+`p06_ai/service.py` espone `/optimize`, `/validate` e `/health` per il backend. Finché la
+policy M2 non è addestrata, `/optimize` risponde `status = FALLBACK`: prova EDD e ATC (con
+k = 0,5 / 1 / 2 / 4) e restituisce il piano col costo composto più basso secondo gli
+`objective_weights` della richiesta. Le durate nulle sono stimate con la media degli altri modi
+dell'attività (o 60 minuti) e compaiono in `context_adjustments` con `source = DEFAULT_ESTIMATE`.
+`options.solver` (`ATC` | `EDD`) è un'estensione del contratto per chiedere una regola precisa:
+il backend la usa per le baseline mostrate accanto ai tre piani.
+
+```bash
+pip install -e ".[dev,service]"
+uvicorn p06_ai.service:app --port 8000           # documentazione su http://localhost:8000/docs
+```
+
+Con la variabile `FLOWSYNC_AI_SERVICE_KEY` impostata, ogni chiamata deve avere l'header
+`X-Service-Key` uguale (`/health` resta libero). Test: `tests/test_service.py`.

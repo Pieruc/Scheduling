@@ -21,7 +21,10 @@ import java.util.Map;
 public class Plan {
 
     /** Chi ha prodotto il piano. MANUAL = ricostruito a mano dal pianificatore. */
-    public enum Solver { POLICY, ATC, EDD, MANUAL }
+    public enum Solver { POLICY, CP_SAT, ATC, EDD, MANUAL }
+
+    /** Le tre alternative di ogni richiesta (contratto A.4). */
+    public enum Variant { ECONOMIC, BALANCED, FAST }
 
     public enum Status { CANDIDATE, SELECTED, APPROVED, REJECTED, EXECUTING, CLOSED, SUPERSEDED }
 
@@ -43,6 +46,11 @@ public class Plan {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)
+    @Column(length = 10)
+    private Variant variant;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 10)
     private Solver solver;
 
@@ -52,6 +60,14 @@ public class Plan {
 
     @Column(name = "fallback_used", nullable = false, columnDefinition = "TINYINT(1)")
     private boolean fallbackUsed;
+
+    /** Confidenza dichiarata dalla policy (0..1); null per le regole. */
+    @Column(precision = 4, scale = 3)
+    private BigDecimal confidence;
+
+    /** Frase che riassume il compromesso, es. "Nessun ritardo, 3 cambi di setup". */
+    @Column(length = 255)
+    private String summary;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.VARCHAR)

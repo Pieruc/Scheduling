@@ -104,6 +104,9 @@ public class AuthService {
     }
 
     private static UserDto toDto(AppUser user) {
-        return new UserDto("U-" + user.getId(), user.getUsername(), List.of(user.getRole().name()));
+        // department (contratto A.1 v1.1): reparto = la risorsa collegata all'utente (es. "Saldatura 1"), se c'è
+        String department = user.getResource() == null ? null : user.getResource().getName();
+        return new UserDto("U-" + user.getId(), user.getUsername(), user.getFullName(), department,
+                List.of(user.getRole().name()));
     }
 }

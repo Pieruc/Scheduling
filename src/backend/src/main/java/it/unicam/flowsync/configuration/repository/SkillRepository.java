@@ -11,4 +11,6 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
     List<Skill> findAllByOrderByCodeAsc();
 
     List<Skill> findByCodeIn(Collection<String> codes);
+
+    java.util.Optional<Skill> findByCode(String code);
 }

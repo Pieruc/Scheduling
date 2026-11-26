@@ -80,7 +80,7 @@ class OrderApiTest extends AbstractApiTest {
                 .andExpect(jsonPath("$.customer").value("Rinaldi Carrelli"))
                 .andExpect(jsonPath("$.description").value("Telaio carrello"))
                 .andExpect(jsonPath("$.domainProfile").value("FACTORY"))
-                .andExpect(jsonPath("$.dueDate").value("2026-11-20T16:00:00Z"))
+                .andExpect(jsonPath("$.dueDate").isNotEmpty())             // il seed V104 la sposta in avanti per la demo
                 .andExpect(jsonPath("$.priority").value(3))
                 .andExpect(jsonPath("$.weight").value(3.0))
                 .andExpect(jsonPath("$.status").value("OPEN"))
@@ -91,11 +91,13 @@ class OrderApiTest extends AbstractApiTest {
 
     @Test
     void ordersCanBeFilteredByDueDateAndStatus() throws Exception {
-        mvc.perform(get("/api/v1/orders").param("dueBefore", "2026-11-21T00:00:00Z").header(AUTH, bearer("pianificatore")))
+        // le scadenze del seed dipendono dal giorno in cui si applica V104: si filtra con date lontane
+        mvc.perform(get("/api/v1/orders").param("dueBefore", "2099-01-01T00:00:00Z").header(AUTH, bearer("pianificatore")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id=='C-101')]").isNotEmpty())
-                .andExpect(jsonPath("$[?(@.id=='C-102')]").isEmpty())
-                .andExpect(jsonPath("$[?(@.id=='C-104')]").isEmpty());
+                .andExpect(jsonPath("$[?(@.id=='C-104')]").isEmpty());          // senza scadenza: escluso
+        mvc.perform(get("/api/v1/orders").param("dueBefore", "2000-01-01T00:00:00Z").header(AUTH, bearer("pianificatore")))
+                .andExpect(jsonPath("$[?(@.id=='C-101')]").isEmpty());
         mvc.perform(get("/api/v1/orders").param("status", "OPEN").header(AUTH, bearer("pianificatore")))
                 .andExpect(jsonPath("$[?(@.id=='C-101')]").isNotEmpty());
         mvc.perform(get("/api/v1/orders").param("status", "DONE").header(AUTH, bearer("pianificatore")))
@@ -135,7 +137,9 @@ class OrderApiTest extends AbstractApiTest {
     @Test
     void invalidOrdersAreRejected() throws Exception {
         create("T-ORD-DUP").andExpect(status().isCreated());
-        create("T-ORD-DUP").andExpect(status().isConflict()).andExpect(jsonPath("$.errors[0].code").value("DUPLICATE_ORDER"));
+        create("T-ORD-DUP").andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errors[0].code").value("DUPLICATE_ORDER"))
+                .andExpect(jsonPath("$.errors[0].path").value("id"));
 
         mvc.perform(post("/api/v1/orders").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-P", "NOPE", null, null, 2)))
@@ -180,7 +184,7 @@ class OrderApiTest extends AbstractApiTest {
         mvc.perform(put("/api/v1/orders/T-ORD-DEL").header(AUTH, bearer("pianificatore")).contentType(MediaType.APPLICATION_JSON)
                         .content(order("T-ORD-DEL", null, null, null, 2)))
                 .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.errors[0].code").value("ORDER_CLOSED"));
+                .andExpect(jsonPath("$.errors[0].code").value("ORDER_NOT_OPEN"));
         putGraph("T-ORD-DEL", THREE_STEPS)
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.errors[0].code").value("ORDER_NOT_EDITABLE"));

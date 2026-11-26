@@ -38,6 +38,10 @@ public class Resource {
     @Column(nullable = false)
     private int capacity = 1;
 
+    /** Euro all'ora (migrazione V9); null = non indicato. Serve al costo stimato dei piani. */
+    @Column(name = "cost_per_hour", precision = 8, scale = 2)
+    private java.math.BigDecimal costPerHour;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "calendar_id", nullable = false)
     private WorkCalendar calendar;
@@ -48,6 +52,11 @@ public class Resource {
     /** Competenze della risorsa con il livello (1 base … 3 esperto). Si modifica solo dal servizio. */
     @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ResourceSkill> skills = new LinkedHashSet<>();
+
+    /** Fermi programmati o segnalati (contratto A.2 v1.1: "unavailability"). */
+    @OneToMany(mappedBy = "resource", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("startsAt")
+    private java.util.List<Unavailability> unavailability = new java.util.ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false, insertable = false)
     private Instant createdAt;

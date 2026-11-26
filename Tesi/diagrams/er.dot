@@ -1,0 +1,45 @@
+// Diagramma ER di FlowSync (migrazioni V1-V10), notazione a zampa di gallina.
+// Rigenerare con: dot -Tpdf er.dot -o ../Immagini/er.pdf
+digraph ER {
+  graph [rankdir=TB, fontname="Helvetica", fontsize=13, nodesep=0.2, ranksep=0.45, splines=true, newrank=true];
+  node  [shape=box, style="rounded,filled", fillcolor="#f3f3f3", color="#777777", fontname="Helvetica", fontsize=13, margin="0.10,0.05"];
+  edge  [fontname="Helvetica", fontsize=11, color="#555555", dir=both, arrowsize=0.7];
+
+  subgraph cluster_sec  { label="Security"; style=dashed; color="#bbbbbb"; APP_USER; }
+  subgraph cluster_conf { label="Configuration"; style=dashed; color="#bbbbbb";
+    DOMAIN_PROFILE; WORK_CALENDAR; CALENDAR_SHIFT; CALENDAR_HOLIDAY; RESOURCE; SKILL; UNAVAILABILITY; SETUP_TIME; }
+  subgraph cluster_ord  { label="Orders"; style=dashed; color="#bbbbbb"; WORK_ORDER; ACTIVITY; PRECEDENCE; }
+  subgraph cluster_plan { label="Planning and decisions"; style=dashed; color="#bbbbbb"; PLANNING_REQUEST; PLAN; ASSIGNMENT; PLAN_DECISION; }
+  subgraph cluster_exe  { label="Execution"; style=dashed; color="#bbbbbb"; EXECUTION_EVENT; ISSUE_REPORT; }
+
+  // arrowtail = lato sorgente, arrowhead = lato destinazione
+  // teetee = esattamente uno, teeodot = zero o uno, crowodot = zero o molti
+  WORK_CALENDAR -> CALENDAR_SHIFT   [arrowtail=teetee, arrowhead=crowodot, label="shifts"];
+  WORK_CALENDAR -> CALENDAR_HOLIDAY [arrowtail=teetee, arrowhead=crowodot, label="holidays"];
+  WORK_CALENDAR -> RESOURCE         [arrowtail=teetee, arrowhead=crowodot, label="calendar of"];
+  RESOURCE -> UNAVAILABILITY        [arrowtail=teetee, arrowhead=crowodot, label="unavailable in"];
+  RESOURCE -> SETUP_TIME            [arrowtail=teeodot, arrowhead=crowodot, label="setup on"];
+  RESOURCE -> SKILL                 [arrowtail=crowodot, arrowhead=crowodot, label="has (resource_skill)"];
+  APP_USER -> RESOURCE              [arrowtail=crowodot, arrowhead=teeodot, label="works as"];
+
+  DOMAIN_PROFILE -> WORK_ORDER      [arrowtail=teeodot, arrowhead=crowodot, label="profile of"];
+  APP_USER -> WORK_ORDER            [arrowtail=teetee, arrowhead=crowodot, label="creates"];
+  WORK_ORDER -> ACTIVITY            [arrowtail=teetee, arrowhead=crowodot, label="contains"];
+  ACTIVITY -> PRECEDENCE            [arrowtail=teetee, arrowhead=crowodot, label="predecessor / successor"];
+  ACTIVITY -> RESOURCE              [arrowtail=crowodot, arrowhead=crowodot, label="allowed on, duration\n(activity_resource)"];
+  ACTIVITY -> SKILL                 [arrowtail=crowodot, arrowhead=crowodot, label="requires (activity_skill)"];
+
+  PLANNING_REQUEST -> WORK_ORDER    [arrowtail=crowodot, arrowhead=crowodot, label="orders\n(planning_request_order)"];
+  WORK_CALENDAR -> PLANNING_REQUEST [arrowtail=teeodot, arrowhead=crowodot, label="time scale of"];
+  PLANNING_REQUEST -> PLAN          [arrowtail=teetee, arrowhead=crowodot, label="three variants"];
+  PLAN -> PLANNING_REQUEST          [arrowtail=teeodot, arrowhead=crowodot, label="rescheduled by"];
+  PLAN -> PLAN                      [arrowtail=teeodot, arrowhead=crowodot, label="new version of"];
+  PLAN -> ASSIGNMENT                [arrowtail=teetee, arrowhead=crowodot, label="Gantt bars"];
+  ACTIVITY -> ASSIGNMENT            [arrowtail=teetee, arrowhead=crowodot, label="assigned in"];
+  RESOURCE -> ASSIGNMENT            [arrowtail=teetee, arrowhead=crowodot, label="runs on"];
+  PLAN -> PLAN_DECISION             [arrowtail=teetee, arrowhead=crowodot, label="approved, rejected, modified"];
+
+  ASSIGNMENT -> EXECUTION_EVENT     [arrowtail=teetee, arrowhead=crowodot, label="start, pause,\nresume, complete"];
+  ASSIGNMENT -> ISSUE_REPORT        [arrowtail=teeodot, arrowhead=crowodot, label="reported on"];
+  PLAN -> ISSUE_REPORT              [arrowtail=teeodot, arrowhead=crowodot, label="affects"];
+}

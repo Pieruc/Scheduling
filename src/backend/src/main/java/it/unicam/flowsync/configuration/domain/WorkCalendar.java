@@ -29,6 +29,36 @@ public class WorkCalendar {
     @OrderBy("dayOfWeek, startTime")
     private List<Shift> shifts = new ArrayList<>();
 
+    /** Festività (tabella calendar_holiday): non sono giorni lavorativi. */
+    @ElementCollection
+    @CollectionTable(name = "calendar_holiday", joinColumns = @JoinColumn(name = "calendar_id"))
+    @OrderBy("date")
+    private java.util.List<Holiday> holidays = new ArrayList<>();
+
+    /** Le date delle festività, per la scala dei minuti di lavoro. */
+    public java.util.Set<java.time.LocalDate> holidayDates() {
+        java.util.Set<java.time.LocalDate> dates = new java.util.HashSet<>();
+        holidays.forEach(h -> dates.add(h.getDate()));
+        return dates;
+    }
+
+    /** Una festività: data e nome (es. 25/12, "Natale"). */
+    @Embeddable
+    @Getter @Setter @NoArgsConstructor
+    public static class Holiday {
+
+        @Column(name = "holiday_date", nullable = false)
+        private java.time.LocalDate date;
+
+        @Column(name = "description", length = 100)
+        private String description;
+
+        public Holiday(java.time.LocalDate date, String description) {
+            this.date = date;
+            this.description = description;
+        }
+    }
+
     /** Fascia di lavoro settimanale, es. lunedì 8:00–12:00. */
     @Entity
     @Table(name = "calendar_shift")
@@ -47,10 +77,12 @@ public class WorkCalendar {
         @Column(name = "day_of_week", nullable = false, columnDefinition = "TINYINT")
         private int dayOfWeek;
 
-        @Column(name = "start_time", nullable = false)
+        @Convert(converter = it.unicam.flowsync.common.persistence.LocalTimeAsTextConverter.class)
+        @Column(name = "start_time", nullable = false, columnDefinition = "TIME")
         private LocalTime startTime;
 
-        @Column(name = "end_time", nullable = false)
+        @Convert(converter = it.unicam.flowsync.common.persistence.LocalTimeAsTextConverter.class)
+        @Column(name = "end_time", nullable = false, columnDefinition = "TIME")
         private LocalTime endTime;
 
         public DayOfWeek day() {

@@ -59,7 +59,44 @@ frontend was developed: the revision removed what was not needed (for example a 
 number of plans, which became always three) and added the pages that were missing (login,
 configuration, model information, audit, list of plans). The database was designed with an
 entity-relationship model (Figure~\ref{fig:er}).
-% TODO: sequence diagrams to be included (FlowSync_SequenceDiagrams_VP.xml).
+
+The interactions between the components were designed with sequence diagrams, kept in the Visual
+Paradigm project together with the architecture: login, registration and approval, a protected
+call with the refresh of the token, the creation of a resource and the generation of the plans.
+The last one was drawn before the planning module existed and assumed a synchronous call; when
+the module was built, the call became asynchronous (a request accepted at once and computed in
+the background) and the diagram was redrawn from the code. Figures~\ref{fig:seq-login},
+\ref{fig:seq-planning} and \ref{fig:seq-execution} show the three interactions that cover the
+main flows of the system as they are implemented.
+
+\begin{figure}[htpb]
+  \centering
+  \includegraphics[width=0.95\textwidth]{seq_login.pdf}
+  \caption[Login and protected call]{Login and protected call. The access token lasts 15
+    minutes; when it expires, the frontend obtains a new pair of tokens with the refresh token
+    and repeats the call, so the planner is not logged out while working.}
+  \label{fig:seq-login}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth, height=0.85\textheight, keepaspectratio]{seq_planning.pdf}
+  \caption[Generation of the plans]{Generation of the plans. The backend answers at once (202)
+    and computes the plans after the commit: three calls to the AI service with different
+    objective weights and two with the dispatching rules used as baselines. The frontend polls
+    the request until it is no longer pending.}
+  \label{fig:seq-planning}
+\end{figure}
+
+\begin{figure}[p]
+  \centering
+  \includegraphics[width=\textwidth, height=0.88\textheight, keepaspectratio]{seq_execution.pdf}
+  \caption[Execution, report and rescheduling]{Execution, report and rescheduling. The operator
+    records the execution of an activity and reports a breakdown; the planner sees the report as
+    an alert, which already carries the event, and reschedules from it. Approving one of the new
+    plans supersedes the running one.}
+  \label{fig:seq-execution}
+\end{figure}
 
 \section{Collaboration and tools}
 \label{sec:tools}

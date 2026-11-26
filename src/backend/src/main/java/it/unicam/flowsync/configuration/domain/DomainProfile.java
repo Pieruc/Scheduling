@@ -47,4 +47,8 @@ public class DomainProfile {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "features")
     private List<String> features = new ArrayList<>();
+
+    /** Il profilo usato di default dalle nuove pianificazioni (migrazione V10). */
+    @Column(name = "in_use", nullable = false, columnDefinition = "TINYINT(1)")
+    private boolean inUse;
 }

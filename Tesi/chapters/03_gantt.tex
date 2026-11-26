@@ -86,7 +86,7 @@ plan is revised at each milestone (Section~\ref{sec:process}).
 \section{Progress}
 \label{sec:progress}
 
-Table~\ref{tab:progress} summarises the state of the work on 25 November 2026, three weeks after
+Table~\ref{tab:progress} summarises the state of the work on 26 November 2026, three weeks after
 milestone M0. The detailed state of each requirement is in Table~\ref{tab:fr}.
 
 \begin{table}[htpb]
@@ -103,11 +103,13 @@ milestone M0. The detailed state of each requirement is in Table~\ref{tab:fr}.
          Training of the pilot policy M2 and comparison with ATC (M1); duration model M1; AI
          service \\
     \addlinespace
-    Backend & Database schema (23 tables, versioned migrations); authentication with access
-         and refresh tokens, registration with approval; resources, calendars, skills and
-         domain profiles (read); orders and process graph &
-         Planning requests with three plans, Gantt view, decisions, rescheduling, execution,
-         alerts, KPIs, audit, client of the AI service \\
+    Backend & Database schema (24 tables, migrations V1--V10); authentication with access
+         and refresh tokens, registration with approval; configuration; orders and process
+         graph; planning requests with three plans and two baselines, Gantt view, decisions,
+         rescheduling, execution, reports, alerts, KPIs, model information, audit, client of
+         the AI service; 87 automated tests &
+         Circuit breaker of the AI client; integration with the frontend; Docker Compose of the
+         whole system \\
     \addlinespace
     Frontend & All the screens of the mockups on a mock of the backend; forms of orders,
          activities, calendars, skills and profiles; rescheduling from a report; login with
@@ -118,15 +120,24 @@ milestone M0. The detailed state of each requirement is in Table~\ref{tab:fr}.
          Kept up to date at each milestone \\
     \bottomrule
   \end{tabular}
-  \caption{Progress on 25 November 2026}
+  \caption{Progress on 26 November 2026}
   \label{tab:progress}
 \end{table}
 
 The frontend is ahead of the chart, because developing against a mock let it build every screen
 before the corresponding endpoint existed; the work left for it is mainly integration. The
-critical path now goes through the backend endpoints of planning and review and through the AI
-service, both needed for the minimal end-to-end system of milestone M2.
-% TODO: at each milestone, record its outcome and any change to the plan:
-% M0 (6 Nov 2026, validation with the supervisor), M1 (11 Dec 2026, pilot go / no-go),
-% M2 (23 Dec 2026, minimal end-to-end system), M3 (29 Jan 2027, feature freeze),
-% M4 (10 Feb 2027, delivery).
+backend is ahead too: the endpoints of planning, review, execution, monitoring and audit,
+planned between 30 November 2026 and the end of January 2027 (tasks 18--20 of the chart), were
+completed by 26 November, together with a first version of the AI service that answers with the
+best dispatching rule. The critical path therefore no longer goes through the backend: it goes
+through the training of the pilot policy, whose outcome decides milestone M1, and through the
+integration of the frontend with the real backend, both needed for the minimal end-to-end
+system of milestone M2.
+
+\paragraph{Milestones.} The outcome of each milestone is recorded here when it is reached.
+\begin{itemize}
+  \item \textbf{M0, 6 November 2026}: passed. The supervisor validated the project, its scope and
+        the plan of Figure~\ref{fig:gantt}.
+\end{itemize}
+% TODO: outcome of M1 (11 Dec 2026, pilot go / no-go), M2 (23 Dec 2026, minimal end-to-end
+% system), M3 (29 Jan 2027, feature freeze), M4 (10 Feb 2027, delivery), and any change to the plan.

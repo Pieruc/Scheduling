@@ -64,7 +64,9 @@ public class OrderService {
     @Transactional
     public OrderResponse create(OrderRequest request, String username) {
         if (orders.existsByCode(request.id())) {
-            throw ApiException.conflict("DUPLICATE_ORDER", "Order " + request.id() + " already exists");
+            // contratto A.3 v1.1: codice duplicato = 422 con path, come gli altri errori di validazione
+            throw ApiException.unprocessable("Order " + request.id() + " already exists",
+                    List.of(new ApiError("DUPLICATE_ORDER", "id", "Order " + request.id() + " already exists")));
         }
         DomainProfile profile = resolveProfile(request);
         WorkOrder order = new WorkOrder();
@@ -113,9 +115,11 @@ public class OrderService {
         return orders.findByCode(code).orElseThrow(() -> ApiException.notFound("Order " + code + " not found"));
     }
 
+    /** Contratto A.3 v1.1: si modifica solo una commessa OPEN; pianificata, in corso, chiusa o annullata = 409. */
     private static void requireOpenForChanges(WorkOrder order) {
-        if (order.getStatus() == WorkOrder.Status.DONE || order.getStatus() == WorkOrder.Status.CANCELLED) {
-            throw ApiException.conflict("ORDER_CLOSED", "Order " + order.getCode() + " is " + order.getStatus() + " and cannot be changed");
+        ApiStatus status = toApi(order.getStatus());
+        if (status != ApiStatus.OPEN) {
+            throw ApiException.conflict("ORDER_NOT_OPEN", "Order " + order.getCode() + " is " + status + " and cannot be changed");
         }
     }
 

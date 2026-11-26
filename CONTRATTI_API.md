@@ -60,6 +60,29 @@ Documento di riferimento per le interfacce tra i blocchi dell'architettura
 | 422 | Input sintatticamente valido ma inconsistente |
 | 503 | Servizio AI non disponibile e nessun fallback possibile |
 
+### Stato dell'implementazione (26/11/2026)
+
+| Parte | Stato |
+|-------|-------|
+| A.1 | Fatto (`fullName` e `department` nel login inclusi) |
+| A.2 | Fatto: risorse (con `costPerHour` e `unavailability`), calendari, competenze e profili anche in scrittura |
+| A.3 | Fatto (codice doppio = 422 con path, modifica di una commessa non `OPEN` = 409) |
+| A.4 | Fatto, ripianificazione compresa; interpretazione a regole, senza LLM; `scope` salvato ma senza effetto sul calcolo |
+| A.5 | Fatto. La versione modificata ha un id `PLAN-xxxx` normale e `parentPlanId` |
+| A.6 | Fatto. Avvisi ricavati da segnalazioni, richieste da rivedere e manutenzioni |
+| A.7 | Fatto (sola lettura); `policy` e `context` null finché la pipeline non pubblica un modello |
+| A.8 | Fatto: `PLAN_GENERATED`, `DECISION`, `RESCHEDULE`, `FALLBACK_USED` (più `AI_UNAVAILABLE`) |
+| B | Servizio FastAPI in `src/ai` (`p06_ai.service`): `/optimize`, `/validate`, `/health`. Finché M1 e M2 non sono addestrati risponde `FALLBACK` con la regola migliore secondo i pesi |
+
+-------|-------|
+| A.1 | Fatto (`fullName` e `department` nel login inclusi) |
+| A.2 | Risorse complete (con `costPerHour` e `unavailability`); competenze, calendari e profili solo in lettura |
+| A.3 | Fatto (codice doppio = 422 con path, modifica di una commessa non `OPEN` = 409) |
+| A.4 | Fatto tranne `POST /plans/{id}/reschedule`; interpretazione a regole, senza LLM |
+| A.5 | Fatto. La versione modificata ha un id `PLAN-xxxx` normale e `parentPlanId` |
+| A.6, A.7, A.8 | Da fare (le voci di audit si scrivono già) |
+| B | Servizio FastAPI in `src/ai` (`p06_ai.service`): `/optimize`, `/validate`, `/health`. Finché M1 e M2 non sono addestrati risponde `FALLBACK` con la regola migliore secondo i pesi |
+
 ---
 
 ## A. API pubblica (Frontend -> Backend)
@@ -73,8 +96,7 @@ Base URL: `/api/v1`. Tutte le chiamate (tranne login, refresh e registrazione) r
 > TypeScript in `src/frontend/src/api/types/` e i dati finti in `src/frontend/src/mocks/`,
 > che il frontend usa finché l'endpoint vero non c'è.
 
-Stato dell'implementazione nel backend (25/11): fatti A.1, A.2 (risorse; calendari,
-competenze e profili in lettura) e A.3; il resto è da fare.
+Stato dell'implementazione: vedi la tabella prima di questa sezione.
 
 ### A.1 Auth & Roles (componente Security)
 
@@ -482,10 +504,15 @@ Documento autosufficiente e indipendente dal dominio: l'AI non conosce il DB.
     "allow_fallback": true,
     "fallback_chain": ["CP_SAT", "ATC", "EDD"],    // CP_SAT ancora da confermare
     "min_confidence": 0.6,                         // sotto soglia -> fallback
-    "seed": 42
+    "seed": 42,
+    "solver": null                                 // v1.1: "ATC" | "EDD" forza una regola (baseline di A.4)
   }
 }
 ```
+
+*(v1.1)* `options.solver` serve al backend per le baseline ATC/EDD che A.4 mostra accanto ai tre
+piani: con `null` decide il servizio (policy, o metodo di riserva). I tre piani di A.4 sono tre
+chiamate a `/optimize` con `objective_weights` diversi (punto aperto 5).
 
 Regole di validazione (`API & Validation`, errore 422 con `code`):
 

@@ -1,0 +1,34 @@
+sequenceDiagram
+    actor P as Planner
+    participant FE as Frontend
+    participant PS as PlanningService
+    participant DB as MySQL
+    participant R as PlanningRunner (async)
+    participant AI as AI service
+    P->>FE: request in words, orders, horizon, weights
+    FE->>PS: POST /plan-requests
+    PS->>DB: load orders, process graphs, resources, calendar
+    alt invalid request
+        PS-->>FE: 422 errors with paths
+    else valid
+        PS->>DB: save request (status QUEUED) with its ProblemSpec
+        PS-->>FE: 202 {id: REQ-0013, status: PENDING}
+    end
+    Note over PS,R: after the commit, outside the HTTP request
+    R->>DB: rebuild the problem in working minutes
+    loop ECONOMIC, BALANCED, FAST
+        R->>AI: POST /optimize (variant weights)
+        AI-->>R: PlanResult
+    end
+    loop ATC, EDD
+        R->>AI: POST /optimize (options.solver = rule)
+        AI-->>R: PlanResult (baseline)
+    end
+    R->>DB: plans, assignments, KPIs, audit PLAN_GENERATED, status DONE
+    loop every 1.5 s until not PENDING
+        FE->>PS: GET /plan-requests/REQ-0013
+        PS-->>FE: status, stage, plans, baselines
+    end
+    P->>FE: open the recommended plan
+    FE->>PS: GET /plans/PLAN-0042/gantt
+    PS-->>FE: days, minutesPerDay, resources, bars, precedences

@@ -41,4 +41,7 @@ public class ExecutionEvent {
 
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt = Instant.now();
+
+    @Column(length = 500)
+    private String note;
 }

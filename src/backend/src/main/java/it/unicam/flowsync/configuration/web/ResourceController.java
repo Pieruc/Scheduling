@@ -8,6 +8,8 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,15 +47,17 @@ public class ResourceController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ResourceResponse> create(@Valid @RequestBody ResourceRequest request) {
-        ResourceResponse created = service.create(request);
+    public ResponseEntity<ResourceResponse> create(@Valid @RequestBody ResourceRequest request,
+                                                   @AuthenticationPrincipal Jwt user) {
+        ResourceResponse created = service.create(request, user.getSubject());
         return ResponseEntity.created(URI.create(ApiPaths.V1 + "/resources/" + created.id())).body(created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResourceResponse update(@PathVariable String id, @Valid @RequestBody ResourceRequest request) {
-        return service.update(id, request);
+    public ResourceResponse update(@PathVariable String id, @Valid @RequestBody ResourceRequest request,
+                                   @AuthenticationPrincipal Jwt user) {
+        return service.update(id, request, user.getSubject());
     }
 
     /** Disattiva la risorsa (non la cancella). */

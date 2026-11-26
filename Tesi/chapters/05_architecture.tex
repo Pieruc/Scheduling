@@ -178,16 +178,20 @@ the backend accesses it through JPA. Two choices are worth noting. Plans, KPIs a
 specifications are stored partly as JSON, because their structure varies between domains and
 JSON avoids a schema change for each variant. The model metadata are stored in MySQL, not only in
 the model storage, so that the backend and the Model Info page know which version is active
-without querying the AI service. Figure~\ref{fig:er} shows the main entities; the tables and the
-design choices are described in Section~\ref{sec:impl-db}.
+without querying the AI service. Figure~\ref{fig:er} shows the entities and their relationships,
+grouped by module; the audit log and the model versions are left out because they are not linked
+to the other tables by foreign keys. The tables and the design choices are described in
+Section~\ref{sec:impl-db}.
 
-\begin{figure}[htpb]
+\begin{figure}[p]
   \centering
-  \includegraphics[width=\textwidth]{er}
-  \caption{Main entities of the database}
+  \includegraphics[angle=90, height=0.88\textheight, width=\textwidth, keepaspectratio]{er.pdf}
+  \caption[Entities of the database]{Entities of the database and their relationships, in
+    crow's foot notation (one bar = exactly one, circle = optional, fork = many). The names in
+    parentheses are the join tables of the many-to-many relationships. The diagram is generated
+    from \texttt{Tesi/diagrams/er.dot}.}
   \label{fig:er}
 \end{figure}
-% TODO (A. Brutti): English labels in the ER diagram.
 
 \section{Contracts between components}
 \label{sec:contracts}
