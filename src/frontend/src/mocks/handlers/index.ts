@@ -9,6 +9,7 @@ import { operatorHandlers } from './operator'
 import { orderHandlers } from './orders'
 import { planningHandlers } from './planning'
 import { reviewHandlers } from './review'
+import { realAreas, type MockArea } from '@/lib/mockMode'
 import { api, latency, simulatedFailure } from './utils'
 
 /**
@@ -75,28 +76,7 @@ export const MOCK_AREAS = {
   operator: operatorArea,
   models: modelsArea,
   audit: auditArea,
-} as const
-
-export type MockArea = keyof typeof MOCK_AREAS
-
-/**
- * Aree che vanno al backend vero, da VITE_REAL_AREAS. Se almeno un'area è vera, anche il login
- * deve esserlo: il backend vero accetta solo i suoi token.
- */
-export function realAreas(): Set<MockArea> {
-  const raw = (import.meta.env.VITE_REAL_AREAS ?? '').trim()
-  const all = Object.keys(MOCK_AREAS) as MockArea[]
-  const set = new Set<MockArea>(
-    raw === 'all'
-      ? all
-      : (raw
-          .split(',')
-          .map((a: string) => a.trim())
-          .filter(Boolean) as MockArea[]),
-  )
-  if (set.size > 0) set.add('auth')
-  return set
-}
+} as const satisfies Record<MockArea, unknown>
 
 /** Gli handler delle aree ancora simulate */
 export function mockHandlers() {

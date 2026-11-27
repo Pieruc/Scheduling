@@ -9,19 +9,24 @@ import { z } from 'zod'
 import { ApiError, errorMessage } from '@/api/errors'
 import { FormField } from '@/components/FormField'
 import { Logo } from '@/components/Logo'
+import { isMocked } from '@/lib/mockMode'
 import { useAuth } from './authContext'
 import { can, homeOf } from './permissions'
 import styles from './auth.module.css'
 
-// Fase preliminare: i campi possono restare vuoti (il backend finto entra come pianificatore)
-const schema = z.object({
-  username: z.string().trim(),
-  password: z.string(),
-})
+/** Login simulato dal mock: lì i campi vuoti entrano come pianificatore (scorciatoia di sviluppo) */
+const MOCK_AUTH = isMocked('auth')
+
+const schema = MOCK_AUTH
+  ? z.object({ username: z.string().trim(), password: z.string() })
+  : z.object({
+      username: z.string().trim().min(1, 'Inserisci il nome utente.'),
+      password: z.string().min(1, 'Inserisci la password.'),
+    })
 type Values = z.infer<typeof schema>
 
-/** Con il backend finto mostriamo gli utenti di prova (mocks/data/users.ts) */
-const MOCKS = import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS === 'true'
+/** In sviluppo mostriamo gli account di prova (uguali nel mock e nel database di sviluppo) */
+const DEV = import.meta.env.DEV
 
 /** Il motivo per cui il login non è riuscito, in parole (codici del backend, contratto A.1) */
 function loginFailure(error: unknown) {
@@ -140,11 +145,11 @@ export function LoginPage() {
           approverà la richiesta e ti assegnerà il ruolo.
         </p>
 
-        {MOCKS && (
+        {DEV && (
           <p className={styles.demo}>
             Account di prova: <strong>pianificatore</strong>, <strong>operatore</strong>,{' '}
-            <strong>amministratore</strong>. La password si può lasciare vuota (oppure{' '}
-            <strong>demo</strong>); a campi vuoti entri come pianificatore.
+            <strong>amministratore</strong>, password <strong>demo</strong>.
+            {MOCK_AUTH && ' Con il backend finto puoi anche lasciare i campi vuoti.'}
           </p>
         )}
       </main>

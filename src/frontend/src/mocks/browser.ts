@@ -1,5 +1,6 @@
 import { setupWorker } from 'msw/browser'
-import { mockHandlers, realAreas } from './handlers'
+import { realAreas } from '@/lib/mockMode'
+import { mockHandlers } from './handlers'
 
 /**
  * Avvia il backend finto nel browser. Chiamata da main.tsx solo in sviluppo e solo se
