@@ -78,7 +78,9 @@ spring:
     compose:
       enabled: true
       file: compose.yaml        # relativo alla cartella da cui parte l'app (src/backend)
-      lifecycle-management: start-only   # il DB resta acceso quando fermi l'app: riavvii più veloci, dati conservati
+      # avvia il container all'avvio e lo ferma (docker compose stop, i dati restano nel volume) alla chiusura
+      # dell'app; serve una chiusura ordinata (Ctrl+C). Da VS Code lo ferma anche il postDebugTask di launch.json
+      lifecycle-management: start-and-stop
 flowsync:
   security:
     jwt:
