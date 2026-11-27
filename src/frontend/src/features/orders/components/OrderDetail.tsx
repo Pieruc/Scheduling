@@ -3,7 +3,7 @@ import { Button } from 'primereact/button'
 import { confirmDialog } from 'primereact/confirmdialog'
 import { Skeleton } from 'primereact/skeleton'
 import { useEffect, useMemo, useState } from 'react'
-import { useBlocker } from 'react-router'
+import { useBlocker, useNavigate } from 'react-router'
 import { errorMessage } from '@/api/errors'
 import type { Activity, Order, Precedence, ProcessGraph } from '@/api/types/orders'
 import { useToast } from '@/app/toast/toastContext'
@@ -26,6 +26,24 @@ const samePrecedences = (a: Precedence[], b: Precedence[]) => {
   const key = (p: Precedence) => `${p.from}->${p.to}`
   const set = new Set(a.map(key))
   return a.length === b.length && b.every((p) => set.has(key(p)))
+}
+
+/**
+ * Firma di un'attività per capire se la bozza è cambiata: solo quello che conta, in ordine
+ * stabile. Il confronto del JSON grezzo falliva dopo il salvataggio perché il backend
+ * restituisce campi in più (es. setupFamily: null) e quindi la pagina restava "da salvare".
+ */
+const activityKey = (a: Activity) =>
+  JSON.stringify([
+    a.id,
+    a.name.trim(),
+    [...(a.requiredSkills ?? [])].sort(),
+    a.modes.map((m) => [[...m.resourceIds].sort(), m.durationMin]),
+    a.setupFamily ?? null,
+  ])
+const sameActivities = (a: Activity[], b: Activity[]) => {
+  const keys = new Set(a.map(activityKey))
+  return a.length === b.length && b.every((x) => keys.has(activityKey(x)))
 }
 
 /** Dettaglio di una commessa: intestazione + area di lavoro sul grafo. */
@@ -129,9 +147,10 @@ function GraphWorkspace({ orderId, graph, editable }: GraphWorkspaceProps) {
   // Sotto i 600px il grafo va dall'alto in basso: in orizzontale diventerebbe illeggibile
   const vertical = useMediaQuery('(max-width: 600px)')
   const [saveError, setSaveError] = useState<unknown>(null)
+  const navigate = useNavigate()
   const dirty =
     !samePrecedences(precedences, graph.precedences) ||
-    JSON.stringify(activities) !== JSON.stringify(graph.activities)
+    !sameActivities(activities, graph.activities)
 
   const resourceName = useMemo(() => {
     const map = new Map(resources.map((r) => [r.id, r.name]))
@@ -200,7 +219,12 @@ function GraphWorkspace({ orderId, graph, editable }: GraphWorkspaceProps) {
     save.mutate(
       { activities, precedences },
       {
-        onSuccess: () => toast.success('Attività e precedenze salvate', orderId),
+        onSuccess: (saved) => {
+          // La bozza riparte da quello che il backend ha salvato davvero
+          setActivities(saved.activities)
+          setPrecedences(saved.precedences)
+          toast.success('Attività e precedenze salvate', orderId)
+        },
         onError: (error) => setSaveError(error),
       },
     )
@@ -313,27 +337,44 @@ function GraphWorkspace({ orderId, graph, editable }: GraphWorkspaceProps) {
         // Fissa in basso solo con modifiche da salvare: altrimenti non copre il contenuto
         <div className={`${styles.saveBar} ${dirty ? styles.saveBarSticky : ''}`}>
           <span className={dirty ? styles.unsaved : styles.saved} role="status">
-            {dirty ? 'Modifiche non salvate' : 'Tutto salvato'}
+            {dirty
+              ? 'Modifiche non salvate'
+              : activities.length === 0
+                ? 'Aggiungi le attività: poi la commessa si può pianificare'
+                : 'Tutto salvato'}
           </span>
-          <Button
-            type="button"
-            label="Annulla modifiche"
-            outlined
-            disabled={!dirty || save.isPending}
-            onClick={() => {
-              setPrecedences(graph.precedences)
-              setActivities(graph.activities)
-              setSaveError(null)
-            }}
-          />
-          <Button
-            type="button"
-            label="Salva modifiche"
-            icon="pi pi-check"
-            disabled={!dirty}
-            loading={save.isPending}
-            onClick={onSave}
-          />
+          {dirty ? (
+            <>
+              <Button
+                type="button"
+                label="Annulla modifiche"
+                outlined
+                disabled={save.isPending}
+                onClick={() => {
+                  setPrecedences(graph.precedences)
+                  setActivities(graph.activities)
+                  setSaveError(null)
+                }}
+              />
+              <Button
+                type="button"
+                label="Salva modifiche"
+                icon="pi pi-check"
+                loading={save.isPending}
+                onClick={onSave}
+              />
+            </>
+          ) : (
+            activities.length > 0 && (
+              // Il passo successivo: la commessa entra in una richiesta di pianificazione
+              <Button
+                type="button"
+                label="Pianifica questa commessa"
+                icon="pi pi-calendar-plus"
+                onClick={() => navigate(`/pianifica?commesse=${encodeURIComponent(orderId)}`)}
+              />
+            )
+          )}
         </div>
       )}
     </>

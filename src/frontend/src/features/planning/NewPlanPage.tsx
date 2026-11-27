@@ -1,6 +1,7 @@
 import { Button } from 'primereact/button'
 import { InputTextarea } from 'primereact/inputtextarea'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router'
 import { ApiError } from '@/api/errors'
 import type { Interpretation } from '@/api/types/plans'
 import { Card } from '@/components/Card'
@@ -17,9 +18,21 @@ const EXAMPLE =
   'La C-101 va consegnata entro venerdì. La fresa 2 è ferma giovedì per manutenzione. ' +
   'Se possibile evitiamo gli straordinari.'
 
+/** Testo di partenza quando si arriva da Commesse con ?commesse=C-105,C-106 */
+function textFor(ids: string[]): string {
+  if (ids.length === 0) return ''
+  const list =
+    ids.length === 1
+      ? `la commessa ${ids[0]}`
+      : `le commesse ${ids.slice(0, -1).join(', ')} e ${ids.at(-1)}`
+  return `Pianifica da domani ${list}.`
+}
+
 /** Mockup v2, schermata 3. */
 export function NewPlanPage() {
-  const [text, setText] = useState('')
+  const [params] = useSearchParams()
+  const fromOrders = (params.get('commesse') ?? '').split(',').filter(Boolean)
+  const [text, setText] = useState(() => textFor(fromOrders))
   const interpret = useInterpretRequest()
   const [result, setResult] = useState<{ text: string; data: Interpretation; n: number } | null>(
     null,
@@ -38,6 +51,15 @@ export function NewPlanPage() {
         setUnanswered(data.missingData.length)
       },
     })
+
+  // Arrivando da Commesse la richiesta è già scritta: la si interpreta subito, una volta sola
+  const autoStarted = useRef(false)
+  useEffect(() => {
+    if (fromOrders.length === 0 || autoStarted.current) return
+    autoStarted.current = true
+    onInterpret()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo all'apertura della pagina
+  }, [])
 
   const steps: Step[] = [
     {

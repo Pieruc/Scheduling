@@ -16,6 +16,8 @@ export function OrdersPage() {
   const [creating, setCreating] = useState(false)
   const { data: orders } = useOrders()
   const selected = orders?.find((o) => o.id === orderId)
+  // Commesse pronte per un piano: aperte e con almeno un'attività
+  const ready = orders?.filter((o) => o.status === 'OPEN' && o.activityCount > 0) ?? []
 
   // Senza commessa scelta si apre la prima aperta: il dettaglio non resta mai vuoto.
   if (orders && !orderId) {
@@ -29,7 +31,17 @@ export function OrdersPage() {
         title="Commesse"
         subtitle="I lavori da pianificare: scadenza, priorità e attività collegate da precedenze."
         actions={
-          <Button label="Nuova commessa" icon="pi pi-plus" onClick={() => setCreating(true)} />
+          <>
+            {ready.length > 0 && (
+              <Button
+                label={`Pianifica le aperte (${ready.length})`}
+                icon="pi pi-calendar-plus"
+                outlined
+                onClick={() => navigate(`/pianifica?commesse=${ready.map((o) => o.id).join(',')}`)}
+              />
+            )}
+            <Button label="Nuova commessa" icon="pi pi-plus" onClick={() => setCreating(true)} />
+          </>
         }
       />
       {creating && (
