@@ -17,16 +17,26 @@ import styles from './auth.module.css'
 /** Login simulato dal mock: lì i campi vuoti entrano come pianificatore (scorciatoia di sviluppo) */
 const MOCK_AUTH = isMocked('auth')
 
-const schema = MOCK_AUTH
-  ? z.object({ username: z.string().trim(), password: z.string() })
-  : z.object({
-      username: z.string().trim().min(1, 'Inserisci il nome utente.'),
-      password: z.string().min(1, 'Inserisci la password.'),
-    })
-type Values = z.infer<typeof schema>
-
 /** In sviluppo mostriamo gli account di prova (uguali nel mock e nel database di sviluppo) */
 const DEV = import.meta.env.DEV
+
+/**
+ * Scorciatoia solo in sviluppo, anche con il backend vero: campi vuoti = account di prova.
+ * Nome vuoto -> pianificatore, password vuota -> demo. In produzione i campi restano obbligatori.
+ */
+const devCredentials = (username: string, password: string) =>
+  DEV && !MOCK_AUTH
+    ? { username: username || 'pianificatore', password: password || 'demo' }
+    : { username, password }
+
+const schema =
+  MOCK_AUTH || DEV
+    ? z.object({ username: z.string().trim(), password: z.string() })
+    : z.object({
+        username: z.string().trim().min(1, 'Inserisci il nome utente.'),
+        password: z.string().min(1, 'Inserisci la password.'),
+      })
+type Values = z.infer<typeof schema>
 
 /** Il motivo per cui il login non è riuscito, in parole (codici del backend, contratto A.1) */
 function loginFailure(error: unknown) {
@@ -69,7 +79,8 @@ export function LoginPage() {
   const onSubmit = async (v: Values) => {
     setFailure(null)
     try {
-      const logged = await login(v.username, v.password)
+      const c = devCredentials(v.username, v.password)
+      const logged = await login(c.username, c.password)
       // Si torna alla pagina richiesta, se il ruolo la permette
       const back = from && from.pathname !== '/login' ? from : null
       const allowed =
@@ -148,8 +159,8 @@ export function LoginPage() {
         {DEV && (
           <p className={styles.demo}>
             Account di prova: <strong>pianificatore</strong>, <strong>operatore</strong>,{' '}
-            <strong>amministratore</strong>, password <strong>demo</strong>.
-            {MOCK_AUTH && ' Con il backend finto puoi anche lasciare i campi vuoti.'}
+            <strong>amministratore</strong>, password <strong>demo</strong>. In sviluppo puoi
+            lasciare vuota la password, o tutti e due i campi per entrare come pianificatore.
           </p>
         )}
       </main>
