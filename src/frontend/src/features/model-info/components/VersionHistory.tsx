@@ -15,7 +15,12 @@ export function VersionHistory() {
     <Card title="Storico versioni">
       {isPending && <Skeleton height="220px" />}
       {isError && <ErrorState error={error} onRetry={() => refetch()} />}
-      {data && (
+      {data && data.length === 0 && (
+        <p className={styles.note}>
+          Nessuna versione pubblicata finora: la prima arriva dalla pipeline di addestramento.
+        </p>
+      )}
+      {data && data.length > 0 && (
         <table className={styles.table}>
           <caption className="visually-hidden">Versioni dei modelli, dalla più recente</caption>
           <thead>

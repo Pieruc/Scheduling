@@ -34,14 +34,25 @@ export const userLabel = (user: string) => (user === 'system' ? 'sistema' : user
 /** "m2-policy-1.3.0" -> "m2-1.3.0" */
 const shortVersion = (v: string) => v.replace(/-(policy|context)-/, '-')
 
+/** Il backend manda il tipo di evento (RESOURCE_DOWN), il mock una frase già pronta */
+const TRIGGER: Record<string, string> = {
+  RESOURCE_DOWN: 'macchina ferma',
+  URGENT_ORDER: 'commessa urgente',
+  DELAY: 'ritardo',
+}
+
 /** Chi ha calcolato il piano: "POLICY · m2-1.3.0", "ATC (confidenza 0,48)", "evento: guasto S2" */
 export function engineText(r: AuditRecord): string {
-  if (r.action === 'RESCHEDULE') return r.details?.trigger ? `evento: ${r.details.trigger}` : '—'
+  if (r.action === 'RESCHEDULE') {
+    const t = r.details?.trigger
+    return t ? `evento: ${TRIGGER[t] ?? t}` : '—'
+  }
   if (r.action === 'FALLBACK_USED' && r.solver) {
     const c = r.details?.confidence
     return c !== undefined ? `${r.solver} (confidenza ${pct.format(c)})` : r.solver
   }
   if (!r.solver) return '—'
+  if (r.solver === 'MANUAL') return 'modifica a mano'
   return r.modelVersion && r.solver === 'POLICY'
     ? `${r.solver} · ${shortVersion(r.modelVersion)}`
     : r.solver

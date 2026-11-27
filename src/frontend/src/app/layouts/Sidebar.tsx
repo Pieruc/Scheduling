@@ -52,7 +52,9 @@ export function Sidebar({ id, open }: SidebarProps) {
   const { data: users } = useUsers(can(user, 'admin'))
   const pending = users?.filter((u) => u.status === 'PENDING').length ?? 0
   const modelLabel = models
-    ? shortModelName(models.policy.version)
+    ? models.policy
+      ? shortModelName(models.policy.version)
+      : 'nessuno (regole di riserva)'
     : modelsError
       ? 'non disponibile'
       : '…'

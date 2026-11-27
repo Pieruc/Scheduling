@@ -1,6 +1,7 @@
 import { Skeleton } from 'primereact/skeleton'
 import { ErrorState } from '@/components/ErrorState'
 import { PageHeader } from '@/components/PageHeader'
+import { useCan } from '@/features/auth/authContext'
 import { FallbackCard } from './components/FallbackCard'
 import { ModelCard } from './components/ModelCard'
 import { VersionHistory } from './components/VersionHistory'
@@ -35,6 +36,7 @@ function ServiceStatus() {
 export function ModelInfoPage() {
   const active = useActiveModels()
   const status = useModelsStatus()
+  const isAdmin = useCan('admin')
 
   return (
     <>
@@ -59,6 +61,7 @@ export function ModelInfoPage() {
             role="Decide in che ordine e su quale risorsa fare le attività."
             model={active.data.policy}
             note="Confrontato a ogni richiesta con le regole ATC ed EDD."
+            fallback="I piani li calcolano le regole di riserva (CP-SAT, ATC, EDD)."
           />
           <ModelCard
             component="CONTEXT"
@@ -66,12 +69,14 @@ export function ModelInfoPage() {
             role="Stima le durate e i setup che mancano nelle commesse."
             model={active.data.context}
             note="Impara dagli orari registrati dagli operatori."
+            fallback="Le durate mancanti si stimano con un valore di default."
           />
         </div>
       )}
 
       {status.data && <FallbackCard status={status.data} />}
-      <VersionHistory />
+      {/* Lo storico lo restituisce il backend solo all'amministratore (contratti A.7) */}
+      {isAdmin && <VersionHistory />}
     </>
   )
 }

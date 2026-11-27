@@ -16,9 +16,10 @@ export async function startMocks() {
     // Niente log di ogni richiesta finta: la console resta leggibile
     quiet: true,
     // Le richieste non /api (file di Vite, font, ...) passano senza avvisi;
-    // una chiamata /api senza handler viene segnalata in console.
+    // una chiamata /api senza handler viene segnalata in console, a meno che qualche
+    // area sia sul backend vero: lì è normale che passino al proxy di Vite.
     onUnhandledFrame({ frame, defaults }) {
-      if (frame.protocol !== 'http') return
+      if (frame.protocol !== 'http' || real.size > 0) return
       const { request } = frame.data as { request: Request }
       if (new URL(request.url).pathname.startsWith('/api')) defaults.warn()
     },

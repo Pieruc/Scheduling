@@ -17,9 +17,10 @@ export type ActiveModel = {
 }
 
 /** Risposta di GET /models/active (contratti, A.7) */
+/** Un componente è null finché la pipeline non ha pubblicato nessuna versione */
 export type ActiveModels = {
-  policy: ActiveModel
-  context: ActiveModel
+  policy: ActiveModel | null
+  context: ActiveModel | null
 }
 
 /** M2 = POLICY (ordine delle attività), M1 = CONTEXT (stima di durate e setup) */

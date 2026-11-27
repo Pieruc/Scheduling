@@ -4,14 +4,14 @@ import type { IsoDate } from '@/api/types/common'
 export type KpiPoint = {
   /** Inizio del periodo (settimana) */
   date: IsoDate
-  makespanMin: number
+  makespanMin: number | null
   lateOrders: number
   /** 0–1 */
-  avgUtilization: number
+  avgUtilization: number | null
   /** 0–1: quota di attività iniziate in orario rispetto al piano */
-  planAdherence: number
+  planAdherence: number | null
   /** PROPOSTA §8, 0–1: quota di commesse consegnate entro la scadenza */
-  onTimeRate: number
+  onTimeRate: number | null
 }
 
 /** PROPOSTA §8: utilizzo di una risorsa nel periodo */

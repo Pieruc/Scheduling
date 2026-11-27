@@ -124,7 +124,8 @@ export function IncidentForm({ day, current }: IncidentFormProps) {
                   inputId={aria.id}
                   focusInputRef={field.ref}
                   value={field.value}
-                  options={day.resources}
+                  // Il backend mette fra le risorse anche l'operatore stesso: qui servono le macchine
+                  options={day.resources.filter((r) => r.name !== day.operatorName)}
                   optionLabel="name"
                   optionValue="id"
                   onChange={(e) => field.onChange(e.value ?? null)}

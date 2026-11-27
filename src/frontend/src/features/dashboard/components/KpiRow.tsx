@@ -22,14 +22,25 @@ export function KpiRow() {
 
   const current = data.points.at(-1)
   const previous = data.points.at(-2)
-  if (!current) return null
-  const onTimeDelta = previous ? current.onTimeRate - previous.onTimeRate : 0
+  if (!current) {
+    return (
+      <p className={styles.empty} role="status">
+        Gli indicatori compaiono dopo le prime attività registrate dagli operatori.
+      </p>
+    )
+  }
+  // Il backend manda null quando un indicatore non è calcolabile (es. nessuna attività finita)
+  const pct = (v: number | null) => (v === null ? '—' : formatPercent(v))
+  const onTimeDelta =
+    previous && current.onTimeRate !== null && previous.onTimeRate !== null
+      ? current.onTimeRate - previous.onTimeRate
+      : 0
 
   return (
     <section aria-label="Indicatori della settimana" className={styles.kpiRow}>
       <KpiCard
         label="Puntualità (settimana)"
-        value={formatPercent(current.onTimeRate)}
+        value={pct(current.onTimeRate)}
         note={`${formatPointsDelta(onTimeDelta)} rispetto alla scorsa`}
         noteTone={onTimeDelta > 0 ? 'good' : onTimeDelta < 0 ? 'bad' : 'neutral'}
       />
@@ -41,12 +52,12 @@ export function KpiRow() {
       />
       <KpiCard
         label="Utilizzo medio risorse"
-        value={formatPercent(current.avgUtilization)}
+        value={pct(current.avgUtilization)}
         note={`${data.utilizationByResource.length} risorse attive`}
       />
       <KpiCard
         label="Aderenza al piano"
-        value={formatPercent(current.planAdherence)}
+        value={pct(current.planAdherence)}
         note="attività iniziate in orario"
       />
     </section>

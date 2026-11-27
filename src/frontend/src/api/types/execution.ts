@@ -35,7 +35,7 @@ export type OperatorActivity = {
   actualStart: IsoDateTime | null
   actualEnd: IsoDateTime | null
   /** Attività precedente non ancora finita: finché c'è, non si può iniziare */
-  waitingFor?: { activityName: string; plannedEnd: IsoDateTime }
+  waitingFor?: { activityName: string; plannedEnd: IsoDateTime } | null
 }
 
 /** PROPOSTA §8: risposta di GET /operator/today (l'operatore arriverà dal token, dopo il login) */

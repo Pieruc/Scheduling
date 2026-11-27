@@ -39,12 +39,12 @@ della pubblica amministrazione (pratiche tra uffici) o un progetto (RCPSP), camb
 - **Training e inferenza sono separati**: CP-SAT si usa solo offline come "insegnante"; in esercizio risponde il modello.
 - I contratti tra le parti sono in [`CONTRATTI_API.md`](CONTRATTI_API.md).
 
-## Stato (25 novembre 2026)
+## Stato (27 novembre 2026)
 
 | Parte | Fatto | Da fare |
 |---|---|---|
-| **Frontend** | Tutte le schermate del mockup su backend finto (MSW): dashboard, commesse con grafo delle attività, nuova pianificazione con lettura della richiesta a parole, confronto dei 3 piani con ATC/EDD, elenco piani, Gantt delle risorse con approvazione/modifica/rifiuto, ripianificazione dopo una segnalazione, vista operatore, configurazione, modello AI, audit, login con ruoli, registrazione e gestione utenti | Collegamento al backend vero, un'area alla volta |
-| **Backend** | Schema MySQL (23 tabelle, Flyway), login JWT con refresh, registrazione con approvazione, risorse, calendari/competenze/profili in lettura, commesse e grafo di processo | Pianificazione e richieste con 3 piani, Gantt, decisioni, ripianificazione, esecuzione, avvisi e segnalazioni, KPI, audit, client verso l'AI |
+| **Frontend** | Tutte le schermate del mockup su backend finto (MSW): dashboard, commesse con grafo delle attività, nuova pianificazione con lettura della richiesta a parole, confronto dei 3 piani con ATC/EDD, elenco piani, Gantt delle risorse con approvazione/modifica/rifiuto, ripianificazione dopo una segnalazione, vista operatore, configurazione, modello AI, audit, login con ruoli, registrazione e gestione utenti. **Tutte le aree provate sul backend vero** (login e utenti, configurazione, commesse, pianificazione e ripianificazione, operatore, avvisi, KPI, modello AI, audit); il backend finto resta per lavorare senza Spring | Prove con un modello AI pubblicato (oggi i piani li fanno le regole di riserva) |
+| **Backend** | Schema MySQL (Flyway), login JWT con refresh, registrazione con approvazione, configurazione, commesse e grafo di processo, richieste con 3 piani, Gantt, decisioni, ripianificazione, esecuzione, avvisi e segnalazioni, KPI, modelli, audit, client verso l'AI | Una ripianificazione salva il fermo nella risorsa anche se fallisce, e una correzione non sostituisce il fermo precedente; nei dati demo le macchine non hanno competenze, quindi l'operatore non vede le sue attività |
 | **AI** | Schema delle istanze, convertitori dei benchmark (579 istanze), generatore FACTORY/PA, dispatcher, regole EDD/ATC, verifica di ammissibilità, teacher CP-SAT, dataset con 23 feature | Addestramento di M2 (pilota contro ATC) e di M1, servizio FastAPI, lettura della richiesta a parole (LLM) |
 | **Integrazione** | Contratti concordati; il frontend lavora sugli stessi formati | Docker Compose di tutto il sistema, prove end-to-end |
 
@@ -58,16 +58,26 @@ npm install
 npm run dev          # http://localhost:5173
 ```
 
-Per usare il backend vero: in `src/frontend/.env.development` mettere `VITE_USE_MOCKS=false`
-(le chiamate a `/api` vanno già a `localhost:8080`).
+Per usare il backend vero (le chiamate a `/api` vanno già a `localhost:8080`) creare
+`src/frontend/.env.development.local`, che non si versiona:
+
+```bash
+VITE_REAL_AREAS=all     # oppure solo alcune: auth,config,orders,planning,operator,models,audit
+```
+
+Le aree non elencate restano sul backend finto. Dopo aver cambiato il file va riavviato `npm run dev`.
+Con il backend vero gli account sono gli stessi (`pianificatore`, `operatore`, `amministratore`,
+password `demo`), ma i campi non si possono lasciare vuoti.
 
 **Backend** (Java 21, Maven, Docker Desktop acceso): il profilo `dev` avvia anche MySQL.
 
 ```bash
 cd src/backend
-cp .env.example .env
+cp .env.example .env         # mettere un JWT_SECRET (es. openssl rand -base64 48)
 mvn spring-boot:run -Pdev    # http://localhost:8080, Swagger su /swagger-ui.html
 ```
+
+Se la porta 3306 è già occupata (es. da XAMPP), in `.env` mettere `DB_PORT=3307`.
 
 **AI** (Python 3.11+): vedi [`src/ai/README.md`](src/ai/README.md) per convertitori, generatore,
 baseline e dataset.

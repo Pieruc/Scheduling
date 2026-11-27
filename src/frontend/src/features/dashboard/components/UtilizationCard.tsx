@@ -13,7 +13,13 @@ export function UtilizationCard() {
     <Card title="Utilizzo per risorsa (settimana)" className={styles.half}>
       {isPending && <Skeleton height="190px" />}
       {isError && <ErrorState error={error} onRetry={() => refetch()} />}
-      {data && (
+      {data && data.utilizationByResource.length === 0 && (
+        <p className={styles.empty}>
+          Nessun dato per questa settimana: l’utilizzo si calcola dalle attività registrate dagli
+          operatori.
+        </p>
+      )}
+      {data && data.utilizationByResource.length > 0 && (
         <ul className={styles.bars}>
           {data.utilizationByResource.map((r) => (
             <li key={r.resourceId} className={styles.barRow}>

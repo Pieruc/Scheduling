@@ -10,7 +10,7 @@ const isoDate = (d: Date) => d.toISOString().slice(0, 10)
 const LAST_SIX_WEEKS = (() => {
   const to = new Date()
   const from = new Date(to.getTime() - 42 * 86_400_000)
-  return { from: isoDate(from), to: isoDate(to) }
+  return { from: `${isoDate(from)}T00:00:00Z`, to: to.toISOString() }
 })()
 
 /** KPI delle ultime sei settimane (l'ultimo punto è la settimana in corso). */

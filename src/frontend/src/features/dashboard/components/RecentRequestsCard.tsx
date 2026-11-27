@@ -8,6 +8,8 @@ import { ErrorState } from '@/components/ErrorState'
 import { StatusTag } from '@/components/StatusTag'
 import { formatDateTime, formatEuro, formatWorkDuration } from '@/lib/format'
 import { requestStatus, solverLabel, VARIANT_LABEL } from '@/lib/labels'
+import { useResources } from '@/features/configuration/hooks'
+import { requestTitle } from '@/features/plans/requestText'
 import { useRecentPlanRequests } from '../hooks'
 import styles from './dashboard.module.css'
 
@@ -26,6 +28,7 @@ function requestHref(r: PlanRequest) {
 
 export function RecentRequestsCard() {
   const { data, isPending, isError, error, refetch } = useRecentPlanRequests()
+  const resources = useResources()
 
   return (
     <Card title="Piani recenti" action={<Link to="/piani">Vedi tutti i piani</Link>}>
@@ -43,7 +46,7 @@ export function RecentRequestsCard() {
             header="Richiesta"
             body={(r: PlanRequest) => (
               <div>
-                <Link to={requestHref(r)}>{r.label}</Link>
+                <Link to={requestHref(r)}>{requestTitle(r, resources.data)}</Link>
                 <div className={styles.sub}>
                   {r.plans.length > 1
                     ? `${r.plans.length} piani`
