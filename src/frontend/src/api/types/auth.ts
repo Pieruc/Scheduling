@@ -14,9 +14,12 @@ export type User = {
   department?: string | null
 }
 
-/** Risposta di POST /auth/login (contratti, A.1; il refresh token per ora non si usa) */
+/** Risposta di POST /auth/login e POST /auth/refresh (contratti, A.1) */
 export type LoginResponse = {
   accessToken: string
+  /** Assente con il backend finto, che non scade */
+  refreshToken?: string
+  /** Secondi di validità dell'access token (15 minuti nel backend) */
   expiresIn: number
   user: User
 }

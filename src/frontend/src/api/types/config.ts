@@ -48,8 +48,8 @@ export type Calendar = {
   holidays: Holiday[]
 }
 
-/** Corpo di POST /calendars e PUT /calendars/{id} (PROPOSTA §8) */
-export type CalendarInput = Omit<Calendar, 'shiftsSummary'>
+/** Corpo di POST /calendars e PUT /calendars/{id}: l'id lo assegna il backend (contratto A.2) */
+export type CalendarInput = Omit<Calendar, 'id' | 'shiftsSummary'>
 
 /** Competenza (contratti, A.2) */
 export type Skill = {
@@ -78,4 +78,11 @@ export type DomainProfile = {
 }
 
 /** Corpo di PUT /domain-profiles/{code} */
-export type DomainProfileInput = Pick<DomainProfile, 'defaultObjectiveWeights' | 'features'>
+export type DomainProfileInput = {
+  /** Il backend li richiede anche se non cambiano (contratto A.2) */
+  name: string
+  description: string
+  defaultObjectiveWeights: ObjectiveDefaults
+  features: string[]
+  inUse: boolean
+}

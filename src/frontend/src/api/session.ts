@@ -1,11 +1,11 @@
 import type { User } from '@/api/types/auth'
 
 /**
- * Sessione di prova, volutamente semplice: token e utente in sessionStorage
- * (restano ricaricando la pagina, spariscono chiudendo la scheda).
- * Niente rinnovo del token: quando scade, si torna al login.
+ * Sessione: token, refresh token e utente in sessionStorage (restano ricaricando la pagina,
+ * spariscono chiudendo la scheda). L'access token del backend dura 15 minuti: quando scade,
+ * client.ts lo rinnova con il refresh token; se anche quello è scaduto si torna al login.
  */
-export type Session = { token: string; user: User } | null
+export type Session = { token: string; refreshToken?: string; user: User } | null
 
 const KEY = 'flowsync.session'
 

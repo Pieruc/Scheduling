@@ -61,8 +61,9 @@ export function useDeactivateResource() {
 export function useSaveCalendar() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ input, isNew }: { input: CalendarInput; isNew: boolean }) =>
-      isNew ? createCalendar(input) : updateCalendar(input),
+    // id assente = nuovo calendario (il codice lo assegna il backend)
+    mutationFn: ({ input, id }: { input: CalendarInput; id?: string }) =>
+      id ? updateCalendar(id, input) : createCalendar(input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.calendars.all }),
   })
 }

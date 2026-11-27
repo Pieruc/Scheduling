@@ -8,10 +8,6 @@ export const toMinutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.sl
 /** Regole del form di un calendario, con i messaggi in italiano */
 export const calendarSchema = z
   .object({
-    id: z
-      .string()
-      .trim()
-      .regex(/^CAL-[A-Z0-9-]+$/, 'Usa il formato CAL-NOME, es. CAL-NOTTE.'),
     name: z.string().trim().min(1, 'Inserisci un nome.'),
     workDays: z.array(z.number()).min(1, 'Scegli almeno un giorno lavorativo.'),
     shifts: z.array(z.object({ start: time, end: time })).min(1, 'Aggiungi almeno un turno.'),
@@ -68,7 +64,6 @@ export function weeklyHours(c: { workDays: number[]; shifts: Shift[] }) {
 
 export function toFormValues(c?: Calendar): CalendarFormValues {
   return {
-    id: c?.id ?? 'CAL-',
     name: c?.name ?? '',
     workDays: c?.workDays ?? [1, 2, 3, 4, 5],
     shifts: c?.shifts ?? [{ start: '08:00', end: '12:00' }],

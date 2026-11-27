@@ -1,12 +1,16 @@
 import { setupWorker } from 'msw/browser'
-import { handlers } from './handlers'
+import { mockHandlers, realAreas } from './handlers'
 
 /**
  * Avvia il backend finto nel browser. Chiamata da main.tsx solo in sviluppo e solo se
  * VITE_USE_MOCKS=true, quindi in produzione questo codice non viene incluso.
  */
 export async function startMocks() {
-  const worker = setupWorker(...handlers)
+  const real = realAreas()
+  const worker = setupWorker(...mockHandlers())
+  if (real.size > 0) {
+    console.info(`[mock] aree sul backend vero: ${[...real].join(', ')}`)
+  }
   await worker.start({
     // Niente log di ogni richiesta finta: la console resta leggibile
     quiet: true,

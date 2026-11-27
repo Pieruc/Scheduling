@@ -12,16 +12,11 @@ import { reviewHandlers } from './review'
 import { api, latency, simulatedFailure } from './utils'
 
 /**
- * Backend finto: stessi URL e stessi JSON dell'API pubblica (contratto A).
- * Quando un endpoint vero è pronto, si toglie il suo handler da qui.
+ * Backend finto: stessi URL e stessi JSON dell'API pubblica (contratto A), diviso per area.
+ * Con VITE_REAL_AREAS (es. "auth,config") le aree elencate NON sono simulate: le loro chiamate
+ * passano al backend vero (proxy /api -> localhost:8080). "all" = nessuna area simulata.
  */
-export const handlers = [
-  // Login di prova
-  ...authHandlers,
-  ...configHandlers,
-  ...orderHandlers,
-  ...planningHandlers,
-  ...reviewHandlers,
+const operatorArea = [
   ...operatorHandlers,
 
   http.get(api('/kpis'), async () => {
@@ -33,12 +28,26 @@ export const handlers = [
     await latency()
     return simulatedFailure() ?? HttpResponse.json(alerts)
   }),
+]
 
+const modelsArea = [
   http.get(api('/models/active'), async () => {
     await latency()
     return simulatedFailure() ?? HttpResponse.json(activeModels)
   }),
 
+  http.get(api('/models/status'), async () => {
+    await latency()
+    return simulatedFailure() ?? HttpResponse.json(modelsStatus)
+  }),
+
+  http.get(api('/models'), async () => {
+    await latency()
+    return simulatedFailure() ?? HttpResponse.json(modelVersions)
+  }),
+]
+
+const auditArea = [
   // GET /audit?planId=&from=&to= (contratti A.8)
   http.get(api('/audit'), async ({ request }) => {
     await latency()
@@ -55,14 +64,44 @@ export const handlers = [
       }),
     )
   }),
-
-  http.get(api('/models/status'), async () => {
-    await latency()
-    return simulatedFailure() ?? HttpResponse.json(modelsStatus)
-  }),
-
-  http.get(api('/models'), async () => {
-    await latency()
-    return simulatedFailure() ?? HttpResponse.json(modelVersions)
-  }),
 ]
+
+/** Aree del backend finto. "auth" comprende login, registrazione e gestione utenti. */
+export const MOCK_AREAS = {
+  auth: authHandlers,
+  config: configHandlers,
+  orders: orderHandlers,
+  planning: [...planningHandlers, ...reviewHandlers],
+  operator: operatorArea,
+  models: modelsArea,
+  audit: auditArea,
+} as const
+
+export type MockArea = keyof typeof MOCK_AREAS
+
+/**
+ * Aree che vanno al backend vero, da VITE_REAL_AREAS. Se almeno un'area è vera, anche il login
+ * deve esserlo: il backend vero accetta solo i suoi token.
+ */
+export function realAreas(): Set<MockArea> {
+  const raw = (import.meta.env.VITE_REAL_AREAS ?? '').trim()
+  const all = Object.keys(MOCK_AREAS) as MockArea[]
+  const set = new Set<MockArea>(
+    raw === 'all'
+      ? all
+      : (raw
+          .split(',')
+          .map((a: string) => a.trim())
+          .filter(Boolean) as MockArea[]),
+  )
+  if (set.size > 0) set.add('auth')
+  return set
+}
+
+/** Gli handler delle aree ancora simulate */
+export function mockHandlers() {
+  const real = realAreas()
+  return (Object.keys(MOCK_AREAS) as MockArea[])
+    .filter((area) => !real.has(area))
+    .flatMap((area) => [...MOCK_AREAS[area]])
+}

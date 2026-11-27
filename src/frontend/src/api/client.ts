@@ -1,5 +1,6 @@
 import { ApiError } from '@/api/errors'
 import { session } from '@/api/session'
+import type { LoginResponse } from '@/api/types/auth'
 import type { ProblemDetails } from '@/api/types/common'
 
 /** URL di base dell'API pubblica (contratto A): /api/v1 */
@@ -21,12 +22,46 @@ type RequestOptions = {
  * passano dalle funzioni in api/*.ts, che usano questa.
  */
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await send(path, options, session.get()?.token ?? null)
-  // Token scaduto o non valido: si esce e il router riporta al login
+  let response = await send(path, options, session.get()?.token ?? null)
+  // Access token scaduto: si rinnova una volta e si riprova la stessa richiesta
+  if (response.status === 401 && session.get()?.refreshToken && (await refresh())) {
+    response = await send(path, options, session.get()?.token ?? null)
+  }
+  // Ancora 401 (o niente refresh token): si esce e il router riporta al login
   if (response.status === 401 && session.get()) session.set(null)
   if (!response.ok) throw new ApiError(await readProblem(response))
   if (response.status === 204) return undefined as T
   return (await response.json()) as T
+}
+
+/** Rinnovo in corso: se più chiamate ricevono 401 insieme, si rinnova una volta sola */
+let refreshing: Promise<boolean> | null = null
+
+/** POST /auth/refresh (contratti A.1): nuovo access token, e nuovo refresh token */
+function refresh(): Promise<boolean> {
+  refreshing ??= (async () => {
+    const current = session.get()
+    try {
+      const res = await send(
+        '/auth/refresh',
+        { method: 'POST', body: { refreshToken: current?.refreshToken } },
+        null,
+      )
+      if (!res.ok || !current) return false
+      const tokens = (await res.json()) as LoginResponse
+      session.set({
+        token: tokens.accessToken,
+        refreshToken: tokens.refreshToken ?? current.refreshToken,
+        user: tokens.user ?? current.user,
+      })
+      return true
+    } catch {
+      return false
+    } finally {
+      refreshing = null
+    }
+  })()
+  return refreshing
 }
 
 async function send(path: string, options: RequestOptions, token: string | null) {

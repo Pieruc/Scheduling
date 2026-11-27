@@ -62,7 +62,16 @@ function ProfileEditor({ profile }: { profile: DomainProfile }) {
     const rest = 1 - (normalized.makespan + normalized.weightedTardiness + normalized.setup)
     normalized.weightedTardiness = Math.round((normalized.weightedTardiness + rest) * 1000) / 1000
     save.mutate(
-      { code: profile.code, input: { defaultObjectiveWeights: normalized, features } },
+      {
+        code: profile.code,
+        input: {
+          name: profile.name ?? profile.code,
+          description: profile.description,
+          defaultObjectiveWeights: normalized,
+          features,
+          inUse: profile.inUse ?? false,
+        },
+      },
       {
         onSuccess: () => toast.success('Profilo salvato', profile.name ?? profile.code),
         onError: (e) => toast.error('Profilo non salvato', errorMessage(e)),

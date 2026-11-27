@@ -15,7 +15,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiLogin(username, password)
       // I dati in cache erano dell'utente precedente
       queryClient.clear()
-      session.set({ token: res.accessToken, user: res.user })
+      session.set({ token: res.accessToken, refreshToken: res.refreshToken, user: res.user })
       return res.user
     },
     logout: () => {

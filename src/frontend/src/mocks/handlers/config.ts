@@ -62,11 +62,8 @@ function unprocessable(errors: NonNullable<ProblemDetails['errors']>) {
 const minutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5))
 
 /** Stesse regole del form: turni in ordine, senza sovrapposizioni, almeno un giorno */
-function validateCalendar(input: CalendarInput, isNew: boolean) {
+function validateCalendar(input: CalendarInput) {
   const errors: NonNullable<ProblemDetails['errors']> = []
-  if (isNew && calendars.some((c) => c.id === input.id)) {
-    errors.push({ code: 'DUPLICATE_ID', path: 'id', message: `Il codice ${input.id} è già usato.` })
-  }
   if (input.workDays.length === 0) {
     errors.push({ code: 'NO_WORKDAYS', path: 'workDays', message: 'Scegli almeno un giorno.' })
   }
@@ -131,9 +128,10 @@ export const configHandlers = [
   http.post(api('/calendars'), async ({ request }) => {
     await latency()
     const input = (await request.json()) as CalendarInput
-    const invalid = simulatedFailure() ?? validateCalendar(input, true)
+    const invalid = simulatedFailure() ?? validateCalendar(input)
     if (invalid) return invalid
-    const created = { ...input, shiftsSummary: summarize(input) }
+    // Come nel backend vero, il codice lo assegna il server
+    const created = { ...input, id: `CAL-${calendars.length + 1}`, shiftsSummary: summarize(input) }
     calendars.push(created)
     return HttpResponse.json(created, { status: 201 })
   }),
@@ -143,7 +141,7 @@ export const configHandlers = [
     const index = calendars.findIndex((c) => c.id === params.id)
     if (index < 0) return problem(404, 'Not Found', `Calendario ${params.id} inesistente.`)
     const input = (await request.json()) as CalendarInput
-    const invalid = simulatedFailure() ?? validateCalendar(input, false)
+    const invalid = simulatedFailure() ?? validateCalendar(input)
     if (invalid) return invalid
     calendars[index] = { ...input, id: calendars[index].id, shiftsSummary: summarize(input) }
     return HttpResponse.json(calendars[index])

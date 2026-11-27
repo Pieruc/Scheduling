@@ -73,8 +73,8 @@ export async function createCalendar(input: CalendarInput) {
 }
 
 /** PROPOSTA §8: PUT /calendars/{id} (il contratto prevede solo GET e POST) */
-export async function updateCalendar(input: CalendarInput) {
-  const saved = await apiFetch<Calendar>(`/calendars/${encodeURIComponent(input.id)}`, {
+export async function updateCalendar(id: string, input: CalendarInput) {
+  const saved = await apiFetch<Calendar>(`/calendars/${encodeURIComponent(id)}`, {
     method: 'PUT',
     body: input,
   })

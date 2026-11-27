@@ -63,7 +63,7 @@ export function CalendarForm({ calendar, usedBy, onSaved, onCancel }: CalendarFo
 
   const onSubmit = (values: CalendarFormValues) =>
     save.mutate(
-      { input: toInput(values), isNew },
+      { input: toInput(values), id: calendar?.id },
       {
         onSuccess: (saved) => {
           toast.success(isNew ? 'Calendario creato' : 'Modifiche salvate', saved.name)
@@ -93,22 +93,9 @@ export function CalendarForm({ calendar, usedBy, onSaved, onCancel }: CalendarFo
         </p>
       )}
 
-      <div className={shared.twoCols}>
-        <FormField id="cal-id" label="Codice" error={errors.id?.message}>
-          {(aria) => (
-            <InputText
-              {...aria}
-              invalid={aria['aria-invalid']}
-              {...register('id')}
-              disabled={!isNew}
-              className="mono"
-            />
-          )}
-        </FormField>
-        <FormField id="cal-name" label="Nome" error={errors.name?.message}>
-          {(aria) => <InputText {...aria} invalid={aria['aria-invalid']} {...register('name')} />}
-        </FormField>
-      </div>
+      <FormField id="cal-name" label="Nome" error={errors.name?.message}>
+        {(aria) => <InputText {...aria} invalid={aria['aria-invalid']} {...register('name')} />}
+      </FormField>
 
       <fieldset
         className={shared.fieldset}
