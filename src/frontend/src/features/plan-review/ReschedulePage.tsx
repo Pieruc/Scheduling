@@ -6,7 +6,7 @@ import { InputNumber } from 'primereact/inputnumber'
 import { InputTextarea } from 'primereact/inputtextarea'
 import { Skeleton } from 'primereact/skeleton'
 import { Controller, useForm, useWatch, type FieldPath } from 'react-hook-form'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { z } from 'zod'
 import { ApiError, errorMessage } from '@/api/errors'
 import type { GanttView, RescheduleEvent } from '@/api/types/plans'
@@ -62,9 +62,12 @@ const schema = z
 
 type Values = z.infer<typeof schema>
 
-/** Valori iniziali del form manuale: macchina ferma da adesso */
-function initialValues(): Values {
-  return {
+/**
+ * Valori iniziali del form manuale: macchina ferma da adesso, oppure l'evento di una
+ * ripianificazione non riuscita, da correggere invece che da riscrivere.
+ */
+function initialValues(retry?: RescheduleEvent): Values {
+  const base: Values = {
     type: 'RESOURCE_DOWN',
     resourceId: null,
     from: new Date(),
@@ -74,7 +77,28 @@ function initialValues(): Values {
     delayHours: null,
     note: '',
   }
+  if (!retry) return base
+  if (retry.type === 'RESOURCE_DOWN') {
+    return {
+      ...base,
+      resourceId: retry.resourceId,
+      from: new Date(retry.from),
+      to: retry.to ? new Date(retry.to) : null,
+    }
+  }
+  if (retry.type === 'URGENT_ORDER') {
+    return {
+      ...base,
+      type: 'URGENT_ORDER',
+      orderId: retry.orderId,
+      dueDate: retry.dueDate ? new Date(retry.dueDate) : null,
+    }
+  }
+  return { ...base, type: 'DELAY', orderId: retry.orderId, delayHours: retry.delayMin / 60 }
 }
+
+/** Stato di navigazione con cui "Cambia i dati della ripianificazione" riapre il form */
+export type RescheduleRetryState = { retry?: RescheduleEvent }
 
 function toEvent(v: Values): RescheduleEvent {
   if (v.type === 'RESOURCE_DOWN') {
@@ -100,6 +124,7 @@ export function ReschedulePage() {
   const { planId } = useParams()
   const [params] = useSearchParams()
   const alertId = params.get('avviso')
+  const retry = (useLocation().state as RescheduleRetryState | null)?.retry
   const { data: view, isPending, isError, error, refetch } = usePlanGantt(planId)
   const alerts = useAlerts()
   const alert = alerts.data?.find((a) => a.id === alertId)
@@ -171,13 +196,13 @@ export function ReschedulePage() {
       {alert?.event ? (
         <IncidentReschedule view={view} alert={{ ...alert, event: alert.event }} />
       ) : (
-        <RescheduleForm view={view} />
+        <RescheduleForm view={view} retry={retry} />
       )}
     </>
   )
 }
 
-function RescheduleForm({ view }: { view: GanttView }) {
+function RescheduleForm({ view, retry }: { view: GanttView; retry?: RescheduleEvent }) {
   const navigate = useNavigate()
   const toast = useToast()
   const now = useNow(60_000)
@@ -188,7 +213,7 @@ function RescheduleForm({ view }: { view: GanttView }) {
     handleSubmit,
     setError,
     formState: { errors },
-  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: initialValues() })
+  } = useForm<Values>({ resolver: zodResolver(schema), defaultValues: initialValues(retry) })
   const [type, resourceId, orderId] = useWatch({ control, name: ['type', 'resourceId', 'orderId'] })
 
   const orderIds = [...new Set(view.bars.map((b) => b.orderId))].sort()

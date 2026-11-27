@@ -12,10 +12,12 @@ type BaselineComparisonProps = {
 /** Lo stesso problema risolto con le regole classiche: quanto aggiunge l'AI. */
 export function BaselineComparison({ recommended, baselines }: BaselineComparisonProps) {
   const variant = recommended.variant ?? 'BALANCED'
+  // Senza modello AI attivo i piani li fa già una regola di riserva: non chiamarli "AI"
+  const byAi = recommended.solver === 'POLICY'
   const rows = [
     {
       key: 'ai',
-      name: `AI · Piano ${VARIANT_INFO[variant].letter} (${VARIANT_LABEL[variant].toLowerCase()})`,
+      name: `${byAi ? 'AI' : 'Proposto'} · Piano ${VARIANT_INFO[variant].letter} (${VARIANT_LABEL[variant].toLowerCase()})`,
       kpis: recommended.kpis!,
       ai: true,
     },
@@ -31,7 +33,9 @@ export function BaselineComparison({ recommended, baselines }: BaselineCompariso
   return (
     <Card title="Rispetto alle regole classiche">
       <p className={styles.muted}>
-        Gli stessi dati pianificati con le regole di riserva, per vedere quanto aggiunge l’AI.
+        {byAi
+          ? 'Gli stessi dati pianificati con le regole di riserva, per vedere quanto aggiunge l’AI.'
+          : 'Il modello AI non era disponibile: i piani vengono già da una regola di riserva, qui confrontata con le altre.'}
       </p>
       <div className={styles.tableWrap}>
         <table className={styles.compare}>

@@ -15,6 +15,15 @@
   color: var(--fs-warning-text);
 }
 
+.reasons {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: var(--fs-text);
+  font-size: 14px;
+}
+
 .muted {
   margin: 0;
   color: var(--fs-muted);

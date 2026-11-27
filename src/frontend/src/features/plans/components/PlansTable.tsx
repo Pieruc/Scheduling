@@ -9,6 +9,8 @@ import {
   formatWorkDuration,
 } from '@/lib/format'
 import { PLAN_STATUS, requestStatus, solverLabel, VARIANT_INFO, VARIANT_LABEL } from '@/lib/labels'
+import { useResources } from '@/features/configuration/hooks'
+import { failureReasons, requestTitle } from '../requestText'
 import styles from './plansList.module.css'
 
 /** "C-101, C-102" oppure "C-101 … C-104 · 4 commesse" */
@@ -25,6 +27,8 @@ function planName(plan: PlanSummary) {
 /** Prima riga di ogni gruppo: di che richiesta si tratta e dove andare */
 function RequestHeader({ request }: { request: PlanRequest }) {
   const status = requestStatus(request)
+  const resources = useResources()
+  const title = requestTitle(request, resources.data)
   const toRequest = `/piani/richieste/${request.id}`
   const link =
     request.status === 'PENDING'
@@ -38,7 +42,7 @@ function RequestHeader({ request }: { request: PlanRequest }) {
       <th colSpan={7} scope="rowgroup">
         <div className={styles.requestHead}>
           <div className={styles.requestText}>
-            <span className={styles.requestTitle}>{request.label}</span>
+            <span className={styles.requestTitle}>{title}</span>
             <span className={styles.requestMeta}>
               {formatDateTime(request.createdAt)} · {request.createdBy} · orizzonte{' '}
               {formatShortDate(request.horizonStart)} – {formatShortDate(request.horizonEnd)} ·{' '}
@@ -48,11 +52,7 @@ function RequestHeader({ request }: { request: PlanRequest }) {
           <div className={styles.requestSide}>
             <StatusTag label={status.label} tone={status.tone} />
             {link && (
-              <Link
-                to={toRequest}
-                className={styles.requestLink}
-                aria-label={`${link}: ${request.label}`}
-              >
+              <Link to={toRequest} className={styles.requestLink} aria-label={`${link}: ${title}`}>
                 {link}
                 <i className="pi pi-arrow-right" aria-hidden="true" />
               </Link>
@@ -106,7 +106,7 @@ function MessageRow({ request }: { request: PlanRequest }) {
     request.status === 'PENDING'
       ? 'Il motore sta calcolando i 3 piani…'
       : request.status === 'FAILED'
-        ? `Nessun piano: ${request.error ?? 'errore sconosciuto'}.`
+        ? `Nessun piano: ${failureReasons(request.error).causes.join('; ')}.`
         : 'Nessun piano.'
   return (
     <tr className={styles.messageRow}>

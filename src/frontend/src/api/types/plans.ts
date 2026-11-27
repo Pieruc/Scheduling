@@ -3,8 +3,11 @@ import type { IsoDateTime } from '@/api/types/common'
 /** Stato di un piano (contratti, A.4) */
 export type PlanStatus = 'PENDING' | 'PROPOSED' | 'APPROVED' | 'REJECTED' | 'SUPERSEDED' | 'FAILED'
 
-/** Chi ha prodotto il piano: la policy AI o un metodo di riserva (contratti, B.2) */
-export type Solver = 'POLICY' | 'CP_SAT' | 'ATC' | 'EDD'
+/**
+ * Chi ha prodotto il piano: la policy AI o un metodo di riserva (contratti, B.2).
+ * MANUAL = nuova versione nata dalle modifiche del pianificatore nel Gantt.
+ */
+export type Solver = 'POLICY' | 'CP_SAT' | 'ATC' | 'EDD' | 'MANUAL'
 
 /**
  * PROPOSTA §8: le tre varianti prodotte da ogni richiesta.

@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router'
 import type { PlanRequest, PlanRequestStage } from '@/api/types/plans'
 import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
+import { useResources } from '@/features/configuration/hooks'
+import type { RescheduleRetryState } from '@/features/plan-review/ReschedulePage'
 import { PageHeader } from '@/components/PageHeader'
 import { PipelineSteps, type Step, type StepState } from '@/components/PipelineSteps'
 import { StatusTag } from '@/components/StatusTag'
@@ -10,6 +12,7 @@ import { solverLabel, VARIANT_LABEL } from '@/lib/labels'
 import { BaselineComparison } from './components/BaselineComparison'
 import { PlanCard } from './components/PlanCard'
 import { usePlanRequest } from './hooks'
+import { eventText, failureReasons } from './requestText'
 import styles from './components/plans.module.css'
 
 const ORDER: PlanRequestStage[] = ['VALIDATION', 'CONTEXT', 'POLICY', 'BASELINES']
@@ -46,6 +49,7 @@ function steps(request: PlanRequest): Step[] {
 export function CandidatesPage() {
   const { requestId } = useParams()
   const { data: request, isPending, isError, error, refetch } = usePlanRequest(requestId)
+  const resources = useResources()
 
   const crumb = (
     <nav aria-label="Percorso" className={styles.crumb}>
@@ -95,7 +99,9 @@ export function CandidatesPage() {
             ? 'La scelta è fatta: il piano approvato è quello in esecuzione.'
             : request.status === 'COMPLETED'
               ? 'Tutti rispettano i vincoli. Cambia il compromesso tra tempo e costo.'
-              : `${request.label} · ci vogliono pochi secondi.`
+              : request.status === 'FAILED'
+                ? 'Con questi dati nessun piano rispetta tutti i vincoli.'
+                : `${request.label} · ci vogliono pochi secondi.`
         }
         actions={
           request.status === 'COMPLETED' && policyPlan ? (
@@ -110,9 +116,11 @@ export function CandidatesPage() {
       {request.rescheduleOf && (
         <p className={styles.rescheduleNote}>
           <i className="pi pi-refresh" aria-hidden="true" /> Ripianificazione di{' '}
-          <Link to={`/piani/${request.rescheduleOf}`}>{request.rescheduleOf}</Link> dopo:{' '}
-          {request.label.replace(/^Ripianificazione: /, '')}. Approvando uno di questi piani, prende
-          il posto di quello in esecuzione.
+          <Link to={`/piani/${request.rescheduleOf}`}>{request.rescheduleOf}</Link> dopo il{' '}
+          {eventText(request, resources.data)}.{' '}
+          {request.status === 'FAILED'
+            ? 'Il piano attuale resta in esecuzione.'
+            : 'Approvando uno di questi piani, prende il posto di quello in esecuzione.'}
         </p>
       )}
 
@@ -136,14 +144,7 @@ export function CandidatesPage() {
         </div>
       )}
 
-      {request.status === 'FAILED' && (
-        <Card>
-          <ErrorState error={new Error(request.error ?? 'Errore sconosciuto')} />
-          <p className={styles.muted}>
-            Puoi riprovare da <Link to="/pianifica">Nuova pianificazione</Link>.
-          </p>
-        </Card>
-      )}
+      {request.status === 'FAILED' && <FailureCard request={request} />}
 
       {request.status === 'COMPLETED' && (
         <>
@@ -163,5 +164,42 @@ export function CandidatesPage() {
         </>
       )}
     </>
+  )
+}
+
+/** Perché la richiesta non ha prodotto piani e cosa si può cambiare per riprovare */
+function FailureCard({ request }: { request: PlanRequest }) {
+  const { causes, notes } = failureReasons(request.error)
+  const openEnded = request.event?.type === 'RESOURCE_DOWN' && !request.event.to
+  return (
+    <Card title="Perché non ci sono piani">
+      <ul className={styles.reasons} role="alert">
+        {causes.map((c) => (
+          <li key={c}>{c}</li>
+        ))}
+      </ul>
+      {openEnded && (
+        <p className={styles.muted}>
+          La macchina è ferma fino a nuovo avviso: le attività che possono farle solo lei non
+          trovano posto. Indica quando torna disponibile, oppure aggiungi un’alternativa
+          all’attività nella commessa.
+        </p>
+      )}
+      {notes.length > 0 && <p className={styles.muted}>Inoltre: {notes.join('; ')}.</p>}
+      <p className={styles.muted}>
+        {request.rescheduleOf ? (
+          <Link
+            to={`/piani/${request.rescheduleOf}/ripianifica`}
+            state={{ retry: request.event } satisfies RescheduleRetryState}
+          >
+            Cambia i dati della ripianificazione
+          </Link>
+        ) : (
+          <>
+            Puoi riprovare da <Link to="/pianifica">Nuova pianificazione</Link>.
+          </>
+        )}
+      </p>
+    </Card>
   )
 }

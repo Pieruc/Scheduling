@@ -17,6 +17,7 @@ export function solverLabel(solver: Solver, modelVersion: string | null): string
     const version = modelVersion?.match(/(\d+\.\d+)/)?.[1]
     return version ? `AI (POLICY v${version})` : 'AI (POLICY)'
   }
+  if (solver === 'MANUAL') return 'Modifica del pianificatore'
   return solver === 'CP_SAT' ? 'CP-SAT (riserva)' : `Regola ${solver} (riserva)`
 }
 
