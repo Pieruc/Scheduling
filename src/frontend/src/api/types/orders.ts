@@ -35,6 +35,8 @@ export type Activity = {
   name: string
   requiredSkills: string[]
   modes: ActivityMode[]
+  /** Famiglia per i setup dipendenti dalla sequenza (es. "ACCIAIO"); il form la conserva */
+  setupFamily?: string | null
 }
 
 /** Precedenza fine-inizio: `to` può iniziare solo dopo la fine di `from` (contratti, A.3) */

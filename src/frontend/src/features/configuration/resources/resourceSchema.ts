@@ -11,7 +11,8 @@ export const resourceSchema = z.object({
   name: z.string().trim().min(1, 'Inserisci un nome.'),
   type: z.enum(['MACHINE', 'PERSON', 'ROOM']),
   capacity: z.number({ error: 'Inserisci la capacità.' }).int().min(1, 'Almeno 1.'),
-  skills: z.array(z.string()).min(1, 'Scegli almeno una competenza.'),
+  // Facoltative, come nel backend: una risorsa senza competenze si usa scegliendola nelle attività
+  skills: z.array(z.string()),
   calendarId: z.string().min(1, 'Scegli un calendario.'),
   costPerHour: z.number().min(0, 'Non può essere negativo.').nullable(),
   unavailability: z.array(

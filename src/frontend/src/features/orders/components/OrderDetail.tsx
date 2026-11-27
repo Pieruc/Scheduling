@@ -172,7 +172,8 @@ function GraphWorkspace({ orderId, graph, editable }: GraphWorkspaceProps) {
   const applyActivity = ({ activity, after }: ActivityDraft) => {
     setActivities((list) =>
       list.some((a) => a.id === activity.id)
-        ? list.map((a) => (a.id === activity.id ? activity : a))
+        ? // i campi che il form non mostra (es. setupFamily) restano quelli salvati
+          list.map((a) => (a.id === activity.id ? { ...a, ...activity } : a))
         : [...list, activity],
     )
     let next = precedences.filter((p) => p.to !== activity.id || after.includes(p.from))

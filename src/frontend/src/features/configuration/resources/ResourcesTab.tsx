@@ -1,3 +1,4 @@
+import { useCan } from '@/features/auth/authContext'
 import { Button } from 'primereact/button'
 import { Column } from 'primereact/column'
 import { DataTable } from 'primereact/datatable'
@@ -40,6 +41,8 @@ export function ResourcesTab() {
   const { data: skills = [] } = useSkills()
   const { data: calendars = [] } = useCalendars()
   const [selection, setSelection] = useState<Selection>(null)
+  // Il backend accetta modifiche solo dall'amministratore: gli altri vedono in sola lettura
+  const canWrite = useCan('configWrite')
   const [search, setSearch] = useState('')
 
   const skillName = useMemo(() => new Map(skills.map((s) => [s.code, s.name])), [skills])
@@ -69,10 +72,14 @@ export function ResourcesTab() {
               aria-label="Cerca risorse per codice o nome"
             />
           </IconField>
-          <Button label="Nuova risorsa" icon="pi pi-plus" onClick={() => setSelection('new')} />
+          {canWrite && (
+            <Button label="Nuova risorsa" icon="pi pi-plus" onClick={() => setSelection('new')} />
+          )}
         </div>
 
-        {!formOpen && <p className={styles.hint}>Scegli una riga per modificare la risorsa.</p>}
+        {!formOpen && canWrite && (
+          <p className={styles.hint}>Scegli una riga per modificare la risorsa.</p>
+        )}
         {resources.isPending && <Skeleton height="320px" />}
         {resources.isError && (
           <ErrorState error={resources.error} onRetry={() => resources.refetch()} />
@@ -89,7 +96,9 @@ export function ResourcesTab() {
             breakpoint="768px"
             selectionMode="single"
             selection={selected ?? null}
-            onSelectionChange={(e) => setSelection((e.value as Resource | null)?.id ?? null)}
+            onSelectionChange={(e) =>
+              canWrite && setSelection((e.value as Resource | null)?.id ?? null)
+            }
             metaKeySelection={false}
             rowClassName={(r: Resource) => (r.active ? '' : styles.inactiveRow)}
             emptyMessage="Nessuna risorsa corrisponde alla ricerca."

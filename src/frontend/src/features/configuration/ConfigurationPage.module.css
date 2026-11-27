@@ -27,3 +27,14 @@
   border-color: var(--fs-primary);
   font-weight: 600;
 }
+
+.readOnly {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--fs-track);
+  color: #4b5563;
+}

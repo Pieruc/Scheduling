@@ -1,3 +1,4 @@
+import { useCan } from '@/features/auth/authContext'
 import { Button } from 'primereact/button'
 import { Skeleton } from 'primereact/skeleton'
 import { useState } from 'react'
@@ -17,7 +18,10 @@ export function CalendarsTab() {
   const calendars = useCalendars()
   const resources = useResources()
   // null = niente aperto, 'new' = nuovo calendario, altrimenti l'id
-  const [selection, setSelection] = useState<string | null>(null)
+  const [selection, setSelectionState] = useState<string | null>(null)
+  // Il backend accetta modifiche solo dall'amministratore: gli altri vedono in sola lettura
+  const canWrite = useCan('configWrite')
+  const setSelection = (id: string | null) => canWrite && setSelectionState(id)
 
   const usage = (id: string) => resources.data?.filter((r) => r.calendarId === id).length ?? 0
   const selected = calendars.data?.find((c) => c.id === selection)
@@ -30,7 +34,13 @@ export function CalendarsTab() {
           <p className={shared.hint}>
             Ogni risorsa lavora solo nei turni del suo calendario. Scegli una riga per modificarla.
           </p>
-          <Button label="Nuovo calendario" icon="pi pi-plus" onClick={() => setSelection('new')} />
+          {canWrite && (
+            <Button
+              label="Nuovo calendario"
+              icon="pi pi-plus"
+              onClick={() => setSelection('new')}
+            />
+          )}
         </div>
         {calendars.isPending && <Skeleton height="200px" />}
         {calendars.isError && (
@@ -100,7 +110,7 @@ export function CalendarsTab() {
               calendar={selected}
               usedBy={selected ? usage(selected.id) : 0}
               onSaved={(saved) => setSelection(saved.id)}
-              onCancel={() => setSelection(null)}
+              onCancel={() => setSelectionState(null)}
             />
           </Card>
         </aside>

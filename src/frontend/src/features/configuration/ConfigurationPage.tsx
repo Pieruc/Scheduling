@@ -1,3 +1,4 @@
+import { useCan } from '@/features/auth/authContext'
 import { NavLink, useParams } from 'react-router'
 import { PageHeader } from '@/components/PageHeader'
 import styles from './ConfigurationPage.module.css'
@@ -15,6 +16,7 @@ const CONFIG_TABS = [
 ] as const
 
 export function ConfigurationPage() {
+  const canWrite = useCan('configWrite')
   const { tab } = useParams()
   const current = CONFIG_TABS.find((t) => t.slug === tab) ?? CONFIG_TABS[0]
 
@@ -24,6 +26,12 @@ export function ConfigurationPage() {
         title="Configurazione"
         subtitle="Dati di base usati da ogni pianificazione. Modificabili solo dall’amministratore."
       />
+      {!canWrite && (
+        <p className={styles.readOnly} role="note">
+          <i className="pi pi-lock" aria-hidden="true" /> Sola lettura: solo l’amministratore può
+          modificare questi dati.
+        </p>
+      )}
       <nav className={styles.tabs} aria-label="Sezioni della configurazione">
         {CONFIG_TABS.map((t) => (
           <NavLink

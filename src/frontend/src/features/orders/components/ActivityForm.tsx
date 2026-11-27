@@ -15,7 +15,8 @@ import styles from './orderForm.module.css'
 
 const schema = z.object({
   name: z.string().trim().min(1, 'Inserisci il nome dell’attività.'),
-  requiredSkills: z.array(z.string()).min(1, 'Scegli almeno una competenza.'),
+  // Facoltative: senza competenze l'attività si assegna scegliendo direttamente le risorse
+  requiredSkills: z.array(z.string()),
   modes: z
     .array(
       z

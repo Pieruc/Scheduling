@@ -1,3 +1,4 @@
+import { useCan } from '@/features/auth/authContext'
 import { Button } from 'primereact/button'
 import { Skeleton } from 'primereact/skeleton'
 import { Slider } from 'primereact/slider'
@@ -38,6 +39,7 @@ const pct = new Intl.NumberFormat('it-IT', { style: 'percent', maximumFractionDi
 function ProfileEditor({ profile }: { profile: DomainProfile }) {
   const toast = useToast()
   const save = useSaveProfile()
+  const canWrite = useCan('configWrite')
   const initial = {
     weights: Object.fromEntries(
       OBJECTIVES.map((o) => [o.key, Math.round(profile.defaultObjectiveWeights[o.key] * 100)]),
@@ -111,6 +113,7 @@ function ProfileEditor({ profile }: { profile: DomainProfile }) {
               max={100}
               step={5}
               aria-labelledby={`pw-${o.key}`}
+              disabled={!canWrite}
               className={styles.slider}
             />
             <span className={shared.hint}>{o.hint}</span>
@@ -130,6 +133,7 @@ function ProfileEditor({ profile }: { profile: DomainProfile }) {
             <label key={f} className={styles.feature}>
               <input
                 type="checkbox"
+                disabled={!canWrite}
                 checked={features.includes(f)}
                 onChange={(e) =>
                   setFeatures(e.target.checked ? [...features, f] : features.filter((x) => x !== f))
@@ -141,23 +145,25 @@ function ProfileEditor({ profile }: { profile: DomainProfile }) {
         </div>
       </fieldset>
 
-      <div className={shared.actions}>
-        <Button
-          label="Salva profilo"
-          loading={save.isPending}
-          disabled={!dirty || total === 0}
-          onClick={submit}
-        />
-        <Button
-          label="Annulla modifiche"
-          outlined
-          disabled={!dirty}
-          onClick={() => {
-            setWeights(initial.weights)
-            setFeatures(initial.features)
-          }}
-        />
-      </div>
+      {canWrite && (
+        <div className={shared.actions}>
+          <Button
+            label="Salva profilo"
+            loading={save.isPending}
+            disabled={!dirty || total === 0}
+            onClick={submit}
+          />
+          <Button
+            label="Annulla modifiche"
+            outlined
+            disabled={!dirty}
+            onClick={() => {
+              setWeights(initial.weights)
+              setFeatures(initial.features)
+            }}
+          />
+        </div>
+      )}
     </Card>
   )
 }

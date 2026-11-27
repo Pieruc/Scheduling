@@ -1,3 +1,4 @@
+import { useCan } from '@/features/auth/authContext'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from 'primereact/button'
 import { InputText } from 'primereact/inputtext'
@@ -37,6 +38,7 @@ export function SkillsTab() {
   const skills = useSkills()
   const resources = useResources()
   const create = useCreateSkill()
+  const canWrite = useCan('configWrite')
   const toast = useToast()
   const {
     register,
@@ -73,47 +75,49 @@ export function SkillsTab() {
     resources.data?.filter((r) => r.active && r.skills.includes(code)) ?? []
 
   return (
-    <div className={own.layout}>
-      <Card title="Nuova competenza" className={own.formCard}>
-        <form className={own.form} onSubmit={handleSubmit(onSubmit)} noValidate>
-          <FormField id="skill-name" label="Nome" error={errors.name?.message}>
-            {(aria) => (
-              <InputText
-                {...aria}
-                invalid={aria['aria-invalid']}
-                placeholder="Es. Tornitura"
-                {...register('name', {
-                  // Finché il codice non è stato toccato, lo ricaviamo dal nome
-                  onChange: (e) => {
-                    if (!getFieldState('code').isDirty) {
-                      setValue('code', codeFrom(e.target.value))
-                    }
-                  },
-                })}
-              />
-            )}
-          </FormField>
-          <FormField
-            id="skill-code"
-            label="Codice"
-            hint="Lo usano commesse e risorse: non si può cambiare dopo."
-            error={errors.code?.message}
-          >
-            {(aria) => (
-              <InputText
-                {...aria}
-                invalid={aria['aria-invalid']}
-                className="mono"
-                {...register('code', {
-                  onChange: (e) =>
-                    setValue('code', e.target.value.toUpperCase(), { shouldDirty: true }),
-                })}
-              />
-            )}
-          </FormField>
-          <Button type="submit" label="Aggiungi" icon="pi pi-plus" loading={create.isPending} />
-        </form>
-      </Card>
+    <div className={canWrite ? own.layout : undefined}>
+      {canWrite && (
+        <Card title="Nuova competenza" className={own.formCard}>
+          <form className={own.form} onSubmit={handleSubmit(onSubmit)} noValidate>
+            <FormField id="skill-name" label="Nome" error={errors.name?.message}>
+              {(aria) => (
+                <InputText
+                  {...aria}
+                  invalid={aria['aria-invalid']}
+                  placeholder="Es. Tornitura"
+                  {...register('name', {
+                    // Finché il codice non è stato toccato, lo ricaviamo dal nome
+                    onChange: (e) => {
+                      if (!getFieldState('code').isDirty) {
+                        setValue('code', codeFrom(e.target.value))
+                      }
+                    },
+                  })}
+                />
+              )}
+            </FormField>
+            <FormField
+              id="skill-code"
+              label="Codice"
+              hint="Lo usano commesse e risorse: non si può cambiare dopo."
+              error={errors.code?.message}
+            >
+              {(aria) => (
+                <InputText
+                  {...aria}
+                  invalid={aria['aria-invalid']}
+                  className="mono"
+                  {...register('code', {
+                    onChange: (e) =>
+                      setValue('code', e.target.value.toUpperCase(), { shouldDirty: true }),
+                  })}
+                />
+              )}
+            </FormField>
+            <Button type="submit" label="Aggiungi" icon="pi pi-plus" loading={create.isPending} />
+          </form>
+        </Card>
+      )}
 
       <Card title="Competenze" className={own.listCard}>
         {skills.isPending && <Skeleton height="240px" />}
