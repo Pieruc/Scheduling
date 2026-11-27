@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.11)  25 NOV 2026 17:48
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (TeX Live 2026) (preloaded format=pdflatex 2026.10.29)  27 NOV 2026 09:24
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -1410,27 +1410,17 @@ Package pdftex.def Info: Immagini/gantt.png  used on input line 14.
 [18
 
 ] [19 <./Immagini/gantt.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 109--111
-[]|\OT1/cmr/m/n/10 Planning re-quests with three
+Underfull \hbox (badness 1147) in paragraph at lines 106--110
+\OT1/cmr/m/n/10 V1--V10); au-then-ti-ca-tion with ac-cess
  []
 
 
-Underfull \hbox (badness 5893) in paragraph at lines 109--111
-\OT1/cmr/m/n/10 plans, Gantt view, de-ci-sions,
+Underfull \hbox (badness 4366) in paragraph at lines 111--113
+\OT1/cmr/m/n/10 in-te-gra-tion with the fron-tend;
  []
 
 
-Underfull \hbox (badness 3701) in paragraph at lines 109--111
-\OT1/cmr/m/n/10 reschedul-ing, ex-e-cu-tion, alerts,
- []
-
-
-Underfull \hbox (badness 1824) in paragraph at lines 109--111
-\OT1/cmr/m/n/10 KPIs, au-dit, client of the AI
- []
-
-
-Overfull \hbox (4.48753pt too wide) in paragraph at lines 117--117
+Overfull \hbox (4.48753pt too wide) in paragraph at lines 119--119
 []|\OT1/cmr/m/n/10 Documentation| 
  []
 
@@ -1438,74 +1428,114 @@ Overfull \hbox (4.48753pt too wide) in paragraph at lines 117--117
 Chapter 4.
 [22
 
-] [23]) (./chapters/later/03_requirements.tex [24]
+]
+<Immagini/seq_login.pdf, id=721, 671.6292pt x 789.91106pt>
+File: Immagini/seq_login.pdf Graphic file (type pdf)
+<use Immagini/seq_login.pdf>
+Package pdftex.def Info: Immagini/seq_login.pdf  used on input line 74.
+(pdftex.def)             Requested size: 391.93546pt x 460.95709pt.
+<Immagini/seq_planning.pdf, id=722, 794.97pt x 1037.79712pt>
+File: Immagini/seq_planning.pdf Graphic file (type pdf)
+<use Immagini/seq_planning.pdf>
+Package pdftex.def Info: Immagini/seq_planning.pdf  used on input line 83.
+(pdftex.def)             Requested size: 412.57405pt x 538.59663pt.
+<Immagini/seq_execution.pdf, id=723, 672.59276pt x 1225.69919pt>
+File: Immagini/seq_execution.pdf Graphic file (type pdf)
+<use Immagini/seq_execution.pdf>
+Package pdftex.def Info: Immagini/seq_execution.pdf  used on input line 93.
+(pdftex.def)             Requested size: 325.63237pt x 593.41605pt.
+ [23] [24 <./Immagini/seq_login.pdf>] [25 <./Immagini/seq_planning.pdf>]
+[26 <./Immagini/seq_execution.pdf>]) (./chapters/later/03_requirements.tex
+[27]
 Chapter 5.
-[25
+[28
 
 ]
-Underfull \hbox (badness 2671) in paragraph at lines 115--115
+Underfull \hbox (badness 2671) in paragraph at lines 116--116
 \OT1/cmr/m/n/10 bal-anced, fast) for each re-quest, asyn-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 131--131
+Underfull \hbox (badness 10000) in paragraph at lines 132--132
 []|\OT1/cmr/m/n/10 Planner,
  []
 
 
-ignored: Infinite glue shrinkage found in box being split [26]
+ignored: Infinite glue shrinkage found in box being split [29]
 ignored: Infinite glue shrinkage fo
-und in box being split [27]) (./chapters/05_architecture.tex [28] [29]
+und in box being split [30]) (./chapters/05_architecture.tex [31] [32]
 Chapter 6.
-<Immagini/architecture.png, id=761, 2705.10625pt x 1636.1125pt>
+<Immagini/architecture.png, id=815, 2705.10625pt x 1636.1125pt>
 File: Immagini/architecture.png Graphic file (type png)
 <use Immagini/architecture.png>
 Package pdftex.def Info: Immagini/architecture.png  used on input line 33.
 (pdftex.def)             Requested size: 412.56497pt x 249.52551pt.
-[30
+[33
 
-] [31 <./Immagini/architecture.png>] [32] [33]
-<Immagini/er.png, id=789, 1573.88pt x 803.0pt>
-File: Immagini/er.png Graphic file (type png)
-<use Immagini/er.png>
-Package pdftex.def Info: Immagini/er.png  used on input line 186.
-(pdftex.def)             Requested size: 412.56497pt x 210.49046pt.
+] [34 <./Immagini/architecture.png>] [35] [36]
+<Immagini/er.pdf, id=842, 1088.065pt x 754.82pt>
+File: Immagini/er.pdf Graphic file (type pdf)
+<use Immagini/er.pdf>
+Package pdftex.def Info: Immagini/er.pdf  used on input line 188.
+(pdftex.def)             Requested size: 1088.06236pt x 754.81818pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 206--206
+Underfull \hbox (badness 10000) in paragraph at lines 210--210
 []|\OT1/cmr/m/n/10 B -- Op-ti-mi-sa-tion
  []
 
-[34 <./Immagini/er.png (PNG copy)>]) (./chapters/later/05b_functionalities.tex
-[35]
+[37] [38 <./Immagini/er.pdf>]) (./chapters/later/05b_functionalities.tex
+[39]
 Chapter 7.
-[36
+[40
 
 ]
 Overfull \hbox (4.08269pt too wide) in paragraph at lines 51--71
  [][] 
  []
 
-[37] [38]) (./chapters/later/05_ai_module.tex [39]
+[41] [42]) (./chapters/later/05_ai_module.tex [43]
 Chapter 8.
-[40
+[44
 
-] [41]
+] [45]
 Underfull \vbox (badness 1496) has occurred while \output is active []
 
- [42]
-[43] [44] [45] [46]) (./chapters/later/06_implementation.tex [47]
+ [46]
+[47] [48] [49] [50]) (./chapters/later/06_implementation.tex [51]
 Chapter 9.
-[48
+[52
 
-] [49] [50] [51]) (./chapters/later/07_evaluation.tex [52] [53]
+] [53]
+<Immagini/domain.pdf, id=994, 1001.7425pt x 808.01875pt>
+File: Immagini/domain.pdf Graphic file (type pdf)
+<use Immagini/domain.pdf>
+Package pdftex.def Info: Immagini/domain.pdf  used on input line 107.
+(pdftex.def)             Requested size: 1001.74005pt x 808.01678pt.
+
+Underfull \hbox (badness 1953) in paragraph at lines 111--111
+\OT1/cmr/m/n/10.95 own-er-ship: delet-ing the owner deletes the owned ob-jects.
+ Gen-er-ated from
+ []
+
+[54] [55 <./Immagini/domain.pdf>] [56] [57]
+Underfull \hbox (badness 10000) in paragraph at lines 303--303
+[]|\OT1/pcr/m/n/10 GraphValidatorTest\OT1/cmr/m/n/10 ,
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 303--303
+\OT1/pcr/m/n/10 ShiftSummarizerTest\OT1/cmr/m/n/10 ,
+ []
+
+[58] [59] [60] [61]) (./chapters/later/07_evaluation.tex [62]
 Chapter 10.
-[54
+[63
 
-] [55]) (./chapters/later/09_user_guide.tex [56]
+] [64]) (./chapters/later/09_user_guide.tex [65]
 Chapter 11.
-[57
+[66
 
-] [58]) (./chapters/later/10_developer_guide.tex [59]
+] [67]) (./chapters/later/10_developer_guide.tex [68]
 Chapter 12.
 
 Underfull \hbox (badness 10000) in paragraph at lines 33--34
@@ -1518,94 +1548,107 @@ Underfull \hbox (badness 10000) in paragraph at lines 37--37
 /m/n/10 ,
  []
 
-[60
+[69
 
 ]
 LaTeX Font Info:    Trying to load font information for TS1+pcr on input line 7
 5.
  (/usr/local/texlive/2026/texmf-dist/tex/latex/psnfss/ts1pcr.fd
 File: ts1pcr.fd 2001/06/04 font definitions for TS1/pcr.
-) [61]
+) [70]
 LaTeX Font Info:    Trying to load font information for OMS+pcr on input line 1
-10.
+20.
 
 (/usr/local/texlive/2026/texmf-dist/tex/latex/psnfss/omspcr.fd
 File: omspcr.fd 
 )
 LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 110.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 120.
 
-Underfull \hbox (badness 10000) in paragraph at lines 145--150
+Underfull \hbox (badness 3503) in paragraph at lines 120--124
+\OT1/cmr/m/n/10.95 quest is no longer pend-ing, then shows the three plans; the
+ Gantt
+ []
+
+
+Underfull \hbox (badness 3679) in paragraph at lines 120--124
+\OT1/cmr/m/n/10.95 chart reads \OT1/pcr/m/n/10.95 GET /plans/\OMS/cmsy/m/n/10.9
+5 f\OT1/pcr/m/n/10.95 id\OMS/cmsy/m/n/10.95 g\OT1/pcr/m/n/10.95 /gantt\OT1/cmr/
+m/n/10.95 , and a de-ci-sion goes to \OT1/pcr/m/n/10.95 POST
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 156--161
 []\OT1/cmr/m/n/10.95 One pack-age per mod-ule un-der \OT1/pcr/m/n/10.95 it.unic
 am.flowsync \OT1/cmr/m/n/10.95 (\OT1/pcr/m/n/10.95 security\OT1/cmr/m/n/10.95 ,
 
  []
 
 
-Underfull \hbox (badness 1436) in paragraph at lines 145--150
+Underfull \hbox (badness 1436) in paragraph at lines 156--161
 \OT1/pcr/m/n/10.95 configuration\OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 orders\
 OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 planning\OT1/cmr/m/n/10.95 , \OT1/pcr/m/
 n/10.95 execution\OT1/cmr/m/n/10.95 , \OT1/pcr/m/n/10.95 audit\OT1/cmr/m/n/10.9
 5 ), each with
  []
 
-[62]
-Underfull \hbox (badness 10000) in paragraph at lines 170--174
+[71]
+Underfull \hbox (badness 10000) in paragraph at lines 188--192
 []\OT1/pcr/m/n/10.95 dispatcher.py\OT1/cmr/m/n/10.95 : the sim-u-la-tor, with \
 OT1/pcr/m/n/10.95 candidates() \OT1/cmr/m/n/10.95 and
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 170--174
+Underfull \hbox (badness 10000) in paragraph at lines 188--192
 \OT1/pcr/m/n/10.95 apply(candidate)\OT1/cmr/m/n/10.95 ; a \OT1/cmr/m/it/10.95 r
 ule \OT1/cmr/m/n/10.95 is any func-tion \OT1/pcr/m/n/10.95 (Dispatcher,
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 170--174
+Underfull \hbox (badness 10000) in paragraph at lines 188--192
 \OT1/pcr/m/n/10.95 list[Candidate]) -> Candidate\OT1/cmr/m/n/10.95 , and \OT1/p
 cr/m/n/10.95 run(instance, rule,
  []
 
 
-Underfull \hbox (badness 5359) in paragraph at lines 174--176
+Underfull \hbox (badness 5359) in paragraph at lines 192--194
 []\OT1/pcr/m/n/10.95 rules.py \OT1/cmr/m/n/10.95 (EDD, ATC), \OT1/pcr/m/n/10.95
  checker.py \OT1/cmr/m/n/10.95 (in-de-pen-dent fea-si-bil-ity check),
  []
 
 
-Underfull \hbox (badness 1502) in paragraph at lines 176--178
+Underfull \hbox (badness 1502) in paragraph at lines 194--196
 []\OT1/pcr/m/n/10.95 teacher.py \OT1/cmr/m/n/10.95 (CP-SAT), \OT1/pcr/m/n/10.95
  features.py \OT1/cmr/m/n/10.95 (fea-tures of the can-di-dates) and
  []
 
-[63]
-Underfull \hbox (badness 2080) in paragraph at lines 217--223
+[72]
+Underfull \hbox (badness 2080) in paragraph at lines 235--241
 []\OT1/cmr/m/n/10.95 Frontend: type in \OT1/pcr/m/n/10.95 api/types/\OT1/cmr/m/
 n/10.95 , func-tion in \OT1/pcr/m/n/10.95 api/<area>.ts\OT1/cmr/m/n/10.95 , key
  in
  []
 
 
-Underfull \hbox (badness 4492) in paragraph at lines 217--223
+Underfull \hbox (badness 4492) in paragraph at lines 235--241
 \OT1/pcr/m/n/10.95 queryKeys.ts\OT1/cmr/m/n/10.95 , hook in \OT1/pcr/m/n/10.95 
 features/<area>/hooks.ts\OT1/cmr/m/n/10.95 , the page in
  []
 
-[64]) [65]
+[73]) [74]
 Overfull \hbox (4.75151pt too wide) in paragraph at lines 134--134
 []\OT1/cmr/m/n/10.95 Laurent Per-ron, Fr^^Sed^^Seric Di-dier, and Steven Gay. \
   The CP-SAT-LP Solver".
  []
 
-[66
+[75
 
 ]
 No file tesi.ind.
-[67]
+[76]
 \openout2 = `chapters/acknowledgements.aux'.
 
- (./chapters/acknowledgements.tex) [68
+ (./chapters/acknowledgements.tex) [77
 
 
 ] (./tesi.aux
@@ -1645,10 +1688,10 @@ Package logreq Info: Writing requests to 'tesi.run.xml'.
 (\end occurred when \ifnum on line 1 was incomplete)
 (\end occurred when \iffalse on line 1 was incomplete) 
 Here is how much of TeX's memory you used:
- 36662 strings out of 467525
- 675949 string characters out of 5418981
- 1501988 words of memory out of 5000000
- 64686 multiletter control sequences out of 15000+600000
+ 36731 strings out of 467525
+ 677484 string characters out of 5418981
+ 1526493 words of memory out of 5000000
+ 64726 multiletter control sequences out of 15000+600000
  641497 words of font info for 92 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,12n,104p,1903b,2329s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -1670,10 +1713,10 @@ public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/p
 ublic/cm-super/sfrm1095.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw
 /courier/ucrb8a.pfb></usr/local/texlive/2026/texmf-dist/fonts/type1/urw/courier
 /ucrr8a.pfb>
-Output written on tesi.pdf (68 pages, 933891 bytes).
+Output written on tesi.pdf (77 pages, 987819 bytes).
 PDF statistics:
- 1268 PDF objects out of 1440 (max. 8388607)
- 1146 compressed objects within 12 object streams
- 312 named destinations out of 1000 (max. 500000)
- 809 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 1413 PDF objects out of 1440 (max. 8388607)
+ 1261 compressed objects within 13 object streams
+ 341 named destinations out of 1000 (max. 500000)
+ 829 words of extra memory for PDF output out of 10000 (max. 10000000)
 
