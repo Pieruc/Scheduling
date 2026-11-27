@@ -13,6 +13,7 @@ import { Card } from '@/components/Card'
 import { ErrorState } from '@/components/ErrorState'
 import { FormField } from '@/components/FormField'
 import { useOrders } from '@/features/orders/hooks'
+import { useNow } from '@/lib/useNow'
 import { useCreatePlanRequest } from '../hooks'
 import styles from './planning.module.css'
 
@@ -36,6 +37,14 @@ type InterpretationFormProps = {
   onUnansweredChange: (count: number) => void
 }
 
+const dueText = new Intl.DateTimeFormat('it-IT', {
+  weekday: 'short',
+  day: 'numeric',
+  month: 'short',
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
 export function InterpretationForm({
   text,
   interpretation,
@@ -51,6 +60,7 @@ export function InterpretationForm({
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors },
   } = useForm<Values>({
     defaultValues: {
@@ -65,6 +75,31 @@ export function InterpretationForm({
   const answers = useWatch({ control, name: 'answers' })
   const unanswered = Object.values(answers ?? {}).filter((v) => !v).length
   useEffect(() => onUnansweredChange(unanswered), [unanswered, onUnansweredChange])
+
+  // Scadenze che cadono prima dell'inizio del periodo: con questi dati il piano sarebbe in ritardo
+  const [horizon, chosen] = useWatch({ control, name: ['horizon', 'orderIds'] })
+  const start = horizon?.[0] ?? null
+  const now = useNow(60_000)
+  const dueOf = (id: string): Date | null => {
+    // La risposta a "quando va consegnata?" vale più della scadenza (mancante) della commessa
+    const q = interpretation.missingData.find((m) => m.kind === 'DUE_DATE' && m.orderId === id)
+    const answered = q ? answers?.[q.id] : null
+    if (answered instanceof Date) return answered
+    const due = orders.find((o) => o.id === id)?.dueDate
+    return due ? new Date(due) : null
+  }
+  const early = start
+    ? (chosen ?? []).flatMap((id) => {
+        const due = dueOf(id)
+        return due && due < start ? [{ id, due }] : []
+      })
+    : []
+  const canStartToday = early.some((e) => e.due.getTime() > now)
+  const startToday = () => {
+    // Da adesso, arrotondato al quarto d'ora successivo; la fine del periodo resta quella scelta
+    const from = new Date(Math.ceil(now / 900_000) * 900_000)
+    setValue('horizon', [from, horizon?.[1] ?? null], { shouldDirty: true })
+  }
 
   const onSubmit = (values: Values) => {
     const [start, end] = values.horizon
@@ -126,6 +161,28 @@ export function InterpretationForm({
             />
           )}
         </FormField>
+
+        {early.length > 0 && (
+          <div className={styles.dueWarning} role="alert">
+            <p>
+              <i className="pi pi-exclamation-triangle" aria-hidden="true" />{' '}
+              {early.map((e) => `${e.id} scade ${dueText.format(e.due)}`).join(', ')}:{' '}
+              {early.length === 1 ? 'è' : 'sono'} prima dell’inizio del periodo, quindi il piano
+              {early.length === 1 ? ' la consegnerebbe' : ' le consegnerebbe'} in ritardo.
+            </p>
+            {canStartToday ? (
+              <Button
+                type="button"
+                label="Fai partire il periodo da adesso"
+                size="small"
+                outlined
+                onClick={startToday}
+              />
+            ) : (
+              <p>La scadenza è già passata: cambiala nella commessa o accetta il ritardo.</p>
+            )}
+          </div>
+        )}
 
         <FormField id="plan-orders" label="Commesse" error={errors.orderIds?.message}>
           {(aria) => (

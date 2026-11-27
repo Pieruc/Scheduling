@@ -48,6 +48,23 @@
   color: var(--fs-warning-text);
 }
 
+/* Scadenze prima dell'inizio del periodo */
+.dueWarning {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin: -4px 0 16px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--fs-warning-soft);
+  color: var(--fs-warning-text);
+  font-size: 13px;
+}
+
+.dueWarning p {
+  margin: 0;
+}
+
 /* Vincoli e preferenze */
 .facts {
   display: grid;
